@@ -4,6 +4,8 @@ import mongoose from 'mongoose';
 import mySql from 'mysql';
 import dotenv from 'dotenv';
 
+import AllTest from '../test/all.test';
+
 const log = require('./log4js.config');
 const contact = require('../apis/contact/contactUs.controller');
 const doctor = require('../apis/doctor/doctorDetails.controller');
@@ -18,6 +20,7 @@ class Config {
         this.mysql = mySql;
         this.dotenv = dotenv;
         this.dotenv.config({ path: '.env.dev' });
+        this.allTest = new AllTest();
     }
 
     configureApp() {
@@ -39,7 +42,7 @@ class Config {
         log.info("Connection established successfully for MongoDB");
 
         // configuring mysql
-        const connection = this.mysql.createConnection({
+        /*const connection = this.mysql.createConnection({
             host: process.env.MYSQL_HOST,
             user: process.env.MYSQL_USER,
             password: process.env.MYSQL_PASSWORD,
@@ -53,7 +56,9 @@ class Config {
                 throw err;
             }
             log.info('Connection established successfully for MySQL');
-        });
+        });*/
+
+        this.allTest.runTest();
     }
 
     configureCORS() {
