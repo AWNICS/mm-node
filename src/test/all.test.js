@@ -1,4 +1,4 @@
-import UserDaoTest from './user.test';
+/*import UserDaoTest from './user.test';
 
 class AllTest {
     constructor() {
@@ -6,8 +6,8 @@ class AllTest {
     }
 
     runTest() {
-        this.userTest.testAll();
+        //this.userTest.testAll();
     }
 }
 
-export default AllTest;
+export default AllTest;*/

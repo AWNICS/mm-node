@@ -1,11 +1,12 @@
-var db = require('../../util/conn.mysql');
+//import Db from '../../util/conn.mysql';
 
 /*
     DAO for user api
 */
-class UserDao {
+/*class UserDao {
     constructor() {
-        this.connection = db.getConnection();
+        this.db = new Db();
+        this.connection = this.db.getConnection();
     }
 
     //create user
@@ -39,18 +40,18 @@ class UserDao {
     /*
         update user
     */
-    updateUser(req, res, next) {
-        var updateRecord = 'UPDATE user SET name = "joe" WHERE name="Nisha"';
-        this.connection.query(updateRecord, function(err, result) {
-            if (err) throw err;
-            console.log('updated');
-        });
-    }
+/*updateUser(req, res, next) {
+    var updateRecord = 'UPDATE user SET name = "joe" WHERE name="Nisha"';
+    this.connection.query(updateRecord, function(err, result) {
+        if (err) throw err;
+        console.log('updated');
+    });
+}
 
-    /*
-        delete user
-    */
-    deleteUser(req, res, next) {
+/*
+    delete user
+*/
+/*deleteUser(req, res, next) {
         var deleteRecord = 'DELETE FROM user WHERE name="joe"';
         this.connection.query(deleteRecord, function(err, result) {
             if (err) throw err;
@@ -59,4 +60,4 @@ class UserDao {
     }
 }
 
-export default UserDao;
+export default UserDao;*/

@@ -1,6 +1,6 @@
-import UserDao from '../apis/user/user.dao';
+//import UserDao from '../apis/user/user.dao';
 //import User from '../apis/user/user.model';
-
+/*
 var User = require('../apis/user/user.model');
 var sequelize = require('../util/conn.mysql');
 const Sequelize = require('sequelize');
@@ -107,4 +107,4 @@ class UserDaoTest {
     }
 }
 
-export default UserDaoTest;
+export default UserDaoTest;*/

@@ -12,7 +12,7 @@
         "warn-filter": { "type": "logLevelFilter", "appender": "warn", "level": "warn", "maxLevel": "warn" }
     },
     "categories": {
-        "default": { "appenders": ["out", "default"], "level": "info" },
+        "default": { "appenders": ["out", "default", "debug-filter", "result-filter", "debug-filter", "error-filter", "warn-filter"], "level": "trace" },
         "debug": { "appenders": ["debug", "debug-filter"], "level": "debug" },
         "result": { "appenders": ["result-filter", "debug-filter", "error-filter", "warn-filter"], "level": "debug" },
         "error": { "appenders": ["error", "error-filter"], "level": "error" },

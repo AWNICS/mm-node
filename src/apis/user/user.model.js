@@ -1,4 +1,5 @@
-var db = require('../../util/conn.mysql');
+/*import Db from '../../util/conn.mysql';
+const db = new Db();
 
 const Sequelize = require('sequelize');
 var sequelize = db.getConnection();
@@ -17,6 +18,7 @@ var sequelize = db.getConnection();
         this.rating = 0;
         this.lastUpdateTime = Date.now();
 */
+/*
 const User = sequelize.define('user', {
     name: {
         type: Sequelize.STRING
@@ -50,4 +52,4 @@ const User = sequelize.define('user', {
 //}
 //}
 
-module.exports = User;
+module.exports = User;*/

@@ -1,10 +1,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import mongoose from 'mongoose';
-import mySql from 'mysql';
 import dotenv from 'dotenv';
-
-import AllTest from '../test/all.test';
+import MongoConfig from '../util/conn.mongo';
+import MySql from '../util/conn.mysql';
 
 const log = require('./log4js.config');
 const contact = require('../apis/contact/contactUs.controller');
@@ -16,49 +14,18 @@ const swaggerSpec = require('./swagger.config');
 class Config {
     constructor() {
         this.app = express();
-        this.mongoose = mongoose;
-        this.mysql = mySql;
         this.dotenv = dotenv;
         this.dotenv.config({ path: '.env.dev' });
-        this.allTest = new AllTest();
+        this.mongo = new MongoConfig();
+        this.mysql = new MySql();
     }
 
     configureApp() {
         this.app.set('port', (process.env.PORT));
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
-
-        //Set up default mongoose connection
-        this.mongoose.Promise = global.Promise;
-        this.mongoose.connect(process.env.MONGODB_URI, {
-            useMongoClient: true
-        });
-        //Bind connection to error event (to get notification of connection errors)
-        this.mongoose.connection.on('error', (err) => {
-            if (err) throw err;
-            log.error("Something went wrong with MongoDB connection: ", err);
-            process.exit();
-        });
-        log.info("Connection established successfully for MongoDB");
-
-        // configuring mysql
-        /*const connection = this.mysql.createConnection({
-            host: process.env.MYSQL_HOST,
-            user: process.env.MYSQL_USER,
-            password: process.env.MYSQL_PASSWORD,
-            database: process.env.MYSQL_DB
-        });
-
-        // connecting to mysqldb
-        connection.connect((err) => {
-            if (err) {
-                this.log.error("Something went wrong with MySql connection: ", err);
-                throw err;
-            }
-            log.info('Connection established successfully for MySQL');
-        });*/
-
-        this.allTest.runTest();
+        this.mongo.connect();
+        this.mysql.getConnection();
     }
 
     configureCORS() {
