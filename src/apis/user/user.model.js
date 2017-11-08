@@ -3,19 +3,8 @@ var db = require('../../util/conn.mysql');
 const Sequelize = require('sequelize');
 var sequelize = db.getConnection();
 
-//class User {
-//constructor() {
 /*
-        this.id = 0;
-        this.name = '';
-        this.email = '';
-        this.phoneNo = 0;
-        this.picUrl = '';
-        this.briefDescription.description = '';
-        this.status = '';
-        this.waitingTime = 0;
-        this.rating = 0;
-        this.lastUpdateTime = Date.now();
+    User model and user table mapping using sequelize ORM
 */
 const User = sequelize.define('user', {
     name: {
@@ -47,7 +36,5 @@ const User = sequelize.define('user', {
     }
 
 });
-//}
-//}
 
 module.exports = User;

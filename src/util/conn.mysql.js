@@ -9,14 +9,17 @@ module.exports = {
         getting the sequelize connection
     */
     getConnection: () => {
-        //implemetation of sequelize
         const Sequelize = require('sequelize');
         const sequelize = new Sequelize('test', 'arun', 'password', {
             host: 'localhost',
             dialect: 'mysql',
+            operatorsAliases: false
         });
 
-        //connection test
+        /*
+            connection test
+        */
+        /*
         sequelize
             .authenticate()
             .then(() => {
@@ -25,24 +28,7 @@ module.exports = {
             .catch(err => {
                 console.error('Unable to connect to the database:', err);
             });
-
-
-        /*var dbname = 'test';
-        if (connection)
-            return connection;
-        else {
-            connection = mysql.createConnection({
-                host: 'localhost',
-                user: 'root',
-                password: '',
-                database: dbname
-            });
-
-            connection.connect((err) => {
-                if (err) throw err;
-                console.log('Connected');
-            });
-        }*/
+        */
         return sequelize;
     }
 };
