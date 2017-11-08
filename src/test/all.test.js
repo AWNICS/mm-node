@@ -6,7 +6,7 @@ class AllTest {
     }
 
     runTest() {
-        this.userTest.testAll();
+        //this.userTest.testAll();
     }
 }
 

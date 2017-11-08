@@ -1,9 +1,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import mongoose from 'mongoose';
-import mySql from 'mysql';
 import dotenv from 'dotenv';
-
+import MongoConfig from '../util/conn.mongo';
+import MySql from '../util/conn.mysql';
 import AllTest from '../test/all.test';
 import UserDao from '../apis/user/user.dao';
 
@@ -17,10 +16,10 @@ const swaggerSpec = require('./swagger.config');
 class Config {
     constructor() {
         this.app = express();
-        this.mongoose = mongoose;
-        this.mysql = mySql;
         this.dotenv = dotenv;
         this.dotenv.config({ path: '.env.dev' });
+        this.mongo = new MongoConfig();
+        this.mysql = new MySql();
         this.allTest = new AllTest();
         this.userDao = new UserDao();
     }
@@ -29,20 +28,8 @@ class Config {
         this.app.set('port', (process.env.PORT));
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
-
-        //Set up default mongoose connection
-        this.mongoose.Promise = global.Promise;
-        this.mongoose.connect(process.env.MONGODB_URI, {
-            useMongoClient: true
-        });
-        //Bind connection to error event (to get notification of connection errors)
-        this.mongoose.connection.on('error', (err) => {
-            if (err) throw err;
-            log.error("Something went wrong with MongoDB connection: ", err);
-            process.exit();
-        });
-        log.info("Connection established successfully for MongoDB");
-
+        this.mongo.connect();
+        this.mysql.getConnection();
         this.allTest.runTest();
     }
 

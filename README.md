@@ -17,5 +17,27 @@ npm install
 npm start
 ```
 
+## Configuration
+
+```
+# configuring env
+mm-node/.env.dev
+
+# configuring MySql
+mm-node/src/util/conn.mysql.js
+
+# configuring MongoDB
+mm-node/src/util/conn.mysql.js
+
+# configuring app
+mm-node/src/config/app.config.js
+
+# configuring log4js
+mm-node/src/config/log4js.json & mm-node/src/config/log4js.config.js
+
+# configuring swagger
+mm-node/src/config/swagger.config.js
+```
+
 ## License
 MIT
