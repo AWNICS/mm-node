@@ -1,4 +1,4 @@
-/*import UserDaoTest from './user.test';
+import UserDaoTest from './user.test';
 
 class AllTest {
     constructor() {
@@ -10,4 +10,4 @@ class AllTest {
     }
 }
 
-export default AllTest;*/
+export default AllTest;

@@ -12,23 +12,26 @@ class MySqlConfig {
             getting the sequelize connection
         */
     getConnection() {
-        //implemetation of sequelize
         const Sequelize = require('sequelize');
         const sequelize = new Sequelize('test', 'arun', '', {
             host: 'localhost',
             dialect: 'mysql',
+            operatorsAliases: false
         })
 
-        //connection test/
-        //sequelize
+        /*
+            connection test
+        */
+
         .authenticate()
             .then(() => {
                 log.info('Connection has been established successfully for MySql.');
             })
-            .catch((err) => {
-                log.error('Unable to connect to MySql database ', err);
-            });
-        //return sequelize;
+
+        .catch((err) => {
+            log.error('Unable to connect to MySql database ', err);
+        });
+        return sequelize;
     }
 }
 

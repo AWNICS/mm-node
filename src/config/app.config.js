@@ -3,6 +3,8 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import MongoConfig from '../util/conn.mongo';
 import MySql from '../util/conn.mysql';
+import AllTest from '../test/all.test';
+import UserDao from '../apis/user/user.dao';
 
 const log = require('./log4js.config');
 const contact = require('../apis/contact/contactUs.controller');
@@ -18,6 +20,8 @@ class Config {
         this.dotenv.config({ path: '.env.dev' });
         this.mongo = new MongoConfig();
         this.mysql = new MySql();
+        this.allTest = new AllTest();
+        this.userDao = new UserDao();
     }
 
     configureApp() {
@@ -26,6 +30,7 @@ class Config {
         this.app.use(bodyParser.urlencoded({ extended: true }));
         this.mongo.connect();
         this.mysql.getConnection();
+        this.allTest.runTest();
     }
 
     configureCORS() {
