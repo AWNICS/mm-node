@@ -5,6 +5,7 @@ import mySql from 'mysql';
 import dotenv from 'dotenv';
 
 import AllTest from '../test/all.test';
+import UserDao from '../apis/user/user.dao';
 
 const log = require('./log4js.config');
 const contact = require('../apis/contact/contactUs.controller');
@@ -21,6 +22,7 @@ class Config {
         this.dotenv = dotenv;
         this.dotenv.config({ path: '.env.dev' });
         this.allTest = new AllTest();
+        this.userDao = new UserDao();
     }
 
     configureApp() {
@@ -40,23 +42,6 @@ class Config {
             process.exit();
         });
         log.info("Connection established successfully for MongoDB");
-
-        // configuring mysql
-        /*const connection = this.mysql.createConnection({
-            host: process.env.MYSQL_HOST,
-            user: process.env.MYSQL_USER,
-            password: process.env.MYSQL_PASSWORD,
-            database: process.env.MYSQL_DB
-        });
-
-        // connecting to mysqldb
-        connection.connect((err) => {
-            if (err) {
-                this.log.error("Something went wrong with MySql connection: ", err);
-                throw err;
-            }
-            log.info('Connection established successfully for MySQL');
-        });*/
 
         this.allTest.runTest();
     }

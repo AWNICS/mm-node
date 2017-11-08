@@ -1,61 +1,66 @@
-var db = require('../../util/conn.mysql');
+var User = require('./user.model');
 
 /*
     DAO for user api
 */
 class UserDao {
-    constructor() {
-        this.connection = db.getConnection();
-    }
+    constructor() {}
 
-    //create user
-    createUser(req, res, next) {
-        var sql = "CREATE TABLE user1(id int, name VARCHAR(255), email VARCHAR(255), phoneNo int)";
-        this.connection.query(sql, function(err, result) {
-            if (err) throw err;
-            console.log("user table created");
+    /*
+        insert method
+    */
+    insert(user) {
+        var pk;
+        // force: true will drop the table if it already exists
+        User.create(user).then(function(user) {
+            console.log('Entry successful from dao: ' + JSON.stringify(user));
+            //return generated pk
+            pk = user.id;
+            console.log('ID: ' + pk);
         });
-    }
-
-    //insert user
-    insertUser(req, res, next) {
-        var insertRecord = 'INSERT INTO user1 VALUES(2, "jhon", "jhon@gmail.com", 907987)';
-        this.connection.query(insertRecord, (err, rows) => {
-            if (err) throw err;
-            console.log(rows);
-        });
-    }
-
-    //read user
-    readUser(req, res, next) {
-        var readTable = 'SELECT * FROM user1';
-        this.connection.query(readTable, (err, rows) => {
-            if (err) throw err;
-            console.log('Data received from user:\n');
-            console.log(rows);
-        });
+        return pk;
     }
 
     /*
-        update user
+        read method
     */
-    updateUser(req, res, next) {
-        var updateRecord = 'UPDATE user SET name = "joe" WHERE name="Nisha"';
-        this.connection.query(updateRecord, function(err, result) {
-            if (err) throw err;
-            console.log('updated');
+    readAll() {
+        User.findAll().then(user => {
+            console.log('data from read' + JSON.stringify(user));
+        })
+    }
+
+    readById(user) {
+        User.findById(user.id).then(user => {
+            console.log('data from read' + JSON.stringify(user));
         });
+        return user;
     }
 
     /*
-        delete user
+        Delete method
     */
-    deleteUser(req, res, next) {
-        var deleteRecord = 'DELETE FROM user WHERE name="joe"';
-        this.connection.query(deleteRecord, function(err, result) {
-            if (err) throw err;
-            console.log('delete rows');
+    deleteById(id) {
+        User.destroy({
+            where: {
+                id: id
+            }
         });
+        console.log('entry deleted');
+    }
+
+    /*
+        Update
+    */
+    update(id) {
+        User.update({
+            name: 'nilu'
+        }, {
+            where: {
+                id: id
+            }
+        });
+        console.log('data Updated');
     }
 }
 
