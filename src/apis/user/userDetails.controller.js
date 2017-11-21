@@ -5,7 +5,7 @@ var user = require('./userDetails.dao');
 
 /**
  * @swagger
- * definition:
+ * definitions:
  *   User:
  *     properties:
  *       id:
@@ -45,7 +45,7 @@ var user = require('./userDetails.dao');
  *       200:
  *         description: An array of user
  *         schema:
- *           $ref: '#/definitions/User'
+ *           $ref: '#/definitionss/User'
  */
 router.get('/controllers/getUserDetails', user.getAllUserDetails);
 
@@ -64,7 +64,7 @@ router.get('/controllers/getUserDetails', user.getAllUserDetails);
  *         in: body
  *         required: true
  *         schema:
- *           $ref: '#/definitions/User'
+ *           $ref: '#/definitionss/User'
  *     responses:
  *       200:
  *         description: Successfully created
@@ -95,7 +95,7 @@ router.post('/controllers/postUserDetails', user.createUserDetails);
  *         in: body
  *         required: true
  *         schema:
- *           $ref: '#/definitions/User'
+ *           $ref: '#/definitionss/User'
  *     responses:
  *       200:
  *         description: Successfully updated

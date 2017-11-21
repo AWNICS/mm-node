@@ -5,7 +5,7 @@ var doctor = require('./doctorDetails.dao');
 
 /**
  * @swagger
- * definition:
+ * definitions:
  *   Doctor:
  *     properties:
  *       id:
@@ -60,7 +60,7 @@ var doctor = require('./doctorDetails.dao');
  *       200:
  *         description: An array of doctors
  *         schema:
- *           $ref: '#/definitions/Doctor'
+ *           $ref: '#/definitionss/Doctor'
  */
 router.get('/controllers/getDoctorDetails', doctor.getAllDoctorDetails);
 
@@ -79,7 +79,7 @@ router.get('/controllers/getDoctorDetails', doctor.getAllDoctorDetails);
  *         in: body
  *         required: true
  *         schema:
- *           $ref: '#/definitions/Doctor'
+ *           $ref: '#/definitionss/Doctor'
  *     responses:
  *       200:
  *         description: Successfully created
@@ -110,7 +110,7 @@ router.post('/controllers/postDoctorDetails', doctor.createDoctorDetails);
  *         in: body
  *         required: true
  *         schema:
- *           $ref: '#/definitions/Doctor'
+ *           $ref: '#/definitionss/Doctor'
  *     responses:
  *       200:
  *         description: Successfully updated

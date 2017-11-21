@@ -10,7 +10,7 @@ var contact = require('./contactUs.dao');
 
 /**
  * @swagger
- * definition:
+ * definitions:
  *   Contact:
  *     properties:
  *       id:
@@ -67,7 +67,7 @@ var contact = require('./contactUs.dao');
  *       200:
  *         description: An array of contact
  *         schema:
- *           $ref: '#/definitions/Contact'
+ *           $ref: '#/definitionss/Contact'
  */
 router.get('/controllers/getContactUs', contact.getAllContacts);
 
@@ -86,7 +86,7 @@ router.get('/controllers/getContactUs', contact.getAllContacts);
  *         in: body
  *         required: true
  *         schema:
- *           $ref: '#/definitions/Contact'
+ *           $ref: '#/definitionss/Contact'
  *     responses:
  *       200:
  *         description: Successfully created
@@ -117,7 +117,7 @@ router.post('/controllers/postContactUs', contact.createContact);
  *         in: body
  *         required: true
  *         schema:
- *           $ref: '#/definitions/Contact'
+ *           $ref: '#/definitionss/Contact'
  *     responses:
  *       200:
  *         description: Successfully updated

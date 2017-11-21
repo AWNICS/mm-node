@@ -5,7 +5,7 @@ var message = require('./message.dao');
 
 /**
  * @swagger
- * definition:
+ * definitions:
  *   Message:
  *     properties:
  *       id:
@@ -52,7 +52,7 @@ var message = require('./message.dao');
  *       200:
  *         description: An array of messages
  *         schema:
- *           $ref: '#/definitions/Message'
+ *           $ref: '#/definitionss/Message'
  */
 router.get('/controllers/getMessage', message.getAllMessages);
 
@@ -71,7 +71,7 @@ router.get('/controllers/getMessage', message.getAllMessages);
  *         in: body
  *         required: true
  *         schema:
- *           $ref: '#/definitions/Message'
+ *           $ref: '#/definitionss/Message'
  *     responses:
  *       200:
  *         description: Successfully created
@@ -101,7 +101,7 @@ router.post('/controllers/postMessage', message.createMessage);
  *         in: body
  *         required: true
  *         schema:
- *           $ref: '#/definitions/Message'
+ *           $ref: '#/definitionss/Message'
  *     responses:
  *       200:
  *         description: Successfully updated

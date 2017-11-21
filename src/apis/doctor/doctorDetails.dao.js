@@ -6,7 +6,7 @@ DAO for ContactUs api
 var mongoose = require('mongoose');
 
 // Require model
-var DoctorDetails = require('./doctorDetails.model')
+var DoctorDetails = require('./doctorDetails.model');
 
 // Create a new Contact called Arun
 var doctorDetails = new DoctorDetails({
