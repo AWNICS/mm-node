@@ -41,7 +41,7 @@ var message = require('./message.dao');
  */
 /**
  * @swagger
- * /controllers/getMessage:
+ * /message/controllers/getMessage:
  *   get:
  *     tags:
  *       - Messages
@@ -52,13 +52,13 @@ var message = require('./message.dao');
  *       200:
  *         description: An array of messages
  *         schema:
- *           $ref: '#/definitionss/Message'
+ *           $ref: '#/definitions/Message'
  */
 router.get('/controllers/getMessage', message.getAllMessages);
 
 /**
  * @swagger
- * /controllers/postMessage:
+ * /message/controllers/postMessage:
  *   post:
  *     tags:
  *       - Messages
@@ -71,7 +71,7 @@ router.get('/controllers/getMessage', message.getAllMessages);
  *         in: body
  *         required: true
  *         schema:
- *           $ref: '#/definitionss/Message'
+ *           $ref: '#/definitions/Message'
  *     responses:
  *       200:
  *         description: Successfully created
@@ -84,7 +84,7 @@ router.post('/controllers/postMessage', message.createMessage);
 
 /**
  * @swagger
- * /controllers/putMessage/{id}:
+ * /message/controllers/putMessage/{id}:
  *   put:
  *     tags:
  *       - Messages
@@ -101,7 +101,7 @@ router.post('/controllers/postMessage', message.createMessage);
  *         in: body
  *         required: true
  *         schema:
- *           $ref: '#/definitionss/Message'
+ *           $ref: '#/definitions/Message'
  *     responses:
  *       200:
  *         description: Successfully updated
@@ -110,7 +110,7 @@ router.put('/controllers/putMessage/:id', message.updateMessage);
 
 /**
  * @swagger
- * /controllers/removeMessage/{id}:
+ * /message/controllers/removeMessage/{id}:
  *   delete:
  *     tags:
  *       - Messages
@@ -128,5 +128,7 @@ router.put('/controllers/putMessage/:id', message.updateMessage);
  *         description: Successfully deleted
  */
 router.delete('/controllers/removeMessage/:id', message.deleteMessage);
+
+router.get('/controllers/getMessageById/:id', message.getMessage);
 
 module.exports = router;

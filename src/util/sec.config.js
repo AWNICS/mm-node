@@ -1,4 +1,7 @@
-var User = require('./user.model');
+/**
+ * Security and authenticate middleware
+ */
+/*var User = require('../apis/loginUser/user.model');
 var jwt = require('jsonwebtoken');
 
 exports.auth = (req, res) => {
@@ -69,4 +72,4 @@ exports.middleWare = (req, res, next) => {
             message: 'No token provided.'
         });
     }
-}
+}*/

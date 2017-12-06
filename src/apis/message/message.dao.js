@@ -6,30 +6,31 @@ DAO for ContactUs api
 var mongoose = require('mongoose');
 
 // Require model
-var Message = require('./message.model')
-    // Create a new Contact called Arun
-var message = new Message({
-    id: Date.now(),
-    user: 'Sagar',
-    picUrl: null,
-    text: 'Hello',
-    type: 'text',
-    status: 'available',
-    contentType: 'text',
-    contentData: {
-        data: ['How are you?']
-    },
-    responseData: {
-        data: ['I am fine']
-    },
-    lastUpdateTime: Date.now()
-});
+var Message = require('./message.model');
 
 exports.createMessage = (req, res) => {
+
+    //create a new entry
+    var message = new Message({
+        id: req.body.id,
+        receiverId: req.body.receiverId,
+        senderId: req.body.senderId,
+        picUrl: req.body.picUrl,
+        text: req.body.text,
+        type: req.body.type,
+        status: req.body.status,
+        contentType: req.body.contentType,
+        contentData: {
+            data: req.body.contentData.data
+        },
+        responseData: {
+            data: req.body.responseData.data
+        },
+        lastUpdateTime: req.body.lastUpdateTime
+    });
     // Call the built-in save method to save to the database
     message.save((err, message) => {
         if (err) throw err;
-
         console.log('Message created successfully');
         res.send('Message created: ' + JSON.stringify(message));
     });
@@ -47,8 +48,8 @@ exports.getAllMessages = (req, res) => {
 }
 
 exports.getMessage = (req, res) => {
-    // get all the users
-    Message.find({ name: 'Sagar' }, (err, message) => {
+    // get a specific the user
+    Message.find({ id: req.params.id }, (err, message) => {
         if (err) throw err;
 
         // object of all the users
@@ -59,24 +60,38 @@ exports.getMessage = (req, res) => {
 
 exports.updateMessage = (req, res) => {
 
-    Message.findOne({ name: 'Kiran' }, (err, message) => {
+    var message = {
+        receiverId: req.body.receiverId,
+        senderId: req.body.senderId,
+        picUrl: req.body.picUrl,
+        text: req.body.text,
+        type: req.body.type,
+        status: req.body.status,
+        contentType: req.body.contentType,
+        contentData: {
+            data: req.body.contentData.data
+        },
+        responseData: {
+            data: req.body.responseData.data
+        },
+        lastUpdateTime: req.body.lastUpdateTime
+    };
 
+    var condition = { id: req.params.id };
+    var options = { multi: true };
+
+    Message.update(condition, message, options, callback);
+
+    function callback(err, numAffected) {
         if (err) throw err;
-        // Change the name from Kiran to Karan
-        message.name = 'Karan';
-
-        // Save it
-        message.save((err) => {
-            if (err) throw err;
-            console.log('Message updated successfully');
-            res.send('Message updated: ' + JSON.stringify(message));
-        });
-    });
+        console.log('Contact updated successfully. Number of rows affected: ' + JSON.stringify(numAffected));
+        res.send('Contact updated successfully. Number of rows affected: ' + JSON.stringify(numAffected));
+    }
 }
 
 exports.deleteMessage = (req, res) => {
 
-    var condition = { name: 'Arun' };
+    var condition = { id: req.params.id };
 
     Message.remove(condition, (err) => {
         if (err) throw err;

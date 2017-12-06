@@ -14,7 +14,7 @@ var user = require('./userDetails.dao');
  *         type: string
  *       email:
  *         type: string
- *       phoneno:
+ *       phoneNo:
  *         type: string
  *       picUrl:
  *         type: string
@@ -34,7 +34,7 @@ var user = require('./userDetails.dao');
  */
 /**
  * @swagger
- * /controllers/getUserDetails:
+ * /user/controllers/getUserDetails:
  *   get:
  *     tags:
  *       - Users
@@ -45,13 +45,13 @@ var user = require('./userDetails.dao');
  *       200:
  *         description: An array of user
  *         schema:
- *           $ref: '#/definitionss/User'
+ *           $ref: '#/definitions/User'
  */
 router.get('/controllers/getUserDetails', user.getAllUserDetails);
 
 /**
  * @swagger
- * /controllers/postUserDetails:
+ * /user/controllers/postUserDetails:
  *   post:
  *     tags:
  *       - Users
@@ -64,7 +64,7 @@ router.get('/controllers/getUserDetails', user.getAllUserDetails);
  *         in: body
  *         required: true
  *         schema:
- *           $ref: '#/definitionss/User'
+ *           $ref: '#/definitions/User'
  *     responses:
  *       200:
  *         description: Successfully created
@@ -77,7 +77,7 @@ router.post('/controllers/postUserDetails', user.createUserDetails);
 
 /**
  * @swagger
- * /controllers/putUserDetails/{id}:
+ * /user/controllers/putUserDetails/{id}:
  *   put:
  *     tags:
  *       - Users
@@ -95,7 +95,7 @@ router.post('/controllers/postUserDetails', user.createUserDetails);
  *         in: body
  *         required: true
  *         schema:
- *           $ref: '#/definitionss/User'
+ *           $ref: '#/definitions/User'
  *     responses:
  *       200:
  *         description: Successfully updated
@@ -104,7 +104,7 @@ router.put('/controllers/putUserDetails/:id', user.updateUserDetails);
 
 /**
  * @swagger
- * /controllers/removeUserDetails/{id}:
+ * /user/controllers/removeUserDetails/{id}:
  *   delete:
  *     tags:
  *       - Users
@@ -123,4 +123,5 @@ router.put('/controllers/putUserDetails/:id', user.updateUserDetails);
  */
 router.delete('/controllers/removeUserDetails/:id', user.deleteUserDetails);
 
+router.get('/controllers/getUserDetailsById/:id', user.getUserDetail);
 module.exports = router;

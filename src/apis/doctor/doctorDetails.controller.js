@@ -22,7 +22,7 @@ var doctor = require('./doctorDetails.dao');
  *           speciality:
  *             type: string
  *           experience:
- *             type: string
+ *             type: integer
  *           description:
  *             type: string
  *       contact:
@@ -49,7 +49,7 @@ var doctor = require('./doctorDetails.dao');
  */
 /**
  * @swagger
- * /controllers/getDoctorDetails:
+ * /doctor/controllers/getDoctorDetails:
  *   get:
  *     tags:
  *       - Doctors
@@ -60,13 +60,13 @@ var doctor = require('./doctorDetails.dao');
  *       200:
  *         description: An array of doctors
  *         schema:
- *           $ref: '#/definitionss/Doctor'
+ *           $ref: '#/definitions/Doctor'
  */
 router.get('/controllers/getDoctorDetails', doctor.getAllDoctorDetails);
 
 /**
  * @swagger
- * /controllers/postDoctorDetails:
+ * /doctor/controllers/postDoctorDetails:
  *   post:
  *     tags:
  *       - Doctors
@@ -79,7 +79,7 @@ router.get('/controllers/getDoctorDetails', doctor.getAllDoctorDetails);
  *         in: body
  *         required: true
  *         schema:
- *           $ref: '#/definitionss/Doctor'
+ *           $ref: '#/definitions/Doctor'
  *     responses:
  *       200:
  *         description: Successfully created
@@ -92,7 +92,7 @@ router.post('/controllers/postDoctorDetails', doctor.createDoctorDetails);
 
 /**
  * @swagger
- * /controllers/putDoctorDetails/{id}:
+ * /doctor/controllers/putDoctorDetails/{id}:
  *   put:
  *     tags:
  *       - Doctors
@@ -110,7 +110,7 @@ router.post('/controllers/postDoctorDetails', doctor.createDoctorDetails);
  *         in: body
  *         required: true
  *         schema:
- *           $ref: '#/definitionss/Doctor'
+ *           $ref: '#/definitions/Doctor'
  *     responses:
  *       200:
  *         description: Successfully updated
@@ -119,7 +119,7 @@ router.put('/controllers/putDoctorDetails/:id', doctor.updateDoctorDetails);
 
 /**
  * @swagger
- * /controllers/removeDoctorDetails/{id}:
+ * /doctor/controllers/removeDoctorDetails/{id}:
  *   delete:
  *     tags:
  *       - Doctors
@@ -137,5 +137,7 @@ router.put('/controllers/putDoctorDetails/:id', doctor.updateDoctorDetails);
  *         description: Successfully deleted
  */
 router.delete('/controllers/removeDoctorDetails/:id', doctor.deleteDoctorDetails);
+
+router.get('/controllers/getDoctorDetailsById/:id', doctor.getDoctorDetail);
 
 module.exports = router;

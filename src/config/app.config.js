@@ -10,17 +10,17 @@ import jwt from 'jsonwebtoken';
 import lodash from 'lodash';
 import MongoConfig from '../util/conn.mongo';
 import MySql from '../util/conn.mysql';
-import AllTest from '../test/all.test';
-import UserDao from '../apis/user/user.dao';
+import http from 'http';
+import socket from 'socket.io';
 
-var mongoose = require('mongoose');
-var User = require('../apis/loginUser/user.model');
+var socketConnection = require('../util/conn.socket');
 const log = require('./log4js.config');
 const contact = require('../apis/contact/contactUs.controller');
 const doctor = require('../apis/doctor/doctorDetails.controller');
 const message = require('../apis/message/message.controller');
 const user = require('../apis/user/userDetails.controller');
-const loginUser = require('../apis/loginUser/user.controller');
+const group = require('../apis/group/group.controller');
+//const loginUser = require('../apis/loginUser/user.controller');
 const swaggerSpec = require('./swagger.config');
 
 class Config {
@@ -28,6 +28,9 @@ class Config {
         this.app = express();
         this.session = session;
         this.flash = flash;
+        this.socket = socket;
+        this.http = http.Server(this.app);
+        this.io = this.socket(this.http);
         this.dotenv = dotenv;
         /*this.passport = passport;
         this.LocalStrategy = passportLocal.Strategy;
@@ -38,9 +41,6 @@ class Config {
         this.dotenv.config({ path: '.env.dev' });
         this.mongo = new MongoConfig();
         this.mysql = new MySql();
-        this.allTest = new AllTest();
-        this.userDao = new UserDao();
-        this.mongoose = mongoose;
     }
 
     configureApp() {
@@ -49,15 +49,16 @@ class Config {
         this.app.use(bodyParser.urlencoded({ extended: false }));
         this.mongo.connect();
         this.mysql.getConnection();
-        this.app.set('superSecret', 'secretsareoutdated');
+        //this.app.set('superSecret', 'secretsareoutdated');
         // Express Session
-        this.app.use(session({
+        /*this.app.use(session({
             secret: 'secret',
             saveUninitialized: true,
             resave: true
-        }));
+        }));*/
         // Express Flash
-        this.app.use(this.flash());
+        //this.app.use(this.flash());
+        socketConnection.connectSocket(this.io);
     }
 
     configureCORS() {
@@ -80,13 +81,8 @@ class Config {
         this.app.use('/doctor', doctor);
         this.app.use('/message', message);
         this.app.use('/user', user);
-        this.app.use('/loginUser', loginUser);
-        this.app.get('/', (req, res) => {
-            res.setHeader('Content-Type', 'text/html');
-            res.send(`
-            <h1>Mesomeds</h1>
-            `);
-        });
+        this.app.use('/group', group);
+        //this.app.use('/loginUser', loginUser);
         this.app.get('/swagger.json', (req, res) => {
             res.setHeader('Content-Type', 'application/json');
             res.send(swaggerSpec);
@@ -94,7 +90,7 @@ class Config {
     }
 
     listen(port) {
-        this.app.listen(port, () => {
+        this.http.listen(port, () => {
             log.info(`Server started: http://localhost:${port}/`);
         });
     }

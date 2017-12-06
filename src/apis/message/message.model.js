@@ -9,8 +9,9 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var MessageSchema = new Schema({
-    id: Number,
-    user: String,
+    id: { type: Date, default: Date.now },
+    receiverId: String,
+    senderId: String,
     picUrl: String,
     text: String,
     type: String,

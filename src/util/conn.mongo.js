@@ -22,7 +22,9 @@ class MongoConfig {
             log.error("Something went wrong with MongoDB connection: ", err);
             process.exit();
         });
-        log.info("Connection established successfully for MongoDB");
+        this.mongoose.connection.once('open', () => {
+            log.info("Connection established successfully for MongoDB");
+        });
     }
 }
 
