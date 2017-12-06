@@ -1,7 +1,6 @@
-var express = require('express');
+import express from 'express';
+import UserDao from './user.dao';
 var router = express.Router();
-
-var UserDao = require('./user.dao');
 var userDao = new UserDao();
 
 /**
