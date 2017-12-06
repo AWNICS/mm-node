@@ -16,7 +16,8 @@ class MySqlConfig {
         const sequelize = new Sequelize('test', 'arun', '', {
             host: 'localhost',
             dialect: 'mysql',
-            operatorsAliases: false
+            operatorsAliases: false,
+            logging: false
         })
 
         /*

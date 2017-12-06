@@ -5,7 +5,7 @@ var message = require('./message.dao');
 
 /**
  * @swagger
- * definition:
+ * definitions:
  *   Message:
  *     properties:
  *       id:
@@ -41,7 +41,7 @@ var message = require('./message.dao');
  */
 /**
  * @swagger
- * /controllers/getMessage:
+ * /message/controllers/getMessage:
  *   get:
  *     tags:
  *       - Messages
@@ -58,7 +58,7 @@ router.get('/controllers/getMessage', message.getAllMessages);
 
 /**
  * @swagger
- * /controllers/postMessage:
+ * /message/controllers/postMessage:
  *   post:
  *     tags:
  *       - Messages
@@ -84,7 +84,7 @@ router.post('/controllers/postMessage', message.createMessage);
 
 /**
  * @swagger
- * /controllers/putMessage/{id}:
+ * /message/controllers/putMessage/{id}:
  *   put:
  *     tags:
  *       - Messages
@@ -110,7 +110,7 @@ router.put('/controllers/putMessage/:id', message.updateMessage);
 
 /**
  * @swagger
- * /controllers/removeMessage/{id}:
+ * /message/controllers/removeMessage/{id}:
  *   delete:
  *     tags:
  *       - Messages
@@ -128,5 +128,7 @@ router.put('/controllers/putMessage/:id', message.updateMessage);
  *         description: Successfully deleted
  */
 router.delete('/controllers/removeMessage/:id', message.deleteMessage);
+
+router.get('/controllers/getMessageById/:id', message.getMessage);
 
 module.exports = router;

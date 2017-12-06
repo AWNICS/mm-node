@@ -1,51 +1,24 @@
-import Config from '../config/app.config';
-import MongoConfig from './conn.mongo';
-import dotenv from 'dotenv';
+var log = require('../config/log4js.config');
 
-//var mongo = require('mongodb').MongoClient();
-
-
-class SocketConfig {
-    constructor() {
-        this.mongo = new MongoConfig();
-    }
-    mchat(io) {
-        console.log("mchat method");
-        this.mongo.connect();
-        io.on('connection', function(socket) {
-            console.log('a user connected');
-            /* this.mongo.connect('mongodb://localhost:27017/chatMessages', function(err, db) {
-                 if (err) {
-                     console.warn(err.message);
-                 } else {
-                     var collection = db.collection('chatMsg');
-                     var stream = collection.find().sort().limit(10).stream();
-                     stream.on('data', function(chat) {
-                         console.log('emitting chat');
-                         socket.emit('chat', chat.content);
-                     });
-                 }
-             });*/
-
-            socket.on('disconnect', function() {
-                console.log('user disconnected');
-            });
-
-            socket.on('chat', function(msg) {
-                /* this.mongo.connect('mongodb://localhost:27017/chatMessages', function(err, db) {
-                     if (err) {
-                         console.warn(err.message);
-                     } else {
-                         var collection = db.collection('chatMsg');
-                         collection.insert({ content: msg }, function(err, o) {
-                             if (err) { console.warn(err.message); } else { console.log("chat message inserted into db: " + msg); }
-                         });
-                     }
-                 });*/
-
-                socket.broadcast.emit('chat', msg);
-            });
+exports.connectSocket = (io) => {
+    io.on('connection', function(socket) {
+        log.info('a user connected');
+        socket.on('disconnect', function() {
+            log.info('user disconnected');
         });
-    }
+
+        socket.on('chat', function(msg) {
+            socket.broadcast.emit('chat', msg);
+            // room codes will be generated dynamically
+            log.info('Message sent is: ' + msg);
+        });
+    });
 }
-export default SocketConfig;
+
+/**
+ * save the messages into mongo
+ * each user will have his own id(user id or user name)
+ * each user will have a set of contacts to which he/she can talk to
+ * each user can talk to other user/group only on approval of the request.
+ * 
+ */

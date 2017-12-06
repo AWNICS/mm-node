@@ -10,7 +10,7 @@ var contact = require('./contactUs.dao');
 
 /**
  * @swagger
- * definition:
+ * definitions:
  *   Contact:
  *     properties:
  *       id:
@@ -27,7 +27,7 @@ var contact = require('./contactUs.dao');
  *           speciality:
  *             type: string
  *           experience:
- *             type: string
+ *             type: integer
  *           description:
  *             type: string
  *       contact:
@@ -56,7 +56,7 @@ var contact = require('./contactUs.dao');
  */
 /**
  * @swagger
- * /controllers/getcontactUs:
+ * /contact/controllers/getcontactUs:
  *   get:
  *     tags:
  *       - contactUs
@@ -73,7 +73,7 @@ router.get('/controllers/getContactUs', contact.getAllContacts);
 
 /**
  * @swagger
- * /controllers/postContactUs:
+ * /contact/controllers/postContactUs:
  *   post:
  *     tags:
  *       - contactUs
@@ -99,7 +99,7 @@ router.post('/controllers/postContactUs', contact.createContact);
 
 /**
  * @swagger
- * /controllers/putContactUs/{id}:
+ * /contact/controllers/putContactUs/{id}:
  *   put:
  *     tags:
  *       - contactUs
@@ -126,7 +126,7 @@ router.put('/controllers/putContactUs/:id', contact.updateContact);
 
 /**
  * @swagger
- * /controllers/removeContactUs/{id}:
+ * /contact/controllers/removeContactUs/{id}:
  *   delete:
  *     tags:
  *       - contactUs
@@ -145,5 +145,7 @@ router.put('/controllers/putContactUs/:id', contact.updateContact);
  */
 router.delete('/controllers/removeContactUs/:id', contact.deleteContact);
 //contactRouter.post('controllers/sendMail', email.post);
+
+router.get('/controllers/getContactById/:id', contact.getContact);
 
 module.exports = router;
