@@ -1,6 +1,6 @@
 import Sequelize from 'sequelize';
 
-var sequelize = new Sequelize('test', 'arun', 'password', {
+var sequelize = new Sequelize('test', 'arun', '', {
     host: 'localhost',
     dialect: 'mysql',
     operatorsAliases: false,
