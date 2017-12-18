@@ -9,9 +9,13 @@ import mongoose from 'mongoose';
 var Schema = mongoose.Schema;
 
 var UserMessageMapSchema = new Schema({
+    messageId: { type: Date, default: null },
     userRId: String,
     userSId: String,
-    MessageId: String
+    createdBy: String,
+    updatedBy: String,
+    createdTime: { type: Date, default: Date.now },
+    updatedTime: { type: Date, default: Date.now }
 });
 
 // Compile model from schema

@@ -2,63 +2,47 @@
 DAO for Group-Message-Map api
 */
 
-// Require Mongoose
-import mongoose from 'mongoose';
-
 // Require model
 import GroupMessageMap from './group-message-map.model';
 
-exports.createGroupMessageMap = (req, res) => {
-
-    var groupMessageMap = new GroupMessageMap({
-        groupId: req.body.groupId,
-        userSId: req.body.userSId,
-        messageId: req.body.messageId
-    });
-
+exports.create = (groupMessageMap, callback) => {
     groupMessageMap.save((err, groupMessageMap) => {
         if (err) throw err;
-        console.log('GroupMessageMap created successfully');
-        res.send('GroupMessageMap created: ' + JSON.stringify(groupMessageMap));
+        callback(groupMessageMap);
     });
 }
 
-exports.getAllGroupMessageMaps = (req, res) => {
+exports.getAll = (callback) => {
     GroupMessageMap.find({}, (err, groupMessageMap) => {
         if (err) throw err;
-
-        console.log(groupMessageMap);
-        res.send('All groupMessageMap: ' + JSON.stringify(groupMessageMap));
+        callback(groupMessageMap);
     });
 }
 
-exports.updateGroupMessageMap = (req, res) => {
+exports.getById = (id, callback) => {
+    GroupMessageMap.find({ messageId: id }, (err, groupMessageMap) => {
+        if (err) throw err;
+        callback(groupMessageMap);
+    });
+}
 
-    var groupMessageMap = {
-        groupId: req.body.groupId,
-        userSId: req.body.userSId,
-        messageId: req.body.messageId
-    };
-
-    var condition = { messageId: req.params.messageId };
+exports.update = (groupMessageMap, callback) => {
+    var condition = { messageId: groupMessageMap.messageId };
     var options = { multi: true };
 
     GroupMessageMap.update(condition, groupMessageMap, options, callback);
-
-    function callback(err, numAffected) {
+    (err, numAffected) => {
         if (err) throw err;
-        console.log('Contact updated successfully. Number of rows affected: ' + JSON.stringify(numAffected));
-        res.send('Contact updated successfully. Number of rows affected: ' + JSON.stringify(numAffected));
+        callback(groupMessageMap);
     }
 }
 
-exports.deleteGroupMessageMap = (req, res) => {
+exports.delete = (id, callback) => {
 
-    var condition = { messageId: req.params.messageId };
+    var condition = { messageId: id };
 
-    GroupMessageMap.remove(condition, (err) => {
+    GroupMessageMap.remove(condition, (err, groupMessageMap) => {
         if (err) throw err;
-        console.log('GroupMessageMap removed.');
-        res.send('GroupMessageMap removed successfully');
+        callback(groupMessageMap);
     });
 }

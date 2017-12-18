@@ -5,7 +5,7 @@ var userDao = new UserDao();
 
 /**
  * @swagger
- * definition:
+ * definitions:
  *   User:
  *     properties:
  *       id:

@@ -11,6 +11,7 @@ var Schema = mongoose.Schema;
 var MessageSchema = new Schema({
     id: { type: Date, default: Date.now },
     receiverId: String,
+    receiverType: String, // group or individual
     senderId: String,
     picUrl: String,
     text: String,

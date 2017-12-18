@@ -22,3 +22,7 @@ exports.connectSocket = (io) => {
  * each user can talk to other user/group only on approval of the request.
  * 
  */
+
+// socket.service.js == any special functions
+// functions that determine the sender and reciever
+// create it in the user folder.

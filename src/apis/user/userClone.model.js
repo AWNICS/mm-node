@@ -2,28 +2,28 @@
  * Message api models
  */
 
-//Require Mongoose
-var mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 //Define a schema
 var Schema = mongoose.Schema;
 
-var UserDetailsSchema = new Schema({
+var UserCloneSchema = new Schema({
     id: Number,
     name: String,
     email: String,
     phoneNo: Number,
     picUrl: String,
-    briefDescription: {
-        description: String
-    },
+    description: String,
     status: String,
     waitingTime: Number,
     rating: Number,
-    lastUpdateTime: Date
+    createdTime: Date,
+    createdBy: String,
+    updatedTime: Date,
+    updatedBy: String
 });
 
 // Compile model from schema
-var UserDetails = mongoose.model('UserDetails', UserDetailsSchema);
+var UserClone = mongoose.model('UserClone', UserCloneSchema);
 
-module.exports = UserDetails;
+module.exports = UserClone;
