@@ -2,76 +2,50 @@
 DAO for Group api
 */
 
-// Require Mongoose
-var mongoose = require('mongoose');
-
 // Require model
 var Group = require('./group.model');
 
-exports.createGroup = (req, res) => {
-
-    //create a new group
-    var group = new Group({
-        id: req.body.id,
-        userIds: req.body.userIds,
-        createdAt: req.body.createdAt
-    });
-
+exports.create = (group, callback) => {
     // Call the built-in save method to save to the database
     group.save((err, group) => {
         if (err) throw err;
-        console.log('Group created successfully');
-        res.send('Group created: ' + JSON.stringify(group));
+        callback(group);
     });
 }
 
-exports.getAllGroups = (req, res) => {
+exports.getAll = (callback) => {
     // get all the groups
-    Group.find({}, (err, group) => {
+    Group.find({}, (err, groups) => {
         if (err) throw err;
-
-        console.log(group);
-        res.send('All groups: ' + JSON.stringify(group));
+        callback(groups)
     });
 }
 
-exports.getGroup = (req, res) => {
+exports.getById = (id, callback) => {
     // get a specific the group
-    Group.find({ id: req.params.id }, (err, group) => {
+    Group.find({ id: id }, (err, group) => {
         if (err) throw err;
-
-        console.log(group);
-        res.send('Group: ' + JSON.stringify(group));
+        callback(group);
     });
 }
 
-exports.updateGroup = (req, res) => {
-
-    var group = {
-        id: req.body.id,
-        userIds: req.body.userIds,
-        createdAt: req.body.createdAt
-    };
-
-    var condition = { id: req.params.id };
+exports.update = (group, callback) => {
+    var condition = { id: group.id };
     var options = { multi: true };
 
     Group.update(condition, group, options, callback);
 
     function callback(err, numAffected) {
         if (err) throw err;
-        console.log('Group updated successfully. Number of rows affected: ' + JSON.stringify(numAffected));
-        res.send('Group updated successfully. Number of rows affected: ' + JSON.stringify(numAffected));
     }
 }
 
-exports.deleteGroup = (req, res) => {
+exports.delete = (id, callback) => {
 
-    var condition = { id: req.params.id };
+    var condition = { id: id };
 
-    Group.remove(condition, (err) => {
+    Group.remove(condition, (err, response) => {
         if (err) throw err;
-        console.log('Group removed.');
-        res.send('Group removed successfully');
+        callback(response);
     });
 }

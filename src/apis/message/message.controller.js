@@ -1,7 +1,9 @@
-var express = require('express');
-var router = express.Router();
+import MessageService from './message.service';
+import express from 'express';
+import log from '../../config/log4js.config';
 
-var message = require('./message.dao');
+var messageService = new MessageService();
+var router = express.Router();
 
 /**
  * @swagger
@@ -54,7 +56,11 @@ var message = require('./message.dao');
  *         schema:
  *           $ref: '#/definitions/Message'
  */
-router.get('/controllers/getMessage', message.getAllMessages);
+router.get('/controllers/getMessage', (req, res) => {
+    //var message = new Message();
+    messageService.readAll((results) => { log.info('Messages are: ' + JSON.stringify(results)); });
+    res.send('Fetched the messages successfully');
+});
 
 /**
  * @swagger
@@ -80,7 +86,13 @@ router.get('/controllers/getMessage', message.getAllMessages);
  * 
  * 
  */
-router.post('/controllers/postMessage', message.createMessage);
+router.post('/controllers/sendMessage', (req, res) => {
+    // call service and pass the control from service to DAO
+    messageService.sendMessage(req.body, (result) => {
+        log.info('The message sent is: ' + JSON.stringify(result));
+    });
+    res.send('Message sent successfully');
+});
 
 /**
  * @swagger
@@ -106,7 +118,10 @@ router.post('/controllers/postMessage', message.createMessage);
  *       200:
  *         description: Successfully updated
  */
-router.put('/controllers/putMessage/:id', message.updateMessage);
+router.put('/controllers/putMessage', (req, res) => {
+    messageService.updateMessage(req.body, (result) => { log.info('Message updated') });
+    res.send('Message updated successfully');
+});
 
 /**
  * @swagger
@@ -127,8 +142,14 @@ router.put('/controllers/putMessage/:id', message.updateMessage);
  *       200:
  *         description: Successfully deleted
  */
-router.delete('/controllers/removeMessage/:id', message.deleteMessage);
+router.delete('/controllers/removeMessage/:id', (req, res) => {
+    messageService.removeMessage(req.params.id, (result) => { log.info(JSON.stringify(result)); });
+    res.send('Message deleted');
+});
 
-router.get('/controllers/getMessageById/:id', message.getMessage);
+router.get('/controllers/getMessageById/:id', (req, res) => {
+    messageService.readMessageById(req.params.id, (result) => { log.info(JSON.stringify(result)); });
+    res.send('Read message by ID successful');
+});
 
 module.exports = router;

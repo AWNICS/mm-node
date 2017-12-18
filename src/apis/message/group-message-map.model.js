@@ -9,9 +9,13 @@ import mongoose from 'mongoose';
 var Schema = mongoose.Schema;
 
 var GroupMessageMapSchema = new Schema({
+    messageId: { type: Date, default: null },
     groupId: String,
     userSId: String,
-    messageId: String
+    createdBy: String,
+    updatedBy: String,
+    createdTime: { type: Date, default: Date.now },
+    updatedTime: { type: Date, default: Date.now }
 });
 
 // Compile model from schema

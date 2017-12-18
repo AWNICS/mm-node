@@ -12,17 +12,15 @@ import MongoConfig from '../util/conn.mongo';
 import MySql from '../util/conn.mysql';
 import http from 'http';
 import socket from 'socket.io';
-
-var socketConnection = require('../util/conn.socket');
-const log = require('./log4js.config');
-const contact = require('../apis/contact/contactUs.controller');
-const doctor = require('../apis/doctor/doctorDetails.controller');
-const message = require('../apis/message/message.controller');
-const user = require('../apis/user/userDetails.controller');
-const group = require('../apis/group/group.controller');
-//const loginUser = require('../apis/loginUser/user.controller');
-const swaggerSpec = require('./swagger.config');
-const userAPI = require('../apis/user/user.controller');
+import socketConnection from '../util/conn.socket';
+import log from './log4js.config';
+import doctor from '../apis/doctor/doctorDetails.controller';
+import message from '../apis/message/message.controller';
+import userClone from '../apis/user/userClone.controller';
+import group from '../apis/group/group.controller';
+import swaggerSpec from './swagger.config';
+import user from '../apis/user/user.controller';
+import contactUs from '../apis/contact/contactUs.controller';
 
 class Config {
     constructor() {
@@ -41,7 +39,6 @@ class Config {
         this.lodash = lodash;
         this.dotenv.config({ path: '.env.dev' });
         this.mongo = new MongoConfig();
-        //this.mysql = new MySql();
     }
 
     configureApp() {
@@ -49,7 +46,6 @@ class Config {
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: false }));
         this.mongo.connect();
-        //this.mysql.getConnection();
         //this.app.set('superSecret', 'secretsareoutdated');
         // Express Session
         /*this.app.use(session({
@@ -78,13 +74,12 @@ class Config {
     }
 
     configureRoutes() {
-        this.app.use('/contact', contact);
         this.app.use('/doctor', doctor);
         this.app.use('/message', message);
         this.app.use('/user', user);
+        this.app.use('/userClone', userClone);
         this.app.use('/group', group);
-        this.app.use('/userAPI', userAPI);
-        //this.app.use('/loginUser', loginUser);
+        this.app.use('/contact', contactUs);
         this.app.get('/swagger.json', (req, res) => {
             res.setHeader('Content-Type', 'application/json');
             res.send(swaggerSpec);

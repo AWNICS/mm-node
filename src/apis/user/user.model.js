@@ -1,5 +1,3 @@
-import sequelize from '../../util/conn.mysql';
-
 module.exports = (sequelize, DataTypes) => {
     var User = sequelize.define('User', {
         name: {

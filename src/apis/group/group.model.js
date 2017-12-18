@@ -11,7 +11,10 @@ var Schema = mongoose.Schema;
 var GroupSchema = new Schema({
     id: { type: Date, default: Date.now },
     userIds: [String],
-    createdAt: Date
+    createdBy: String,
+    updatedBy: String,
+    createdTime: { type: Date, default: Date.now }, // timestamp
+    updatedTime: { type: Date }
 });
 
 // Compile model from schema
