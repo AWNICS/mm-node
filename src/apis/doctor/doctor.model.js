@@ -1,6 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-
-    var ContactUs = sequelize.define('ContactUs', {
+    var Doctor = sequelize.define('Doctor', {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
@@ -48,9 +47,12 @@ module.exports = (sequelize, DataTypes) => {
         thumbnailUrl: {
             type: DataTypes.STRING
         },
+        lastUpdateTime: {
+            type: DataTypes.DATE
+        },
         termsAccepted: {
             type: DataTypes.BOOLEAN
         }
     });
-    return ContactUs;
+    return Doctor;
 };

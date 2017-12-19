@@ -14,7 +14,7 @@ import http from 'http';
 import socket from 'socket.io';
 import socketConnection from '../util/conn.socket';
 import log from './log4js.config';
-import doctor from '../apis/doctor/doctorDetails.controller';
+import doctor from '../apis/doctor/doctor.controller';
 import message from '../apis/message/message.controller';
 import userClone from '../apis/user/userClone.controller';
 import group from '../apis/group/group.controller';

@@ -1,7 +1,8 @@
-var express = require('express');
-var router = express.Router();
+import express from 'express';
+import DoctorService from './doctor.service';
 
-var doctor = require('./doctorDetails.dao');
+var router = express.Router();
+var doctorService = new DoctorService();
 
 /**
  * @swagger
@@ -62,7 +63,11 @@ var doctor = require('./doctorDetails.dao');
  *         schema:
  *           $ref: '#/definitions/Doctor'
  */
-router.get('/controllers/getDoctorDetails', doctor.getAllDoctorDetails);
+router.get('/controllers/getDoctors', function(req, res) {
+    doctorService.getAll((result) => {
+        res.send('All doctor lists: ' + JSON.stringify(result));
+    });
+});
 
 /**
  * @swagger
@@ -82,13 +87,14 @@ router.get('/controllers/getDoctorDetails', doctor.getAllDoctorDetails);
  *           $ref: '#/definitions/Doctor'
  *     responses:
  *       200:
- *         description: Successfully created
- * 
- * 
- * 
- * 
+ *         description: Successfully created 
  */
-router.post('/controllers/postDoctorDetails', doctor.createDoctorDetails);
+router.post('/controllers/createDoctor', function(req, res) {
+    var doctor = req.body;
+    doctorService.create(doctor, (result) => {
+        res.send('Doctor created: ' + JSON.stringify(result));
+    });
+});
 
 /**
  * @swagger
@@ -115,7 +121,12 @@ router.post('/controllers/postDoctorDetails', doctor.createDoctorDetails);
  *       200:
  *         description: Successfully updated
  */
-router.put('/controllers/putDoctorDetails/:id', doctor.updateDoctorDetails);
+router.put('/controllers/putDoctor', function(req, res) {
+    var doctor = req.body;
+    doctorService.updateDoctor(doctor, (result) => {
+        res.send('Doctor updated' + JSON.stringify(result));
+    });
+});
 
 /**
  * @swagger
@@ -136,8 +147,19 @@ router.put('/controllers/putDoctorDetails/:id', doctor.updateDoctorDetails);
  *       200:
  *         description: Successfully deleted
  */
-router.delete('/controllers/removeDoctorDetails/:id', doctor.deleteDoctorDetails);
+router.delete('/controllers/deleteDoctor/:id', function(req, res) {
+    var id = req.params.id;
+    doctorService.deleteDoctor(id, (result) => {
+        res.send('Doctor deleted: ' + JSON.stringify(result));
+    });
+});
 
-router.get('/controllers/getDoctorDetailsById/:id', doctor.getDoctorDetail);
+//get doctor by id
+router.get('/controllers/getDoctorById/:id', function(req, res) {
+    var id = req.params.id;
+    doctorService.getById(id, (result) => {
+        res.send('Read doctor by id: ' + JSON.stringify(result));
+    });
+});
 
 module.exports = router;

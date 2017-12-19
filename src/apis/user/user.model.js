@@ -1,7 +1,12 @@
-import sequelize from '../../util/conn.mysql';
+//import sequelize from '../../util/conn.mysql';
 
 module.exports = (sequelize, DataTypes) => {
     var User = sequelize.define('User', {
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+        },
         name: {
             type: DataTypes.STRING
         },
