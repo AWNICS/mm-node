@@ -10,7 +10,7 @@ var userService = new UserService();
 
 /**
  * @swagger
- * definition:
+ * definitions:
  *   User:
  *     properties:
  *       id:
