@@ -5,6 +5,7 @@ var chai = require('chai');
 var supertest = require("supertest");
 let should = chai.should();
 var server = supertest.agent("http://localhost:3000/userAPI");
+var Sequelize = require('sequelize');
 var user = {
     id: null,
     name: 'nilu',
@@ -24,7 +25,7 @@ describe('userDao', function() {
             userDao.insert(user, (result) => {
                 expect(result.id).to.be.greaterThan(0);
                 expect(result.name).to.equal(user.name);
-                userDao.delete(result);
+                //userDao.delete(result);
             });
         });
     });

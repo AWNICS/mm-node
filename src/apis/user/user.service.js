@@ -66,7 +66,7 @@ class UserService {
         const userOutput = `
             <h3>Greetings from Awnics!</h3>
             <p>Thank you for registering. Please click on the below link for activation.</p>
-            <a href="http://localhost:3000/userAPI/controllers/updateActivate/${token}" target="_blank">
+            <a href="http://localhost:3000/user/controllers/updateActivate/${token}" target="_blank">
                 Click here to confirm
             </a>
             <p>Thanks and Regards,<br/>Awnics</p>

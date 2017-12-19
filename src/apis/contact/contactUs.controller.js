@@ -1,10 +1,46 @@
 import express from 'express';
-import ContactDao from './contactUs.dao';
+import ContactService from './contactUs.service';
+
 var router = express.Router();
-var contactDao = new ContactDao();
+var contactService = new ContactService();
 
-router.post('/controllers/createContact', contactDao.insert);
+//for creating a new contact
+router.post('/controllers/createContact', function(req, res) {
+    var contact = req.body;
+    contactService.create(contact, (result) => {
+        res.send('Contact created: ' + JSON.stringify(result));
+    });
+});
 
-router.get('/controllers/getContacts', contactDao.readAll);
+//for getting all contacts
+router.get('/controllers/getContacts', function(req, res) {
+    contactService.getAll((result) => {
+        res.send('All contact lists: ' + JSON.stringify(result));
+    });
+});
+
+//getting contacts based on id
+router.get('/controllers/getContactById/:id', function(req, res) {
+    var id = req.params.id;
+    contactService.getById(id, (result) => {
+        res.send('Read contact by id: ' + JSON.stringify(result));
+    });
+});
+
+//update contact
+router.put('/controllers/putContact', function(req, res) {
+    var contact = req.body;
+    contactService.updateContact(contact, (result) => {
+        res.send('Contact updated' + JSON.stringify(result));
+    });
+});
+
+//delete contact
+router.delete('/controllers/deleteContact/:id', function(req, res) {
+    var id = req.params.id;
+    contactService.deleteContact(id, (result) => {
+        res.send('User deleted: ' + JSON.stringify(result));
+    });
+});
 
 module.exports = router;

@@ -1,23 +1,23 @@
-import contactUsModel from './index';
+import doctorModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
-/**
- * DAO for ContactUs api
- */
-class ContactDao {
+/*
+DAO for Doctor api
+*/
+class DoctorDao {
     constructor() {}
 
     /**
      * insert method
      */
-    insert(contact, callback) {
+    insert(doctor, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                contactUsModel.ContactUs.sync({ force: false }).then(function() {
-                    return contactUsModel.ContactUs.create(contact, { transaction: t }).then(function(contactInserted) {
-                        resolve(contactInserted);
-                        callback(contactInserted);
+                doctorModel.Doctor.sync({ force: false }).then(function() {
+                    return doctorModel.Doctor.create(doctor, { transaction: t }).then(function(doctorInserted) {
+                        resolve(doctorInserted);
+                        callback(doctorInserted);
                     }).then(function() {
                         t.commit();
                     }).catch(function(error) {
@@ -33,8 +33,8 @@ class ContactDao {
      */
     readAll(callback) {
         return sequelize.transaction().then(function(t) {
-            contactUsModel.ContactUs.findAll({ transaction: t }).then((allContact) => {
-                callback(allContact);
+            doctorModel.Doctor.findAll({ transaction: t }).then((allDoctor) => {
+                callback(allDoctor);
             });
         });
     }
@@ -45,9 +45,9 @@ class ContactDao {
     readById(id, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                contactUsModel.ContactUs.findById(id, { transaction: t }).then((contact) => {
-                    resolve(contact);
-                    callback(contact);
+                doctorModel.Doctor.findById(id, { transaction: t }).then((doctor) => {
+                    resolve(doctor);
+                    callback(doctor);
                 });
             }, reject);
         });
@@ -56,16 +56,16 @@ class ContactDao {
     /**
      * Update method
      */
-    update(contact, callback) {
+    update(doctor, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                return contactUsModel.ContactUs.update(contact, {
+                return doctorModel.Doctor.update(doctor, {
                     where: {
-                        id: contact.id
+                        id: doctor.id
                     }
-                }, { transaction: t }).then(function(contactUpdated) {
-                    resolve(contactUpdated);
-                    callback(contactUpdated);
+                }, { transaction: t }).then(function(doctorUpdated) {
+                    resolve(doctorUpdated);
+                    callback(doctorUpdated);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
@@ -81,13 +81,13 @@ class ContactDao {
     delete(id, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                contactUsModel.ContactUs.destroy({
+                doctorModel.Doctor.destroy({
                     where: {
                         id: id
                     }
-                }).then(function(contactDeleted) {
-                    resolve(contactDeleted);
-                    callback(contactDeleted);
+                }).then(function(doctorDeleted) {
+                    resolve(doctorDeleted);
+                    callback(doctorDeleted);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
@@ -98,4 +98,4 @@ class ContactDao {
     }
 }
 
-module.exports = ContactDao;
+export default DoctorDao;
