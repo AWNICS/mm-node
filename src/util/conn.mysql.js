@@ -1,4 +1,5 @@
 import Sequelize from 'sequelize';
+import log from '../config/log4js.config'
 
 var sequelize = new Sequelize('test', 'arun', '', {
     host: 'localhost',
@@ -13,7 +14,7 @@ sequelize = sequelize;
  * connection authentication
  */
 sequelize.authenticate()
-    .then(() => console.log('connection successfull for sequelize'))
-    .catch(error => console.error('error in connection: ', error));
+    .then(() => log.info('connection successfull for sequelize'))
+    .catch(error => log.error('error in connection: ', error));
 
 module.exports = sequelize;

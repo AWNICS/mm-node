@@ -80,6 +80,7 @@ class Config {
         this.app.use('/userClone', userClone);
         this.app.use('/group', group);
         this.app.use('/contact', contactUs);
+        this.app.use('/user', user);
         this.app.get('/swagger.json', (req, res) => {
             res.setHeader('Content-Type', 'application/json');
             res.send(swaggerSpec);

@@ -1,7 +1,12 @@
 import express from 'express';
 import UserDao from './user.dao';
+import UserService from './user.service';
+import log from '../../config/log4js.config';
+//import activate from './activate';
+
 var router = express.Router();
 var userDao = new UserDao();
+var userService = new UserService();
 
 /**
  * @swagger
@@ -47,7 +52,12 @@ var userDao = new UserDao();
  *       200:
  *         description: Successfully created
  */
-router.post('/controllers/createdUser', userDao.insert);
+router.post('/controllers/createdUser', function(req, res) {
+    var user = req.body;
+    userService.register(user, (result) => {
+        res.send('User created: ' + JSON.stringify(result));
+    });
+});
 
 /**
  * @swagger
@@ -64,7 +74,11 @@ router.post('/controllers/createdUser', userDao.insert);
  *         schema:
  *           $ref: '#/definitions/User'
  */
-router.get('/controllers/getUser', userDao.readAll);
+router.get('/controllers/getUser', function(req, res) {
+    userService.getAll((result) => {
+        res.send('All data: ' + JSON.stringify(result));
+    });
+});
 
 /**
  * @swagger
@@ -81,7 +95,12 @@ router.get('/controllers/getUser', userDao.readAll);
  *         schema:
  *           $ref: '#/definitions/User'
  */
-router.get('/controllers/getUserById/:id', userDao.readById);
+router.get('/controllers/getUserById/:id', function(req, res) {
+    var id = req.params.id;
+    userService.getById(id, (result) => {
+        res.send('Read user by id: ' + JSON.stringify(result));
+    });
+});
 
 /**
  * @swagger
@@ -108,7 +127,12 @@ router.get('/controllers/getUserById/:id', userDao.readById);
  *       200:
  *         description: Successfully updated
  */
-router.put('/controllers/putUser/:id', userDao.update);
+router.put('/controllers/putUser', function(req, res) {
+    var user = req.body;
+    userService.updateRegisteredUser(user, (result) => {
+        res.send('User updated' + JSON.stringify(result));
+    });
+});
 
 /**
  * @swagger
@@ -129,6 +153,20 @@ router.put('/controllers/putUser/:id', userDao.update);
  *       200:
  *         description: Successfully deleted
  */
-router.delete('/controllers/deleteUser/:id', userDao.delete);
+router.delete('/controllers/deleteUser/:id', function(req, res) {
+    var id = req.params.id;
+    userService.deleteRegisteredUser(id, (result) => {
+        res.send('User deleted' + JSON.stringify(result));
+    });
+});
+
+/**
+ * updateActivate 
+ */
+router.get('/controllers/updateActivate/:token', function(req, res) {
+    userService.activateUser(req.params.token, (result) => {
+        res.sendFile('./activate.html', { root: __dirname })
+    });
+});
 
 module.exports = router;
