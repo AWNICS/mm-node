@@ -3,12 +3,12 @@
  */
 
 //Require Mongoose
-var mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 //Define a schema
 var Schema = mongoose.Schema;
 
-var GroupSchema = new Schema({
+var GroupCloneSchema = new Schema({
     id: { type: Date, default: Date.now },
     userIds: [String],
     createdBy: String,
@@ -18,6 +18,6 @@ var GroupSchema = new Schema({
 });
 
 // Compile model from schema
-var Group = mongoose.model('Group', GroupSchema);
+var GroupClone = mongoose.model('GroupClone', GroupCloneSchema);
 
-module.exports = Group;
+module.exports = GroupClone;

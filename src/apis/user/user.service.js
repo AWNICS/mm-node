@@ -1,10 +1,10 @@
+import rtg from 'random-token-generator';
+import nodemailer from 'nodemailer';
+
 import log from '../../config/log4js.config';
 import sequelize from '../../util/conn.mysql';
 import userModel from './index';
 import UserDao from './user.dao';
-var rtg = require('random-token-generator');
-var nodemailer = require('nodemailer');
-var URLSearchParams = require('url-search-params');
 
 var userDao = new UserDao();
 

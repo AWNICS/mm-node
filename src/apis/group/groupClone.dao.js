@@ -3,37 +3,37 @@ DAO for Group api
 */
 
 // Require model
-var Group = require('./group.model');
+var GroupClone = require('./groupClone.model');
 
-exports.create = (group, callback) => {
+exports.create = (groupClone, callback) => {
     // Call the built-in save method to save to the database
-    group.save((err, group) => {
+    groupClone.save((err, groupClone) => {
         if (err) throw err;
-        callback(group);
+        callback(groupClone);
     });
 }
 
 exports.getAll = (callback) => {
     // get all the groups
-    Group.find({}, (err, groups) => {
+    GroupClone.find({}, (err, groupClones) => {
         if (err) throw err;
-        callback(groups)
+        callback(groupClones)
     });
 }
 
 exports.getById = (id, callback) => {
     // get a specific the group
-    Group.find({ id: id }, (err, group) => {
+    GroupClone.find({ id: id }, (err, groupClone) => {
         if (err) throw err;
-        callback(group);
+        callback(groupClone);
     });
 }
 
-exports.update = (group, callback) => {
-    var condition = { id: group.id };
+exports.update = (groupClone, callback) => {
+    var condition = { id: groupClone.id };
     var options = { multi: true };
 
-    Group.update(condition, group, options, callback);
+    GroupClone.update(condition, groupClone, options, callback);
 
     function callback(err, numAffected) {
         if (err) throw err;
@@ -44,7 +44,7 @@ exports.delete = (id, callback) => {
 
     var condition = { id: id };
 
-    Group.remove(condition, (err, response) => {
+    GroupClone.remove(condition, (err, response) => {
         if (err) throw err;
         callback(response);
     });
