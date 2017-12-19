@@ -17,7 +17,7 @@ import log from './log4js.config';
 import doctor from '../apis/doctor/doctor.controller';
 import message from '../apis/message/message.controller';
 import userClone from '../apis/user/userClone.controller';
-import group from '../apis/group/group.controller';
+import groupClone from '../apis/group/groupClone.controller';
 import swaggerSpec from './swagger.config';
 import user from '../apis/user/user.controller';
 import contactUs from '../apis/contact/contactUs.controller';
@@ -78,7 +78,7 @@ class Config {
         this.app.use('/message', message);
         this.app.use('/user', user);
         this.app.use('/userClone', userClone);
-        this.app.use('/group', group);
+        this.app.use('/groupClone', groupClone);
         this.app.use('/contact', contactUs);
         this.app.use('/user', user);
         this.app.get('/swagger.json', (req, res) => {
