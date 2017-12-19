@@ -21,6 +21,7 @@ import group from '../apis/group/group.controller';
 import swaggerSpec from './swagger.config';
 import user from '../apis/user/user.controller';
 import contactUs from '../apis/contact/contactUs.controller';
+const userAPI = require('../apis/user/user.controller');
 
 class Config {
     constructor() {
@@ -80,6 +81,7 @@ class Config {
         this.app.use('/userClone', userClone);
         this.app.use('/group', group);
         this.app.use('/contact', contactUs);
+        this.app.use('/userAPI', userAPI);
         this.app.get('/swagger.json', (req, res) => {
             res.setHeader('Content-Type', 'application/json');
             res.send(swaggerSpec);

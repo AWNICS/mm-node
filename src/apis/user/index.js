@@ -2,7 +2,7 @@ import sequelize from '../../util/conn.mysql';
 import fs from 'fs';
 import path from 'path';
 var basename = path.basename(__filename);
-var db = {};
+var files = {};
 
 fs
     .readdirSync(__dirname)
@@ -11,7 +11,7 @@ fs
     })
     .forEach(file => {
         var model = sequelize['import'](path.join(__dirname, file));
-        db[model.name] = model;
+        files[model.name] = model;
     });
 
-module.exports = db;
+module.exports = files;
