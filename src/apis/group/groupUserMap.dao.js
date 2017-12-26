@@ -1,23 +1,23 @@
-import userModel from './index';
+import groupUserMapModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
-/**
- * DAO for user api
- */
-class UserDao {
+/*
+DAO for Doctor api
+*/
+class GroupUserMapDao {
     constructor() {}
 
     /**
      * insert method
      */
-    insert(user, callback) {
+    insert(groupUser, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                userModel.User.sync({ force: false }).then(function() {
-                    return userModel.User.create(user, { transaction: t }).then(function(userInserted) {
-                        resolve(userInserted);
-                        callback(userInserted);
+                groupUserMapModel.GroupUser.sync({ force: false }).then(function() {
+                    return groupUserMapModel.GroupUser.create(groupUser, { transaction: t }).then(function(groupUserInserted) {
+                        resolve(groupUserInserted);
+                        callback(groupUserInserted);
                     }).then(function() {
                         t.commit();
                     }).catch(function(error) {
@@ -33,9 +33,8 @@ class UserDao {
      */
     readAll(callback) {
         return sequelize.transaction().then(function(t) {
-            userModel.User.findAll({ transaction: t }).then((user) => {
-                //log.info('All users: ' + JSON.stringify(user));
-                callback(user);
+            groupUserMapModel.GroupUser.findAll({ transaction: t }).then((allGroupUser) => {
+                callback(allGroupUser);
             });
         });
     }
@@ -46,10 +45,9 @@ class UserDao {
     readById(id, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                userModel.User.findById(id, { transaction: t }).then((user) => {
-                    //log.info('By id ' + JSON.stringify(user));
-                    resolve(user);
-                    callback(user);
+                groupUserMapModel.GroupUser.findById(id, { transaction: t }).then((group) => {
+                    resolve(group);
+                    callback(group);
                 });
             }, reject);
         });
@@ -58,17 +56,16 @@ class UserDao {
     /**
      * Update method
      */
-    update(user, callback) {
+    update(groupUser, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                return userModel.User.update(user, {
+                return groupUserMapModel.GroupUser.update(groupUser, {
                     where: {
-                        id: user.id
+                        id: groupUser.id
                     }
-                }, { transaction: t }).then(function(userUpdated) {
-                    resolve(userUpdated);
-                    log.info('updated ' + JSON.stringify(userUpdated));
-                    callback(userUpdated);
+                }, { transaction: t }).then(function(groupUserUpdated) {
+                    resolve(groupUserUpdated);
+                    callback(groupUserUpdated);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
@@ -84,15 +81,13 @@ class UserDao {
     delete(id, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                userModel.User.destroy({
+                groupUserMapModel.GroupUser.destroy({
                     where: {
                         id: id
                     }
-                }).then(function(user) {
-                    log.info('user deleted: ' + JSON.stringify(user));
-                    resolve(user);
-                    log.info('deleted ' + JSON.stringify(user));
-                    callback(user);
+                }).then(function(groupUserDeleted) {
+                    resolve(groupUserDeleted);
+                    callback(groupUserDeleted);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
@@ -103,4 +98,4 @@ class UserDao {
     }
 }
 
-module.exports = UserDao;
+export default GroupUserMapDao;

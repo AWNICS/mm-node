@@ -1,5 +1,5 @@
 /*
-DAO for Group api
+DAO for GroupClone api
 */
 
 // Require model
@@ -17,7 +17,7 @@ exports.getAll = (callback) => {
     // get all the groups
     GroupClone.find({}, (err, groupClones) => {
         if (err) throw err;
-        callback(groupClones)
+        callback(groupClones);
     });
 }
 

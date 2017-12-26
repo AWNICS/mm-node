@@ -30,7 +30,7 @@ router.get('/controllers/getContactById/:id', function(req, res) {
 //update contact
 router.put('/controllers/putContact', function(req, res) {
     var contact = req.body;
-    contactService.updateContact(contact, (result) => {
+    contactService.update(contact, (result) => {
         res.send('Contact updated' + JSON.stringify(result));
     });
 });
@@ -38,7 +38,7 @@ router.put('/controllers/putContact', function(req, res) {
 //delete contact
 router.delete('/controllers/deleteContact/:id', function(req, res) {
     var id = req.params.id;
-    contactService.deleteContact(id, (result) => {
+    contactService.delete(id, (result) => {
         res.send('User deleted: ' + JSON.stringify(result));
     });
 });
