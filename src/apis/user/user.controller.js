@@ -169,4 +169,32 @@ router.get('/controllers/updateActivate/:token', function(req, res) {
     });
 });
 
+//for userClone
+router.post('/controllers/createUserClone', (req, res) => {
+    userService.createObj(req.body, (result) => {
+        log.info('UserClone created : ' + JSON.stringify(result));
+    });
+    res.send('UserClone created successfully');
+});
+
+router.get('/controllers/readAllUserClones', (req, res) => {
+    userService.readAllObj((results) => { log.info('All user clones are: ' + JSON.stringify(results)); });
+    res.send('Fetched the userClones successfully');
+});
+
+router.get('/controllers/readUserCloneById/:id', (req, res) => {
+    userService.readByIdObj(req.params.id, (result) => { log.info('User clone by id:' + JSON.stringify(result)); });
+    res.send('Read useClone by ID successful');
+});
+
+router.put('/controllers/updateUserClone', (req, res) => {
+    userService.updateObj(req.body, (result) => { log.info('UserClone updated') });
+    res.send('UserClone updated successfully');
+});
+
+router.delete('/controllers/removeUserClone/:id', (req, res) => {
+    userService.deleteObj(req.params.id, (result) => { log.info(JSON.stringify(result)); });
+    res.send('UserClone deleted');
+});
+
 module.exports = router;

@@ -123,7 +123,7 @@ router.post('/controllers/createDoctor', function(req, res) {
  */
 router.put('/controllers/putDoctor', function(req, res) {
     var doctor = req.body;
-    doctorService.updateDoctor(doctor, (result) => {
+    doctorService.update(doctor, (result) => {
         res.send('Doctor updated' + JSON.stringify(result));
     });
 });
@@ -149,7 +149,7 @@ router.put('/controllers/putDoctor', function(req, res) {
  */
 router.delete('/controllers/deleteDoctor/:id', function(req, res) {
     var id = req.params.id;
-    doctorService.deleteDoctor(id, (result) => {
+    doctorService.delete(id, (result) => {
         res.send('Doctor deleted: ' + JSON.stringify(result));
     });
 });
