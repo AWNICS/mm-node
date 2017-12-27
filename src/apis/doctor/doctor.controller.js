@@ -65,7 +65,7 @@ var doctorService = new DoctorService();
  */
 router.get('/controllers/getDoctors', function(req, res) {
     doctorService.getAll((result) => {
-        res.send('All doctor lists: ' + JSON.stringify(result));
+        res.json(result);
     });
 });
 

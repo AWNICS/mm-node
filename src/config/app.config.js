@@ -21,6 +21,7 @@ import groupClone from '../apis/group/groupClone.controller';
 import swaggerSpec from './swagger.config';
 import user from '../apis/user/user.controller';
 import contactUs from '../apis/contact/contactUs.controller';
+import specialities from '../apis/specialities/specialities.controller';
 
 class Config {
     constructor() {
@@ -80,7 +81,7 @@ class Config {
         this.app.use('/userClone', userClone);
         this.app.use('/groupClone', groupClone);
         this.app.use('/contact', contactUs);
-        this.app.use('/user', user);
+        this.app.use('/specialities', specialities);
         this.app.get('/swagger.json', (req, res) => {
             res.setHeader('Content-Type', 'application/json');
             res.send(swaggerSpec);

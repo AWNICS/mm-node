@@ -19,7 +19,7 @@ class UserService {
             secure: false,
             auth: {
                 user: 'test.arung@gmail.com',
-                pass: 'passwordtest'
+                pass: 'changedPassword'
             },
             tls: {
                 rejectUnauthorized: false
