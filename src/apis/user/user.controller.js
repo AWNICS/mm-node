@@ -20,7 +20,7 @@ var userService = new UserService();
  *       email:
  *         type: string
  *       phoneNo:
- *         type: string
+ *         type: integer
  *       picUrl:
  *         type: string
  *       description:
@@ -31,10 +31,16 @@ var userService = new UserService();
  *         type: integer
  *       rating:
  *         type: integer
+ *       token:
+ *         type: string
+ *       activate:
+ *         type: integer
+ *       privilege:
+ *         type: string
  */
 /**
  * @swagger
- * /controllers/postUser:
+ * /user/controllers/createdUser:
  *   post:
  *     tags:
  *       - Users
@@ -61,7 +67,7 @@ router.post('/controllers/createdUser', function(req, res) {
 
 /**
  * @swagger
- * /controllers/getUser:
+ * /user/controllers/getUser:
  *   get:
  *     tags:
  *       - Users
@@ -82,16 +88,24 @@ router.get('/controllers/getUser', function(req, res) {
 
 /**
  * @swagger
- * /controllers/getUserById:
+ * /user/controllers/getUserById/{id}:
  *   get:
  *     tags:
  *       - Users
  *     description: Returns user by id
  *     produces:
  *       - application/json
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: id for user to return
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/User'
  *     responses:
  *       200:
- *         description: An user
+ *         description: An user return
  *         schema:
  *           $ref: '#/definitions/User'
  */
@@ -104,7 +118,7 @@ router.get('/controllers/getUserById/:id', function(req, res) {
 
 /**
  * @swagger
- * /controllers/putUser/{id}:
+ * /user/controllers/putUser:
  *   put:
  *     tags:
  *       - Users
@@ -112,14 +126,9 @@ router.get('/controllers/getUserById/:id', function(req, res) {
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: id
- *         description: User's id
- *         in: path
- *         required: true
- *         type: integer
- *       - name: user
- *         description: user object
- *         in: body
+ *       - in: body
+ *         name: body
+ *         description: User data that needs to be update
  *         required: true
  *         schema:
  *           $ref: '#/definitions/User'
@@ -136,7 +145,7 @@ router.put('/controllers/putUser', function(req, res) {
 
 /**
  * @swagger
- * /controllers/deleteUser/{id}:
+ * /user/controllers/deleteUser/{id}:
  *   delete:
  *     tags:
  *       - Users
