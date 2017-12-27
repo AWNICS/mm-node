@@ -5,6 +5,8 @@ import log from '../../config/log4js.config';
 import sequelize from '../../util/conn.mysql';
 import userModel from './index';
 import UserDao from './user.dao';
+import userCloneDao from './userClone.dao';
+import UserClone from './userClone.model';
 
 var userDao = new UserDao();
 
@@ -41,7 +43,7 @@ class UserService {
                 user.token = key; //assign generated key to user
             }
         });
-        userDao.insert(user, callback).then((userInserted) => {
+        return userDao.insert(user, callback).then((userInserted) => {
             this.activationLink(userInserted.token);
         });
     }
@@ -107,21 +109,42 @@ class UserService {
     }
 
     updateRegisteredUser(user, callback) {
-        userDao.update(user, callback);
+        return userDao.update(user, callback);
     }
 
     getAll(callback) {
-        userDao.readAll(callback);
+        return userDao.readAll(callback);
     }
 
     getById(id, callback) {
-        userDao.readById(id, callback);
+        return userDao.readById(id, callback);
     }
 
     deleteRegisteredUser(id, callback) {
-        userDao.delete(id, callback);
+        return userDao.delete(id, callback);
     }
 
+    //for userClone
+    createObj(userClone, callback) {
+        var userClone = new UserClone(userClone);
+        userCloneDao.create(userClone, callback);
+    }
+
+    readAllObj(callback) {
+        userCloneDao.getAll(callback);
+    }
+
+    readByIdObj(id, callback) {
+        userCloneDao.getById(id, callback);
+    }
+
+    deleteObj(id, callback) {
+        userCloneDao.delete(id, callback);
+    }
+
+    updateObj(userClone, callback) {
+        userCloneDao.update(userClone, callback);
+    }
 }
 
 export default UserService;

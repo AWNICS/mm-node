@@ -1,5 +1,5 @@
 /**
- * GroupClone api models
+ * GroupUserMapClone api models
  */
 
 //Require Mongoose
@@ -8,9 +8,10 @@ import mongoose from 'mongoose';
 //Define a schema
 var Schema = mongoose.Schema;
 
-var GroupCloneSchema = new Schema({
+var GroupUserMapCloneSchema = new Schema({
     id: { type: Date, default: Date.now },
-    userIds: String,
+    groupId: String,
+    userId: String,
     createdBy: String,
     updatedBy: String,
     createdTime: { type: Date, default: Date.now }, // timestamp
@@ -18,6 +19,6 @@ var GroupCloneSchema = new Schema({
 });
 
 // Compile model from schema
-var GroupClone = mongoose.model('GroupClone', GroupCloneSchema);
+var GroupUserMapClone = mongoose.model('GroupUserMapClone', GroupUserMapCloneSchema);
 
-module.exports = GroupClone;
+module.exports = GroupUserMapClone;
