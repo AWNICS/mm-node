@@ -1,5 +1,5 @@
 /**
- * Group api models
+ * GroupClone api models
  */
 
 //Require Mongoose

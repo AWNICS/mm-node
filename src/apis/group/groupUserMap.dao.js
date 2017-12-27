@@ -3,7 +3,7 @@ import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
 /*
-DAO for Doctor api
+DAO for GroupUserMapDao api
 */
 class GroupUserMapDao {
     constructor() {}
