@@ -7,23 +7,23 @@ class DoctorService {
     constructor() {}
 
     create(doctor, callback) {
-        doctorDao.insert(doctor, callback).then((doctorInserted) => {});
+        return doctorDao.insert(doctor, callback);
     }
 
     getAll(callback) {
-        doctorDao.readAll(callback);
+        return doctorDao.readAll(callback);
     }
 
     getById(id, callback) {
-        doctorDao.readById(id, callback);
+        return doctorDao.readById(id, callback);
     }
 
-    updateDoctor(doctor, callback) {
-        doctorDao.update(doctor, callback);
+    update(doctor, callback) {
+        return doctorDao.update(doctor, callback);
     }
 
-    deleteDoctor(id, callback) {
-        doctorDao.delete(id, callback);
+    delete(id, callback) {
+        return doctorDao.delete(id, callback);
     }
 }
 

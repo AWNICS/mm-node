@@ -1,6 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-
-    var ContactUs = sequelize.define('ContactUs', {
+    var Contact = sequelize.define('Contact', {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
@@ -52,5 +51,5 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.BOOLEAN
         }
     });
-    return ContactUs;
+    return Contact;
 };

@@ -16,11 +16,10 @@ import socketConnection from '../util/conn.socket';
 import log from './log4js.config';
 import doctor from '../apis/doctor/doctor.controller';
 import message from '../apis/message/message.controller';
-import userClone from '../apis/user/userClone.controller';
-import groupClone from '../apis/group/groupClone.controller';
 import swaggerSpec from './swagger.config';
 import user from '../apis/user/user.controller';
 import contactUs from '../apis/contact/contactUs.controller';
+import group from '../apis/group/group.controller';
 
 class Config {
     constructor() {
@@ -76,11 +75,15 @@ class Config {
     configureRoutes() {
         this.app.use('/doctor', doctor);
         this.app.use('/message', message);
-        this.app.use('/user', user);
+<<<<<<< HEAD
+        // this.app.use('/user', user);
         this.app.use('/userClone', userClone);
         this.app.use('/groupClone', groupClone);
-        this.app.use('/contact', contactUs);
+=======
         this.app.use('/user', user);
+>>>>>>> ae25a406aeb3072a3e91d49609f44fa826d4954c
+        this.app.use('/contact', contactUs);
+        this.app.use('/group', group);
         this.app.get('/swagger.json', (req, res) => {
             res.setHeader('Content-Type', 'application/json');
             res.send(swaggerSpec);

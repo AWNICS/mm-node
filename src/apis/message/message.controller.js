@@ -11,14 +11,17 @@ var router = express.Router();
  *   Message:
  *     properties:
  *       id:
- *         type: integer
- *       user:
+ *         type: string
+ *         format: date
+ *       receiverId:
+ *         type: string
+ *       receiverType:
+ *         type: string
+ *       senderId:
  *         type: string
  *       picUrl:
  *         type: string
  *       text:
- *         type: string
- *       type:
  *         type: string
  *       status:
  *         type: string
@@ -40,6 +43,7 @@ var router = express.Router();
  *               type: string
  *       lastUpdateTime: 
  *         type: string
+ *         format: date
  */
 /**
  * @swagger
@@ -58,13 +62,13 @@ var router = express.Router();
  */
 router.get('/controllers/getMessage', (req, res) => {
     //var message = new Message();
-    messageService.readAll((results) => { log.info('Messages are: ' + JSON.stringify(results)); });
+    messageService.readAllMessages((results) => { log.info('Messages are: ' + JSON.stringify(results)); });
     res.send('Fetched the messages successfully');
 });
 
 /**
  * @swagger
- * /message/controllers/postMessage:
+ * /message/controllers/sendMessage:
  *   post:
  *     tags:
  *       - Messages
@@ -96,7 +100,7 @@ router.post('/controllers/sendMessage', (req, res) => {
 
 /**
  * @swagger
- * /message/controllers/putMessage/{id}:
+ * /message/controllers/putMessage:
  *   put:
  *     tags:
  *       - Messages
@@ -104,13 +108,9 @@ router.post('/controllers/sendMessage', (req, res) => {
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         type: integer
- *       - name: message
- *         description: Message object
- *         in: body
+ *       - in: body
+ *         name: body
+ *         description: Message data that needs to be update
  *         required: true
  *         schema:
  *           $ref: '#/definitions/Message'
@@ -137,7 +137,7 @@ router.put('/controllers/putMessage', (req, res) => {
  *         description:  messages
  *         in: path
  *         required: true
- *         type: integer
+ *         type: string
  *     responses:
  *       200:
  *         description: Successfully deleted
@@ -147,6 +147,27 @@ router.delete('/controllers/removeMessage/:id', (req, res) => {
     res.send('Message deleted');
 });
 
+/**
+ * @swagger
+ * /message/controllers/getMessageById/{id}:
+ *   get:
+ *     tags:
+ *       - Messages
+ *     description: Returns message by id
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: id for message to return
+ *         required: true
+ *         type: string
+ *         schema:
+ *           $ref: '#/definitions/Message'
+ *     responses:
+ *       200:
+ *         description: An message return
+ */
 router.get('/controllers/getMessageById/:id', (req, res) => {
     messageService.readMessageById(req.params.id, (result) => { log.info(JSON.stringify(result)); });
     res.send('Read message by ID successful');

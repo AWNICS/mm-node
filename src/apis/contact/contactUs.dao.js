@@ -14,8 +14,8 @@ class ContactDao {
     insert(contact, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                contactUsModel.ContactUs.sync({ force: false }).then(function() {
-                    return contactUsModel.ContactUs.create(contact, { transaction: t }).then(function(contactInserted) {
+                contactUsModel.Contact.sync({ force: false }).then(function() {
+                    return contactUsModel.Contact.create(contact, { transaction: t }).then(function(contactInserted) {
                         resolve(contactInserted);
                         callback(contactInserted);
                     }).then(function() {
@@ -33,7 +33,7 @@ class ContactDao {
      */
     readAll(callback) {
         return sequelize.transaction().then(function(t) {
-            contactUsModel.ContactUs.findAll({ transaction: t }).then((allContact) => {
+            contactUsModel.Contact.findAll({ transaction: t }).then((allContact) => {
                 callback(allContact);
             });
         });
@@ -45,7 +45,7 @@ class ContactDao {
     readById(id, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                contactUsModel.ContactUs.findById(id, { transaction: t }).then((contact) => {
+                contactUsModel.Contact.findById(id, { transaction: t }).then((contact) => {
                     resolve(contact);
                     callback(contact);
                 });
@@ -59,7 +59,7 @@ class ContactDao {
     update(contact, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                return contactUsModel.ContactUs.update(contact, {
+                return contactUsModel.Contact.update(contact, {
                     where: {
                         id: contact.id
                     }
@@ -81,7 +81,7 @@ class ContactDao {
     delete(id, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                contactUsModel.ContactUs.destroy({
+                contactUsModel.Contact.destroy({
                     where: {
                         id: id
                     }

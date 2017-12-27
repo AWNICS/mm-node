@@ -17,22 +17,16 @@ var doctorService = new DoctorService();
  *         type: string
  *       regNo:
  *         type: string
- *       briefDescription:
- *         type: object
- *         properties:
- *           speciality:
- *             type: string
- *           experience:
- *             type: integer
- *           description:
- *             type: string
- *       contact:
- *         type: object
- *         properties:
- *           email:
- *             type: string
- *           phoneno:
- *             type: string
+ *       speciality:
+ *         type: string
+ *       experience:
+ *         type: string
+ *       Description:
+ *         type: string
+ *       email:
+ *         type: string
+ *       phoneNo:
+ *         type: string
  *       status:
  *         type: string
  *       waitingTime:
@@ -47,10 +41,13 @@ var doctorService = new DoctorService();
  *         type: string
  *       lastUpdatedTime:
  *         type: string
+ *         format: date
+ *       termsAccepted:
+ *         type: boolean
  */
 /**
  * @swagger
- * /doctor/controllers/getDoctorDetails:
+ * /doctor/controllers/getDoctors:
  *   get:
  *     tags:
  *       - Doctors
@@ -65,13 +62,13 @@ var doctorService = new DoctorService();
  */
 router.get('/controllers/getDoctors', function(req, res) {
     doctorService.getAll((result) => {
-        res.send('All doctor lists: ' + JSON.stringify(result));
+        res.json(result);
     });
 });
 
 /**
  * @swagger
- * /doctor/controllers/postDoctorDetails:
+ * /doctor/controllers/createDoctor:
  *   post:
  *     tags:
  *       - Doctors
@@ -98,7 +95,7 @@ router.post('/controllers/createDoctor', function(req, res) {
 
 /**
  * @swagger
- * /doctor/controllers/putDoctorDetails/{id}:
+ * /doctor/controllers/putDoctor:
  *   put:
  *     tags:
  *       - Doctors
@@ -106,14 +103,9 @@ router.post('/controllers/createDoctor', function(req, res) {
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: id
- *         description: Doctor's id
- *         in: path
- *         required: true
- *         type: integer
- *       - name: doctor
- *         description: Doctor object
- *         in: body
+ *       - in: body
+ *         name: body
+ *         description: Doctor data that needs to be update
  *         required: true
  *         schema:
  *           $ref: '#/definitions/Doctor'
@@ -123,14 +115,14 @@ router.post('/controllers/createDoctor', function(req, res) {
  */
 router.put('/controllers/putDoctor', function(req, res) {
     var doctor = req.body;
-    doctorService.updateDoctor(doctor, (result) => {
+    doctorService.update(doctor, (result) => {
         res.send('Doctor updated' + JSON.stringify(result));
     });
 });
 
 /**
  * @swagger
- * /doctor/controllers/removeDoctorDetails/{id}:
+ * /doctor/controllers/deleteDoctor/{id}:
  *   delete:
  *     tags:
  *       - Doctors
@@ -149,12 +141,32 @@ router.put('/controllers/putDoctor', function(req, res) {
  */
 router.delete('/controllers/deleteDoctor/:id', function(req, res) {
     var id = req.params.id;
-    doctorService.deleteDoctor(id, (result) => {
+    doctorService.delete(id, (result) => {
         res.send('Doctor deleted: ' + JSON.stringify(result));
     });
 });
 
-//get doctor by id
+/**
+ * @swagger
+ * /doctor/controllers/getDoctorById/{id}:
+ *   get:
+ *     tags:
+ *       - Doctors
+ *     description: Returns user by id
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: id for doctor to return
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Doctor'
+ *     responses:
+ *       200:
+ *         description: An doctor return
+ */
 router.get('/controllers/getDoctorById/:id', function(req, res) {
     var id = req.params.id;
     doctorService.getById(id, (result) => {
