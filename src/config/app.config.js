@@ -75,13 +75,10 @@ class Config {
     configureRoutes() {
         this.app.use('/doctor', doctor);
         this.app.use('/message', message);
-<<<<<<< HEAD
         // this.app.use('/user', user);
         this.app.use('/userClone', userClone);
         this.app.use('/groupClone', groupClone);
-=======
         this.app.use('/user', user);
->>>>>>> ae25a406aeb3072a3e91d49609f44fa826d4954c
         this.app.use('/contact', contactUs);
         this.app.use('/group', group);
         this.app.get('/swagger.json', (req, res) => {

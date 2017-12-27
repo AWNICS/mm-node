@@ -178,8 +178,6 @@ router.get('/controllers/updateActivate/:token', function(req, res) {
     });
 });
 
-<<<<<<< HEAD
-=======
 //for userClone
 router.post('/controllers/createUserClone', (req, res) => {
     userService.createObj(req.body, (result) => {
@@ -208,5 +206,4 @@ router.delete('/controllers/removeUserClone/:id', (req, res) => {
     res.send('UserClone deleted');
 });
 
->>>>>>> ae25a406aeb3072a3e91d49609f44fa826d4954c
 module.exports = router;

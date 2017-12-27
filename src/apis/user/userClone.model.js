@@ -8,10 +8,7 @@ import mongoose from 'mongoose';
 var Schema = mongoose.Schema;
 
 var UserCloneSchema = new Schema({
-<<<<<<< HEAD
-=======
-    //id: Number,
->>>>>>> ae25a406aeb3072a3e91d49609f44fa826d4954c
+
     id: { type: Date, default: Date.now },
     name: String,
     email: String,
