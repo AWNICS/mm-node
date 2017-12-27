@@ -75,9 +75,6 @@ class Config {
     configureRoutes() {
         this.app.use('/doctor', doctor);
         this.app.use('/message', message);
-        // this.app.use('/user', user);
-        this.app.use('/userClone', userClone);
-        this.app.use('/groupClone', groupClone);
         this.app.use('/user', user);
         this.app.use('/contact', contactUs);
         this.app.use('/group', group);
