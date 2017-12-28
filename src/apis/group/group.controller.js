@@ -581,5 +581,4 @@ router.get('/controllers/getGroupUserMapCloneById/:id', (req, res) => {
     res.send('Fetched groupUserMapClone details using ID');
 });
 
-
 module.exports = router;

@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    var GroupUserMap = sequelize.define('GroupUser', {
+    var GroupUserMap = sequelize.define('GroupUserMap', {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
