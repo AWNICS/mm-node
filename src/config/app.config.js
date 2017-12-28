@@ -20,6 +20,8 @@ import swaggerSpec from './swagger.config';
 import user from '../apis/user/user.controller';
 import contactUs from '../apis/contact/contactUs.controller';
 import group from '../apis/group/group.controller';
+import orderRequest from '../apis/orderRequest/orderRequest.controller';
+import specialities from '../apis/specialities/specialities.controller';
 
 class Config {
     constructor() {
@@ -78,6 +80,8 @@ class Config {
         this.app.use('/user', user);
         this.app.use('/contact', contactUs);
         this.app.use('/group', group);
+        this.app.use('/specialities', specialities);
+        this.app.use('/orderRequest', orderRequest);
         this.app.get('/swagger.json', (req, res) => {
             res.setHeader('Content-Type', 'application/json');
             res.send(swaggerSpec);
