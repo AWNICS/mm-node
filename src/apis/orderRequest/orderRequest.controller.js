@@ -46,7 +46,7 @@ var router = express.Router();
  *   post:
  *     tags:
  *       - OrderRequest
- *     description: Creates a new orderRequest
+ *     description: Creates a new orderRequest in MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -58,7 +58,7 @@ var router = express.Router();
  *           $ref: '#/definitions/OrderRequest'
  *     responses:
  *       200:
- *         description: Successfully created
+ *         description: Successfully created in MySql db
  */
 router.post('/controllers/createOrderRequest', (req, res) => {
     orderRequestsService.createOrderRequest(req.body, (result) => {
@@ -72,12 +72,12 @@ router.post('/controllers/createOrderRequest', (req, res) => {
  *   get:
  *     tags:
  *       - OrderRequest
- *     description: Returns all orderRequest
+ *     description: Returns all orderRequest from MySql db
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: An array of orderRequest
+ *         description: An array of orderRequest from MySql db
  *         schema:
  *           $ref: '#/definitions/OrderRequest'
  */
@@ -93,7 +93,7 @@ router.get('/controllers/readAllOrderRequests', (req, res) => {
  *   get:
  *     tags:
  *       - OrderRequest
- *     description: Returns orderRequest by id
+ *     description: Returns orderRequest by id from MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -106,7 +106,7 @@ router.get('/controllers/readAllOrderRequests', (req, res) => {
  *           $ref: '#/definitions/OrderRequest'
  *     responses:
  *       200:
- *         description: An orderRequest return
+ *         description: An orderRequest return from MySql db
  */
 router.get('/controllers/readOrderRequestById/:id', (req, res) => {
     orderRequestsService.readOrderRequestById(req.params.id, (result) => {
@@ -120,7 +120,7 @@ router.get('/controllers/readOrderRequestById/:id', (req, res) => {
  *   put:
  *     tags:
  *       - OrderRequest
- *     description: Updates a single orderRequest
+ *     description: Updates a single orderRequest in MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -132,7 +132,7 @@ router.get('/controllers/readOrderRequestById/:id', (req, res) => {
  *           $ref: '#/definitions/OrderRequest'
  *     responses:
  *       200:
- *         description: Successfully updated
+ *         description: Successfully updated in MySql db
  */
 router.put('/controllers/updateOrderRequest', (req, res) => {
     orderRequestsService.updateOrderRequest(req.body, (result) => {
@@ -146,7 +146,7 @@ router.put('/controllers/updateOrderRequest', (req, res) => {
  *   delete:
  *     tags:
  *       - OrderRequest
- *     description: Deletes a single orderRequest
+ *     description: Deletes a single orderRequest from MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -157,7 +157,7 @@ router.put('/controllers/updateOrderRequest', (req, res) => {
  *         type: string
  *     responses:
  *       200:
- *         description: Successfully deleted
+ *         description: Successfully deleted from MySql db
  */
 router.delete('/controllers/removeOrderRequest/:id', (req, res) => {
     orderRequestsService.removeOrderRequest(req.params.id, (result) => {

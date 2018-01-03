@@ -47,8 +47,8 @@ var contactService = new ContactService();
  * /contact/controllers/createContact:
  *   post:
  *     tags:
- *       - Contacts
- *     description: Creates a new contact
+ *       - Contact
+ *     description: Creates a new contact in MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -60,7 +60,7 @@ var contactService = new ContactService();
  *           $ref: '#/definitions/Contact'
  *     responses:
  *       200:
- *         description: Successfully created
+ *         description: Successfully created in MySql db
  */
 router.post('/controllers/createContact', function(req, res) {
     var contact = req.body;
@@ -74,13 +74,13 @@ router.post('/controllers/createContact', function(req, res) {
  * /contact/controllers/getContacts:
  *   get:
  *     tags:
- *       - Contacts
- *     description: Returns all contact
+ *       - Contact
+ *     description: Returns all contact from MySql db
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: An array of contact
+ *         description: An array of contact from MySql db.
  *         schema:
  *           $ref: '#/definitions/Contact'
  */
@@ -95,8 +95,8 @@ router.get('/controllers/getContacts', function(req, res) {
  * /contact/controllers/getContactById/{id}:
  *   get:
  *     tags:
- *       - Contacts
- *     description: Returns contact by id
+ *       - Contact
+ *     description: Returns contact by id from MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -109,7 +109,7 @@ router.get('/controllers/getContacts', function(req, res) {
  *           $ref: '#/definitions/Contact'
  *     responses:
  *       200:
- *         description: An contact return
+ *         description: An contact return from MySql db
  *         schema:
  *           $ref: '#/definitions/Contact'
  */
@@ -125,7 +125,7 @@ router.get('/controllers/getContactById/:id', function(req, res) {
  * /contact/controllers/putContact:
  *   put:
  *     tags:
- *       - Contacts
+ *       - Contact
  *     description: Updates a single contact
  *     produces:
  *       - application/json
@@ -138,7 +138,7 @@ router.get('/controllers/getContactById/:id', function(req, res) {
  *           $ref: '#/definitions/Contact'
  *     responses:
  *       200:
- *         description: Successfully updated
+ *         description: Successfully updated data in MySql
  */
 router.put('/controllers/putContact', function(req, res) {
     var contact = req.body;
@@ -152,8 +152,8 @@ router.put('/controllers/putContact', function(req, res) {
  * /contact/controllers/deleteContact/{id}:
  *   delete:
  *     tags:
- *       - Contacts
- *     description: Deletes a single contact
+ *       - Contact
+ *     description: Deletes a single contact from MySql
  *     produces:
  *       - application/json
  *     parameters:
@@ -164,7 +164,7 @@ router.put('/controllers/putContact', function(req, res) {
  *         type: string
  *     responses:
  *       200:
- *         description: Successfully deleted
+ *         description: Successfully deleted from MySql db
  */
 router.delete('/controllers/deleteContact/:id', function(req, res) {
     var id = req.params.id;

@@ -22,7 +22,7 @@ var router = express.Router();
  *   post:
  *     tags:
  *       - Specialities
- *     description: Creates a new speciality
+ *     description: Creates a new speciality in MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -34,7 +34,7 @@ var router = express.Router();
  *           $ref: '#/definitions/Specialities'
  *     responses:
  *       200:
- *         description: Successfully created
+ *         description: Successfully created in MySql db
  */
 router.post('/controllers/createSpeciality', (req, res) => {
     specialitiesService.createSpeciality(req.body, (result) => {
@@ -49,12 +49,12 @@ router.post('/controllers/createSpeciality', (req, res) => {
  *   get:
  *     tags:
  *       - Specialities
- *     description: Returns all speciality
+ *     description: Returns all speciality from MySql db
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: An array of Speciality
+ *         description: An array of Speciality from MySql db
  *         schema:
  *           $ref: '#/definitions/Specialities'
  */
@@ -68,7 +68,7 @@ router.get('/controllers/readAllSpecialities', (req, res) => {
  *   get:
  *     tags:
  *       - Specialities
- *     description: Returns Speciality by id
+ *     description: Returns Speciality by id from MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -81,7 +81,7 @@ router.get('/controllers/readAllSpecialities', (req, res) => {
  *           $ref: '#/definitions/Specialities'
  *     responses:
  *       200:
- *         description: An Speciality return
+ *         description: An Speciality return from MySql db
  */
 router.get('/controllers/readSpecialityById/:id', (req, res) => {
     specialitiesService.readSpecialityById(req.params.id, (result) => { log.info(JSON.stringify(result)); });
@@ -94,7 +94,7 @@ router.get('/controllers/readSpecialityById/:id', (req, res) => {
  *   put:
  *     tags:
  *       - Specialities
- *     description: Updates a single speciality
+ *     description: Updates a single speciality in MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -106,7 +106,7 @@ router.get('/controllers/readSpecialityById/:id', (req, res) => {
  *           $ref: '#/definitions/Specialities'
  *     responses:
  *       200:
- *         description: Successfully updated
+ *         description: Successfully updated in MySql db
  */
 router.put('/controllers/updateSpeciality', (req, res) => {
     specialitiesService.updateSpeciality(req.body, (result) => { log.info('Speciality updated') });
@@ -119,7 +119,7 @@ router.put('/controllers/updateSpeciality', (req, res) => {
  *   delete:
  *     tags:
  *       - Specialities
- *     description: Deletes a single speciality
+ *     description: Deletes a single speciality in MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -130,7 +130,7 @@ router.put('/controllers/updateSpeciality', (req, res) => {
  *         type: string
  *     responses:
  *       200:
- *         description: Successfully deleted
+ *         description: Successfully deleted from MySql
  */
 router.delete('/controllers/removeSpeciality/:id', (req, res) => {
     specialitiesService.removeSpeciality(req.params.id, (result) => { log.info(JSON.stringify(result)); });
