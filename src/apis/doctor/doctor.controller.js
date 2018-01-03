@@ -50,13 +50,13 @@ var doctorService = new DoctorService();
  * /doctor/controllers/getDoctors:
  *   get:
  *     tags:
- *       - Doctors
- *     description: Returns all doctors
+ *       - Doctor
+ *     description: Returns all doctors from MySql db
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: An array of doctors
+ *         description: An array of doctors from MySql db
  *         schema:
  *           $ref: '#/definitions/Doctor'
  */
@@ -71,7 +71,7 @@ router.get('/controllers/getDoctors', function(req, res) {
  * /doctor/controllers/createDoctor:
  *   post:
  *     tags:
- *       - Doctors
+ *       - Doctor
  *     description: Creates a new doctor
  *     produces:
  *       - application/json
@@ -84,7 +84,7 @@ router.get('/controllers/getDoctors', function(req, res) {
  *           $ref: '#/definitions/Doctor'
  *     responses:
  *       200:
- *         description: Successfully created 
+ *         description: Successfully created in MySql
  */
 router.post('/controllers/createDoctor', function(req, res) {
     var doctor = req.body;
@@ -98,20 +98,20 @@ router.post('/controllers/createDoctor', function(req, res) {
  * /doctor/controllers/putDoctor:
  *   put:
  *     tags:
- *       - Doctors
- *     description: Updates a single doctor
+ *       - Doctor
+ *     description: Updates a single doctor in MySQL db
  *     produces:
  *       - application/json
  *     parameters:
  *       - in: body
  *         name: body
- *         description: Doctor data that needs to be update
+ *         description: Doctor data that needs to be update 
  *         required: true
  *         schema:
  *           $ref: '#/definitions/Doctor'
  *     responses:
  *       200:
- *         description: Successfully updated
+ *         description: Successfully updated in MySql db
  */
 router.put('/controllers/putDoctor', function(req, res) {
     var doctor = req.body;
@@ -125,8 +125,8 @@ router.put('/controllers/putDoctor', function(req, res) {
  * /doctor/controllers/deleteDoctor/{id}:
  *   delete:
  *     tags:
- *       - Doctors
- *     description: Deletes a single doctor
+ *       - Doctor
+ *     description: Deletes a  doctor from MySql
  *     produces:
  *       - application/json
  *     parameters:
@@ -137,7 +137,7 @@ router.put('/controllers/putDoctor', function(req, res) {
  *         type: integer
  *     responses:
  *       200:
- *         description: Successfully deleted
+ *         description: Successfully deleted from MySql
  */
 router.delete('/controllers/deleteDoctor/:id', function(req, res) {
     var id = req.params.id;
@@ -151,8 +151,8 @@ router.delete('/controllers/deleteDoctor/:id', function(req, res) {
  * /doctor/controllers/getDoctorById/{id}:
  *   get:
  *     tags:
- *       - Doctors
- *     description: Returns user by id
+ *       - Doctor
+ *     description: Returns doctor by id from MySql
  *     produces:
  *       - application/json
  *     parameters:
@@ -165,7 +165,7 @@ router.delete('/controllers/deleteDoctor/:id', function(req, res) {
  *           $ref: '#/definitions/Doctor'
  *     responses:
  *       200:
- *         description: An doctor return
+ *         description: An doctor return from MySql db
  */
 router.get('/controllers/getDoctorById/:id', function(req, res) {
     var id = req.params.id;
