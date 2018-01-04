@@ -5,8 +5,10 @@ var expect = require('expect.js');
 var contactService = new ContactService();
 
 describe('contactDao', function() {
+    //this.timeout(10000);
     describe('#insert()', function() {
-        xit('creates a contact', function() {
+        it('creates a contact', function() {
+            //this.timeout(200);
             var contact = {
                 id: null,
                 name: 'abc',
@@ -31,7 +33,8 @@ describe('contactDao', function() {
     });
 
     describe('#update()', function() {
-        xit('contact updated', function() {
+        it('contact updated', function() {
+            //this.timeout(300);
             var contact = {
                 id: 22,
                 name: 'nilu',
@@ -53,7 +56,8 @@ describe('contactDao', function() {
     });
 
     describe('#readAll()', function() {
-        xit('Get all contacts', function() {
+        it('Get all contacts', function() {
+            //this.timeout(400);
             return contactService.getAll((result) => {
                     //log.info('all data: ' + JSON.stringify(result));
                 })
@@ -65,7 +69,8 @@ describe('contactDao', function() {
     });
 
     describe('#readById()', function() {
-        xit('Get contact by id', function() {
+        it('Get contact by id', function() {
+            //this.timeout(500);
             return contactService.getById(1, () => {}).then((res) => {
                 //log.info('get by id data:' + JSON.stringify(res));
             });
@@ -73,9 +78,16 @@ describe('contactDao', function() {
     });
 
     describe('#delete()', function() {
-        xit('Contact deleted', function() {
-            return contactService.delete(4, (result) => {});
+        it('Contact deleted', function(done) {
+            //this.timeout(600);
+            log.info('before delete');
+            return contactService.delete(4, (result) => {}).then((res) => {
+                log.info('inside delete');
+            });
+            log.info('after delete');
+            done();
         });
+        //done();
     });
 });
 

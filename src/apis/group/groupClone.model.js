@@ -10,6 +10,10 @@ var Schema = mongoose.Schema;
 
 var GroupCloneSchema = new Schema({
     id: { type: Date, default: Date.now },
+    name: String,
+    url: String,
+    picture: String,
+    description: String,
     userIds: String,
     createdBy: String,
     updatedBy: String,

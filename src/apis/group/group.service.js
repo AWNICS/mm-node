@@ -105,13 +105,6 @@ class GroupService {
     updateGroupUserMapObj(group, callback) {
         groupUserMapCloneDao.update(group, callback);
     }
-
-    /**
-     * socket.io implementation
-     */
-    joinChat(id, callback) {
-        groupCloneDao.create(id, callback);
-    }
 }
 
 export default GroupService;

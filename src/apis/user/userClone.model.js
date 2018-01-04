@@ -18,7 +18,10 @@ var UserCloneSchema = new Schema({
     status: String,
     waitingTime: Number,
     rating: Number,
-    createdTime: Date,
+    token: String,
+    activate: Number,
+    privilege: { type: String, default: null },
+    createdTime: { type: Date, default: Date.now },
     createdBy: String,
     updatedTime: Date,
     updatedBy: String
