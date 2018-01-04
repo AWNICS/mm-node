@@ -135,4 +135,14 @@ router.get('/controllers/getGroupUserMapCloneById/:id', (req, res) => {
     res.send('Fetched groupUserMapClone details using ID');
 });
 
+/**
+ * for fetching all the groups for given user
+ */
+/*router.get('/controllers/getAllGroupClones/:userIds', (req, res) => {
+    groupService.getAllGroupsBasedOnUserId((req.params.userIds), (result) => {
+        log.info('GroupUserMapClone to be read is: ' + JSON.stringify(result));
+    });
+    res.send('Fetched groupUserMapClone details using ID');
+});*/
+
 module.exports = router;

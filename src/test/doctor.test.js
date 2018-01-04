@@ -5,8 +5,10 @@ import expect from 'expect.js';
 var doctorService = new DoctorService();
 
 describe('doctorDao', function() {
+    //this.timeout(15000);
     describe('#insert()', function() {
-        xit('creates a doctor', function() {
+        it('creates a doctor', function() {
+            //this.timeout(700);
             var doctor = {
                 id: null,
                 name: 'John',
@@ -25,7 +27,8 @@ describe('doctorDao', function() {
     });
 
     describe('#update()', function() {
-        xit('doctor updated', function() {
+        it('doctor updated', function() {
+            //this.timeout(800);
             var doctor = {
                 id: 9,
                 name: 'John doe',
@@ -41,7 +44,8 @@ describe('doctorDao', function() {
     });
 
     describe('#readAll()', function() {
-        xit('Get all doctors', function() {
+        it('Get all doctors', function() {
+            //this.timeout(900);
             return doctorService.getAll((result) => {
                 //log.info('all data from doctor: ' + JSON.stringify(result));
             });
@@ -49,7 +53,8 @@ describe('doctorDao', function() {
     });
 
     describe('#readById()', function() {
-        xit('Get doctor by id', function() {
+        it('Get doctor by id', function() {
+            //this.timeout(1000);
             return doctorService.getById(1, () => {}).then((res) => {
                 //log.info('get doctor data by id:' + JSON.stringify(res));
             });
@@ -57,7 +62,8 @@ describe('doctorDao', function() {
     });
 
     describe('#delete()', function() {
-        xit('Doctor deleted', function() {
+        it('Doctor deleted', function() {
+            //this.timeout(1100);
             return doctorService.delete(10, () => {}).then((res) => {
                 //log.info('deleted doctor');
             });

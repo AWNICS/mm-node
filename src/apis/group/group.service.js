@@ -105,6 +105,22 @@ class GroupService {
     updateGroupUserMapObj(group, callback) {
         groupUserMapCloneDao.update(group, callback);
     }
+
+    /**
+     * fetching all the groups for particular userId
+     */
+    /*getAllGroupsBasedOnUserId(userId) {
+        var result = groupCloneDao.getAll(callback);
+        log.info(JSON.stringify(result));
+        //var groupList = [];
+        log.info('List of groups: ');
+        for (var i = 0; i < result.length; i++) {
+            if (result.userId == userId) {
+                //groupList[0] = result.name;
+                log.info(result.name + ' ');
+            }
+        }
+    }*/
 }
 
 export default GroupService;

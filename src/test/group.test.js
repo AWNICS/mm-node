@@ -5,8 +5,10 @@ import expect from 'expect.js';
 var groupService = new GroupService();
 
 describe('groupDao', function() {
+    //this.timeout(20000);
     describe('#insert()', function() {
-        xit('creates a group', function() {
+        it('creates a group', function() {
+            //this.timeout(1200);
             var group = {
                 id: null,
                 name: 'John',
@@ -24,7 +26,8 @@ describe('groupDao', function() {
     });
 
     describe('#update()', function() {
-        xit('group updated', function() {
+        it('group updated', function() {
+            //this.timeout(1300);
             var group = {
                 id: 4,
                 name: 'dental care',
@@ -42,7 +45,8 @@ describe('groupDao', function() {
     });
 
     describe('#readAll()', function() {
-        xit('Get all group', function() {
+        it('Get all group', function() {
+            //this.timeout(1400);
             return groupService.getAll((result) => {
                 //log.info('all data from group: ' + JSON.stringify(result));
             });
@@ -50,7 +54,8 @@ describe('groupDao', function() {
     });
 
     describe('#readById()', function() {
-        xit('Get group by id', function() {
+        it('Get group by id', function() {
+            //this.timeout(1500);
             return groupService.getById(1, () => {}).then((res) => {
                 //log.info('get group by id data:' + JSON.stringify(res));
             });
@@ -58,7 +63,8 @@ describe('groupDao', function() {
     });
 
     describe('#delete()', function() {
-        xit('Group deleted', function() {
+        it('Group deleted', function() {
+            //this.timeout(1600);
             return groupService.delete(2, () => {}).then((res) => {
                 //log.info('deleted group');
             });

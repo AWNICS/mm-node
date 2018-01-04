@@ -16,6 +16,12 @@ module.exports = (sequelize, DataTypes) => {
         },
         picture: {
             type: DataTypes.STRING
+        },
+        createdBy: {
+            type: DataTypes.STRING
+        },
+        updatedBy: {
+            type: DataTypes.STRING
         }
     });
     return Group;
