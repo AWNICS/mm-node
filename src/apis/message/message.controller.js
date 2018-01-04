@@ -11,14 +11,17 @@ var router = express.Router();
  *   Message:
  *     properties:
  *       id:
- *         type: integer
- *       user:
+ *         type: string
+ *         format: date
+ *       receiverId:
+ *         type: string
+ *       receiverType:
+ *         type: string
+ *       senderId:
  *         type: string
  *       picUrl:
  *         type: string
  *       text:
- *         type: string
- *       type:
  *         type: string
  *       status:
  *         type: string
@@ -40,6 +43,7 @@ var router = express.Router();
  *               type: string
  *       lastUpdateTime: 
  *         type: string
+ *         format: date
  */
 /**
  * @swagger
@@ -47,28 +51,28 @@ var router = express.Router();
  *   get:
  *     tags:
  *       - Messages
- *     description: Returns all messages
+ *     description: Returns all messages from MySql db
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: An array of messages
+ *         description: An array of messages from MySql db
  *         schema:
  *           $ref: '#/definitions/Message'
  */
 router.get('/controllers/getMessage', (req, res) => {
     //var message = new Message();
-    messageService.readAll((results) => { log.info('Messages are: ' + JSON.stringify(results)); });
+    messageService.readAllMessages((results) => { log.info('Messages are: ' + JSON.stringify(results)); });
     res.send('Fetched the messages successfully');
 });
 
 /**
  * @swagger
- * /message/controllers/postMessage:
+ * /message/controllers/sendMessage:
  *   post:
  *     tags:
  *       - Messages
- *     description: Creates a new message
+ *     description: Creates a new message in MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -80,7 +84,7 @@ router.get('/controllers/getMessage', (req, res) => {
  *           $ref: '#/definitions/Message'
  *     responses:
  *       200:
- *         description: Successfully created
+ *         description: Successfully created in MySql db
  * 
  * 
  * 
@@ -96,27 +100,23 @@ router.post('/controllers/sendMessage', (req, res) => {
 
 /**
  * @swagger
- * /message/controllers/putMessage/{id}:
+ * /message/controllers/putMessage:
  *   put:
  *     tags:
  *       - Messages
- *     description: Updates a single message
+ *     description: Updates a single message in MySql db
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: id
- *         in: path
- *         required: true
- *         type: integer
- *       - name: message
- *         description: Message object
- *         in: body
+ *       - in: body
+ *         name: body
+ *         description: Message data that needs to be update
  *         required: true
  *         schema:
  *           $ref: '#/definitions/Message'
  *     responses:
  *       200:
- *         description: Successfully updated
+ *         description: Successfully updated in MySql db
  */
 router.put('/controllers/putMessage', (req, res) => {
     messageService.updateMessage(req.body, (result) => { log.info('Message updated') });
@@ -129,7 +129,7 @@ router.put('/controllers/putMessage', (req, res) => {
  *   delete:
  *     tags:
  *       - Messages
- *     description: Deletes a single message
+ *     description: Deletes a single message from MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -137,16 +137,37 @@ router.put('/controllers/putMessage', (req, res) => {
  *         description:  messages
  *         in: path
  *         required: true
- *         type: integer
+ *         type: string
  *     responses:
  *       200:
- *         description: Successfully deleted
+ *         description: Successfully deleted from MySql db
  */
 router.delete('/controllers/removeMessage/:id', (req, res) => {
     messageService.removeMessage(req.params.id, (result) => { log.info(JSON.stringify(result)); });
     res.send('Message deleted');
 });
 
+/**
+ * @swagger
+ * /message/controllers/getMessageById/{id}:
+ *   get:
+ *     tags:
+ *       - Messages
+ *     description: Returns message by id from MySql db
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: id for message to return
+ *         required: true
+ *         type: string
+ *         schema:
+ *           $ref: '#/definitions/Message'
+ *     responses:
+ *       200:
+ *         description: An message return from MySql db
+ */
 router.get('/controllers/getMessageById/:id', (req, res) => {
     messageService.readMessageById(req.params.id, (result) => { log.info(JSON.stringify(result)); });
     res.send('Read message by ID successful');

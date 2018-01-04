@@ -14,7 +14,7 @@ exports.create = (groupUserMapClone, callback) => {
 }
 
 exports.getAll = (callback) => {
-    // get all the groups
+    // get all the groupUserMapClones
     GroupUserMapClone.find({}, (err, groupUserMapClones) => {
         if (err) throw err;
         callback(groupUserMapClones)
@@ -22,7 +22,7 @@ exports.getAll = (callback) => {
 }
 
 exports.getById = (id, callback) => {
-    // get a specific the group
+    // get a specific the groupUserMapClone
     GroupUserMapClone.find({ id: id }, (err, groupUserMapClone) => {
         if (err) throw err;
         callback(groupUserMapClone);
