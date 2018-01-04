@@ -12,7 +12,7 @@
         "compile": "npm run clean && babel src -d dist --copy-files",
         "serve": "npm run compile && node ./dist/index",
         "start": "nodemon --watch src --exec npm run serve",
-        "test": "mocha --timeout 20000 --reporter spec dist/test/*.js"
+        "test": "mocha --reporter spec dist/test/*.js"
     },
     "author": "Arun Gadag<arun.gadag@awnics.com>",
     "license": "MIT",

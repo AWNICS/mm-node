@@ -10,8 +10,12 @@ var Sequelize = require('sequelize');
 var userService = new UserService();
 
 describe('userDao', function() {
+    //this.timeout(3000);
     describe('#insert()', function() {
+        //this.timeout(3000);
         it('creates a user', function(done) {
+            //this.timeout(1700);
+            this.timeout(3000);
             var user = {
                 id: null,
                 name: 'abc',
@@ -33,12 +37,16 @@ describe('userDao', function() {
                 log.info('user value after insert: ' + JSON.stringify(result));
                 //userService.delete(result.id, (result) => {});
             });
-            done();
+            //done();
+            setTimeout(done, 3000);
         });
     });
 
     describe('#update()', function() {
-        xit('user updated', function() {
+        this.timeout(3000);
+        it('user updated', function(done) {
+            //this.timeout(1800);
+            this.timeout(3000);
             var user = {
                 id: 24,
                 name: 'nilu',
@@ -50,41 +58,55 @@ describe('userDao', function() {
                 waitingTime: 10,
                 rating: 7
             };
-            userService.updateRegisteredUser(user, (result) => {}).then((res, done) => {
+            return userService.updateRegisteredUser(user, (result) => {}).then((res) => {
                 //userService.deleteRegisteredUser(user.id, (result) => {});
-                done();
+                //done();
             });
+            setTimeout(done, 3000);
         });
     });
 
     describe('#readAll()', function() {
-        xit('Get all users', function() {
-            userService.getAll((result) => {
+        this.timeout(3000);
+        it('Get all users', function(done) {
+            //this.timeout(1900);
+            this.timeout(3000);
+            return userService.getAll((result) => {
                 //log.info('all data: ' + JSON.stringify(result));
-            }).then((result, done) => {
-                done();
+            }).then((result) => {
+                //done();
             });
+            setTimeout(done, 3000);
         });
     });
 
     describe('#readById()', function() {
-        xit('Get user by id', function() {
-            userService.getById(22, () => {}).then((res, done) => {
+        this.timeout(3000);
+        it('Get user by id', function(done) {
+            //this.timeout(2000);
+            this.timeout(3000);
+            return userService.getById(22, () => {}).then((res) => {
                 log.info('get by id data:' + JSON.stringify(res));
-                done();
+                //done();
             });
+            setTimeout(done, 3000);
         });
     });
 
     describe('#delete()', function() {
-        xit('User deleted', function() {
-            userService.deleteRegisteredUser(21, () => {}).then((res, done) => {
+        this.timeout(3000);
+        it('User deleted', function(done) {
+            //this.timeout(2100);
+            this.timeout(3000);
+            return userService.deleteRegisteredUser(8, () => {}).then((res) => {
                 log.info('deleted user');
-                done();
+                //done();
             });
+            setTimeout(done, 3000);
         });
     });
 });
+
 
 /*import log from '../config/log4js.config';
 import UserService from '../apis/user/user.service';
