@@ -27,19 +27,19 @@ var groupService = new GroupService();
  *   post:
  *     tags:
  *       - Group
- *     description: Creates a new group
+ *     description: Creates a new group in MySql db
  *     produces:
  *       - application/json
  *     parameters:
  *       - name: group
- *         description: Group object
+ *         description: Group object 
  *         in: body
  *         required: true
  *         schema:
  *           $ref: '#/definitions/Group'
  *     responses:
  *       200:
- *         description: Successfully created
+ *         description: Successfully created in MySql db
  */
 router.post('/controllers/createGroup', function(req, res) {
     var group = req.body;
@@ -54,12 +54,12 @@ router.post('/controllers/createGroup', function(req, res) {
  *   get:
  *     tags:
  *       - Group
- *     description: Returns all group
+ *     description: Returns all group from MySql
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: An array of group
+ *         description: An array of group from MySql
  *         schema:
  *           $ref: '#/definitions/Group'
  */
@@ -75,7 +75,7 @@ router.get('/controllers/getGroups', function(req, res) {
  *   get:
  *     tags:
  *       - Group
- *     description: Returns Group by id
+ *     description: Returns Group by id from MySql
  *     produces:
  *       - application/json
  *     parameters:
@@ -88,7 +88,7 @@ router.get('/controllers/getGroups', function(req, res) {
  *           $ref: '#/definitions/Group'
  *     responses:
  *       200:
- *         description: An Group return
+ *         description: An Group return from MySql
  */
 router.get('/controllers/getGroupById/:id', function(req, res) {
     var id = req.params.id;
@@ -103,7 +103,7 @@ router.get('/controllers/getGroupById/:id', function(req, res) {
  *   put:
  *     tags:
  *       - Group
- *     description: Updates a single Group
+ *     description: Updates a single Group in MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -115,7 +115,7 @@ router.get('/controllers/getGroupById/:id', function(req, res) {
  *           $ref: '#/definitions/Group'
  *     responses:
  *       200:
- *         description: Successfully updated
+ *         description: Successfully updated in MySql db
  */
 router.put('/controllers/putGroup', function(req, res) {
     var group = req.body;
@@ -130,7 +130,7 @@ router.put('/controllers/putGroup', function(req, res) {
  *   delete:
  *     tags:
  *       - Group
- *     description: Deletes a single Group
+ *     description: Deletes a single Group from MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -141,7 +141,7 @@ router.put('/controllers/putGroup', function(req, res) {
  *         type: string
  *     responses:
  *       200:
- *         description: Successfully deleted
+ *         description: Successfully deleted from MySql db
  */
 router.delete('/controllers/deleteGroup/:id', function(req, res) {
     var id = req.params.id;
@@ -172,7 +172,7 @@ router.delete('/controllers/deleteGroup/:id', function(req, res) {
  *   post:
  *     tags:
  *       - GroupUserMap
- *     description: Creates a new GroupUserMap
+ *     description: Creates a new GroupUserMap in MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -184,7 +184,7 @@ router.delete('/controllers/deleteGroup/:id', function(req, res) {
  *           $ref: '#/definitions/GroupUserMap'
  *     responses:
  *       200:
- *         description: Successfully created
+ *         description: Successfully created in MySql db
  */
 router.post('/controllers/createGroupUser', function(req, res) {
     var groupUser = req.body;
@@ -199,12 +199,12 @@ router.post('/controllers/createGroupUser', function(req, res) {
  *   get:
  *     tags:
  *       - GroupUserMap
- *     description: Returns all groupUserMap
+ *     description: Returns all groupUserMap from MySql db
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: An array of groupUserMap
+ *         description: An array of groupUserMap from MySql db
  *         schema:
  *           $ref: '#/definitions/GroupUserMap'
  */
@@ -220,20 +220,20 @@ router.get('/controllers/getGroupUsers', function(req, res) {
  *   get:
  *     tags:
  *       - GroupUserMap
- *     description: Returns groupUserMap by id
+ *     description: Returns groupUserMap by id from MySql db
  *     produces:
  *       - application/json
  *     parameters:
  *       - name: id
  *         in: path
- *         description: id for groupUserMap to return
+ *         description: id for groupUserMap to return 
  *         required: true
  *         type: integer
  *         schema:
  *           $ref: '#/definitions/GroupUserMap'
  *     responses:
  *       200:
- *         description: An GroupUserMap return
+ *         description: An GroupUserMap return from MySql db
  */
 router.get('/controllers/getGroupUserById/:id', function(req, res) {
     var id = req.params.id;
@@ -248,7 +248,7 @@ router.get('/controllers/getGroupUserById/:id', function(req, res) {
  *   put:
  *     tags:
  *       - GroupUserMap
- *     description: Updates a single GroupUserMap
+ *     description: Updates a single GroupUserMap in MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -260,7 +260,7 @@ router.get('/controllers/getGroupUserById/:id', function(req, res) {
  *           $ref: '#/definitions/GroupUserMap'
  *     responses:
  *       200:
- *         description: Successfully updated
+ *         description: Successfully updated in MySql db
  */
 router.put('/controllers/putGroupUser', function(req, res) {
     var groupUser = req.body;
@@ -275,7 +275,7 @@ router.put('/controllers/putGroupUser', function(req, res) {
  *   delete:
  *     tags:
  *       - GroupUserMap
- *     description: Deletes a single GroupUserMap
+ *     description: Deletes a single GroupUserMap from MySql db
  *     produces:
  *       - application/json
  *     parameters:
@@ -286,7 +286,7 @@ router.put('/controllers/putGroupUser', function(req, res) {
  *         type: integer
  *     responses:
  *       200:
- *         description: Successfully deleted
+ *         description: Successfully deleted from MySql db
  */
 router.delete('/controllers/deleteGroupUser/:id', function(req, res) {
     var id = req.params.id;
@@ -324,12 +324,12 @@ router.delete('/controllers/deleteGroupUser/:id', function(req, res) {
  *   get:
  *     tags:
  *       - GroupClones
- *     description: Returns all groupClones
+ *     description: Returns all groupClones from Mongo db
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: An array of groupClones
+ *         description: An array of groupClones from Mongo db
  *         schema:
  *           $ref: '#/definitions/GroupClone'
  */
@@ -344,7 +344,7 @@ router.get('/controllers/getAllGroupClones', (req, res) => {
  *   post:
  *     tags:
  *       - GroupClones
- *     description: Creates a new Group
+ *     description: Creates a new Group in Mongo db
  *     produces:
  *       - application/json
  *     parameters:
@@ -356,7 +356,7 @@ router.get('/controllers/getAllGroupClones', (req, res) => {
  *           $ref: '#/definitions/GroupClone'
  *     responses:
  *       200:
- *         description: Successfully created
+ *         description: Successfully created in Mongo db
  */
 router.post('/controllers/createGroupClone', (req, res) => {
     groupService.createObj(req.body, (result) => { log.info('GroupClone created: ' + JSON.stringify(result)); });
@@ -369,7 +369,7 @@ router.post('/controllers/createGroupClone', (req, res) => {
  *   put:
  *     tags:
  *       - GroupClones
- *     description: Updates a single group
+ *     description: Updates a single group in Mongo db
  *     produces:
  *       - application/json
  *     parameters:
@@ -381,7 +381,7 @@ router.post('/controllers/createGroupClone', (req, res) => {
  *           $ref: '#/definitions/GroupClone'
  *     responses:
  *       200:
- *         description: Successfully updated
+ *         description: Successfully updated in Mongo db
  */
 router.put('/controllers/updateGroupClone', (req, res) => {
     groupService.updateObj(req.body, (result) => { log.info('Updated groupClone details'); });
@@ -394,7 +394,7 @@ router.put('/controllers/updateGroupClone', (req, res) => {
  *   delete:
  *     tags:
  *       - GroupClones
- *     description: Deletes a groupClone
+ *     description: Deletes a groupClone from Mongo db
  *     produces:
  *       - application/json
  *     parameters:
@@ -405,7 +405,7 @@ router.put('/controllers/updateGroupClone', (req, res) => {
  *         type: string
  *     responses:
  *       200:
- *         description: Successfully deleted
+ *         description: Successfully deleted from Mongo db
  */
 router.delete('/controllers/removeGroupClone/:id', (req, res) => {
     groupService.deleteObj(req.params.id, (result) => { log.info('Removed groupClone: ' + JSON.stringify(result)); });
@@ -418,7 +418,7 @@ router.delete('/controllers/removeGroupClone/:id', (req, res) => {
  *   get:
  *     tags:
  *       - GroupClones
- *     description: Returns groupClone by id
+ *     description: Returns groupClone by id from Mongo db
  *     produces:
  *       - application/json
  *     parameters:
@@ -431,7 +431,7 @@ router.delete('/controllers/removeGroupClone/:id', (req, res) => {
  *           $ref: '#/definitions/GroupClone'
  *     responses:
  *       200:
- *         description: An groupClone return
+ *         description: An groupClone return from Mongo db
  */
 router.get('/controllers/getGroupCloneById/:id', (req, res) => {
     groupService.readByIdObj(req.params.id, (result) => { log.info('GroupClone to be read is: ' + JSON.stringify(result)); });
@@ -467,12 +467,12 @@ router.get('/controllers/getGroupCloneById/:id', (req, res) => {
  *   get:
  *     tags:
  *       - GroupUserMapClones
- *     description: Returns all groupUserMapClone
+ *     description: Returns all groupUserMapClone from Mongo db
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: An array of groupUserMapClone
+ *         description: An array of groupUserMapClone from Mongo db
  *         schema:
  *           $ref: '#/definitions/GroupUserMapClone'
  */
@@ -487,7 +487,7 @@ router.get('/controllers/getAllGroupUserMapClones', (req, res) => {
  *   post:
  *     tags:
  *       - GroupUserMapClones
- *     description: Creates a new GroupUserMapClone
+ *     description: Creates a new GroupUserMapClone in Mongo db
  *     produces:
  *       - application/json
  *     parameters:
@@ -499,7 +499,7 @@ router.get('/controllers/getAllGroupUserMapClones', (req, res) => {
  *           $ref: '#/definitions/GroupUserMapClone'
  *     responses:
  *       200:
- *         description: Successfully created
+ *         description: Successfully created in Mongo db
  */
 router.post('/controllers/createGroupUserMapClone', (req, res) => {
     groupService.createGroupUserMapObj(req.body, (result) => { log.info('GroupUserMapClone created: ' + JSON.stringify(result)); });
@@ -512,7 +512,7 @@ router.post('/controllers/createGroupUserMapClone', (req, res) => {
  *   put:
  *     tags:
  *       - GroupUserMapClones
- *     description: Updates a single GroupUserMapClone
+ *     description: Updates a single GroupUserMapClone in Mongo db
  *     produces:
  *       - application/json
  *     parameters:
@@ -524,7 +524,7 @@ router.post('/controllers/createGroupUserMapClone', (req, res) => {
  *           $ref: '#/definitions/GroupUserMapClone'
  *     responses:
  *       200:
- *         description: Successfully updated
+ *         description: Successfully updated in Mongo db
  */
 router.put('/controllers/updateGroupUserMapClone', (req, res) => {
     groupService.updateGroupUserMapObj(req.body, (result) => { log.info('Updated groupUserMapClone details'); });
@@ -537,7 +537,7 @@ router.put('/controllers/updateGroupUserMapClone', (req, res) => {
  *   delete:
  *     tags:
  *       - GroupUserMapClones
- *     description: Deletes a single groupUserMapClone
+ *     description: Deletes a single groupUserMapClone from Mongo db
  *     produces:
  *       - application/json
  *     parameters:
@@ -548,7 +548,7 @@ router.put('/controllers/updateGroupUserMapClone', (req, res) => {
  *         type: string
  *     responses:
  *       200:
- *         description: Successfully deleted
+ *         description: Successfully deleted from Mongo db
  */
 router.delete('/controllers/deleteGroupUserMapClone/:id', (req, res) => {
     groupService.deleteGroupUserMapObj(req.params.id, (result) => { log.info('Removed groupUserMapClone: ' + JSON.stringify(result)); });
@@ -561,7 +561,7 @@ router.delete('/controllers/deleteGroupUserMapClone/:id', (req, res) => {
  *   get:
  *     tags:
  *       - GroupUserMapClones
- *     description: Returns groupUserMapClone by id
+ *     description: Returns groupUserMapClone by id from Mongo db
  *     produces:
  *       - application/json
  *     parameters:
@@ -574,7 +574,7 @@ router.delete('/controllers/deleteGroupUserMapClone/:id', (req, res) => {
  *           $ref: '#/definitions/GroupUserMapClone'
  *     responses:
  *       200:
- *         description: An groupUserMapClone return
+ *         description: An groupUserMapClone return from Mongo db
  */
 router.get('/controllers/getGroupUserMapCloneById/:id', (req, res) => {
     groupService.readByIdGroupUserMapObj(req.params.id, (result) => { log.info('GroupUserMapClone to be read is: ' + JSON.stringify(result)); });

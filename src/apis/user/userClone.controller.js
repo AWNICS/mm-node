@@ -45,8 +45,8 @@ var router = express.Router();
  * /userClone/controllers/createUserClone:
  *   post:
  *     tags:
- *       - UserClones
- *     description: Creates a new userClone
+ *       - UserClone
+ *     description: Creates a new userClone in Mongo db
  *     produces:
  *       - application/json
  *     parameters:
@@ -58,7 +58,7 @@ var router = express.Router();
  *           $ref: '#/definitions/UserClone'
  *     responses:
  *       200:
- *         description: Successfully created
+ *         description: Successfully created in Mongo db
  */
 router.post('/controllers/createUserClone', (req, res) => {
     userCloneService.createUserClone(req.body, (result) => {
@@ -72,13 +72,13 @@ router.post('/controllers/createUserClone', (req, res) => {
  * /userClone/controllers/readAllUserClones:
  *   get:
  *     tags:
- *       - UserClones
- *     description: Returns all userClone
+ *       - UserClone
+ *     description: Returns all userClone from Mongo db
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: An array of userClone
+ *         description: An array of userClone from Mongo db
  *         schema:
  *           $ref: '#/definitions/UserClone'
  */
@@ -92,21 +92,21 @@ router.get('/controllers/readAllUserClones', (req, res) => {
  * /userClone/controllers/readUserCloneById/{id}:
  *   get:
  *     tags:
- *       - UserClones
- *     description: Returns userClone by id
+ *       - UserClone
+ *     description: Returns userClone by id from Mongo db
  *     produces:
  *       - application/json
  *     parameters:
  *       - name: id
  *         in: path
- *         description: id for userClone to return
+ *         description: id for userClone to return 
  *         required: true
  *         type: string
  *         schema:
  *           $ref: '#/definitions/UserClone'
  *     responses:
  *       200:
- *         description: An user return
+ *         description: An user return from Mongo db
  */
 router.get('/controllers/readUserCloneById/:id', (req, res) => {
     userCloneService.readUserCloneById(req.params.id, (result) => { log.info(JSON.stringify(result)); });
@@ -118,8 +118,8 @@ router.get('/controllers/readUserCloneById/:id', (req, res) => {
  * /userClone/controllers/updateUserClone:
  *   put:
  *     tags:
- *       - UserClones
- *     description: Updates a single userClone
+ *       - UserClone
+ *     description: Updates a single userClone in Mongo db
  *     produces:
  *       - application/json
  *     parameters:
@@ -131,7 +131,7 @@ router.get('/controllers/readUserCloneById/:id', (req, res) => {
  *           $ref: '#/definitions/UserClone'
  *     responses:
  *       200:
- *         description: Successfully updated
+ *         description: Successfully updated in Mongo db
  */
 router.put('/controllers/updateUserClone', (req, res) => {
     userCloneService.updateUserClone(req.body, (result) => { log.info('UserClone updated') });
@@ -143,8 +143,8 @@ router.put('/controllers/updateUserClone', (req, res) => {
  * /userClone/controllers/removeUserClone/{id}:
  *   delete:
  *     tags:
- *       - UserClones
- *     description: Deletes a userClone
+ *       - UserClone
+ *     description: Deletes a userClone from Mongo db
  *     produces:
  *       - application/json
  *     parameters:
@@ -155,7 +155,7 @@ router.put('/controllers/updateUserClone', (req, res) => {
  *         type: string
  *     responses:
  *       200:
- *         description: Successfully deleted
+ *         description: Successfully deleted from Mongo db
  */
 router.delete('/controllers/removeUserClone/:id', (req, res) => {
     userCloneService.removeUserClone(req.params.id, (result) => { log.info(JSON.stringify(result)); });
