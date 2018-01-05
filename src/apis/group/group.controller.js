@@ -584,11 +584,21 @@ router.get('/controllers/getGroupUserMapCloneById/:id', (req, res) => {
 /**
  * for fetching all the groups for given user
  */
-/*router.get('/controllers/getAllGroupClones/:userIds', (req, res) => {
-    groupService.getAllGroupsBasedOnUserId((req.params.userIds), (result) => {
-        log.info('GroupUserMapClone to be read is: ' + JSON.stringify(result));
+router.get('/controllers/getAllGroupsBasedOnUserId/:userId', (req, res) => {
+    groupService.getAllGroupsBasedOnUserId((req.params.userId), (result) => {
+        log.info('Group list: ' + JSON.stringify(result));
     });
-    res.send('Fetched groupUserMapClone details using ID');
-});*/
+    res.send('Fetched all group list');
+});
+
+/**
+ * get 100 messages on click of any group
+ */
+router.get('/controllers/getLimitedMessages/:receiverId', (req, res) => {
+    groupService.getLimitedMessages((req.params.receiverId), (result) => {
+        log.info('100 message records: ' + JSON.stringify(result));
+    });
+    res.send('Fething 100 messages');
+});
 
 module.exports = router;

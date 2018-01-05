@@ -5,6 +5,7 @@ import groupCloneDao from './groupClone.dao';
 import GroupCloneModel from './groupClone.model';
 import groupUserMapCloneDao from './groupUserMapClone.dao';
 import GroupUserMapCloneModel from './groupUserMapClone.model';
+import Message from '../message/message.model';
 
 var groupDao = new GroupDao();
 var groupUserMapDao = new GroupUserMapDao();
@@ -104,6 +105,30 @@ class GroupService {
 
     updateGroupUserMapObj(group, callback) {
         groupUserMapCloneDao.update(group, callback);
+    }
+
+    /**
+     * fetching all the groups for particular userId
+     */
+    getAllGroupsBasedOnUserId(userId, callback) {
+        GroupCloneModel.find({ userIds: userId }, (err, groupClone) => {
+            if (err) throw err;
+            for (var i in groupClone) {
+                console.log(groupClone[i].name);
+            }
+            callback(groupClone);
+        });
+    }
+
+    /**
+     * render 100 message onclick of any group
+     */
+    getLimitedMessages(receiverId, callback) {
+        Message.find({ receiverId: receiverId }, (err, messages) => {
+            if (err) throw err;
+            log.info('value: ' + JSON.stringify(messages));
+            callback(messages);
+        }).sort({ $natural: -1 }).limit(2);
     }
 }
 
