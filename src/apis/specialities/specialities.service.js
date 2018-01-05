@@ -9,24 +9,24 @@ import Speciality from './specialities.model';
 class SpecialitiesService {
     constructor() {}
 
-    createSpeciality(speciality, callback) {
+    create(speciality, callback) {
         var spec = new Speciality(speciality);
         specialitiesDao.create(spec, callback);
     }
 
-    readAllSpecialities(callback) {
+    readAll(callback) {
         specialitiesDao.getAll(callback);
     }
 
-    readSpecialityById(id, callback) {
+    readById(id, callback) {
         specialitiesDao.getById(id, callback);
     }
 
-    removeSpeciality(id, callback) {
+    remove(id, callback) {
         specialitiesDao.delete(id, callback);
     }
 
-    updateSpeciality(speciality, callback) {
+    update(speciality, callback) {
         specialitiesDao.update(speciality, callback);
     }
 }

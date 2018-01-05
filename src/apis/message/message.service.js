@@ -55,19 +55,19 @@ class MessageService {
         userMapDao.create(userMessage, callback);
     }
 
-    readAllMessages(callback) {
+    readAll(callback) {
         messageDao.getAll(callback);
     }
 
-    readMessageById(id, callback) {
+    readById(id, callback) {
         messageDao.getById(id, callback);
     }
 
-    removeMessage(id, callback) {
+    remove(id, callback) {
         messageDao.delete(id, callback);
     }
 
-    updateMessage(message, callback) {
+    update(message, callback) {
         messageDao.update(message, callback);
     }
 }
