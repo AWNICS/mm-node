@@ -25,6 +25,9 @@ var MessageSchema = new Schema({
         data: [String]
     },
     lastUpdateTime: Date
+        /*
+        createdBy, updatedBy, createdTime, updatedTime
+        */
 });
 
 // Compile model from schema

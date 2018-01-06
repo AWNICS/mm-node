@@ -51,12 +51,12 @@ var router = express.Router();
  *   get:
  *     tags:
  *       - Messages
- *     description: Returns all messages from MySql db
+ *     description: Returns all messages from Mongo db
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: An array of messages from MySql db
+ *         description: An array of messages from Mongo db
  *         schema:
  *           $ref: '#/definitions/Message'
  */
@@ -73,7 +73,7 @@ router.get('/controllers/getMessage', (req, res) => {
  *   post:
  *     tags:
  *       - Messages
- *     description: Creates a new message in MySql db
+ *     description: Creates a new message in Mongo db
  *     produces:
  *       - application/json
  *     parameters:
@@ -85,7 +85,7 @@ router.get('/controllers/getMessage', (req, res) => {
  *           $ref: '#/definitions/Message'
  *     responses:
  *       200:
- *         description: Successfully created in MySql db
+ *         description: Successfully created in Mongo db
  * 
  * 
  * 
@@ -104,7 +104,7 @@ router.post('/controllers/sendMessage', (req, res) => {
  *   put:
  *     tags:
  *       - Messages
- *     description: Updates a single message in MySql db
+ *     description: Updates a single message in Mongo db
  *     produces:
  *       - application/json
  *     parameters:
@@ -116,10 +116,10 @@ router.post('/controllers/sendMessage', (req, res) => {
  *           $ref: '#/definitions/Message'
  *     responses:
  *       200:
- *         description: Successfully updated in MySql db
+ *         description: Successfully updated in Mongo db
  */
 router.put('/controllers/putMessage', (req, res) => {
-    messageService.updateMessage(req.body, (result) => { log.info('Message updated') });
+    messageService.update(req.body, (result) => { log.info('Message updated') });
     res.send('Message updated successfully');
 });
 
@@ -129,7 +129,7 @@ router.put('/controllers/putMessage', (req, res) => {
  *   delete:
  *     tags:
  *       - Messages
- *     description: Deletes a single message from MySql db
+ *     description: Deletes a single message from Mongo db
  *     produces:
  *       - application/json
  *     parameters:
@@ -140,10 +140,10 @@ router.put('/controllers/putMessage', (req, res) => {
  *         type: string
  *     responses:
  *       200:
- *         description: Successfully deleted from MySql db
+ *         description: Successfully deleted from Mongo db
  */
 router.delete('/controllers/removeMessage/:id', (req, res) => {
-    messageService.removeMessage(req.params.id, (result) => { log.info(JSON.stringify(result)); });
+    messageService.remove(req.params.id, (result) => { log.info(JSON.stringify(result)); });
     res.send('Message deleted');
 });
 
@@ -153,7 +153,7 @@ router.delete('/controllers/removeMessage/:id', (req, res) => {
  *   get:
  *     tags:
  *       - Messages
- *     description: Returns message by id from MySql db
+ *     description: Returns message by id from Mongo db
  *     produces:
  *       - application/json
  *     parameters:
@@ -166,10 +166,10 @@ router.delete('/controllers/removeMessage/:id', (req, res) => {
  *           $ref: '#/definitions/Message'
  *     responses:
  *       200:
- *         description: An message return from MySql db
+ *         description: An message return from Mongo db
  */
 router.get('/controllers/getMessageById/:id', (req, res) => {
-    messageService.readMessageById(req.params.id, (result) => { log.info(JSON.stringify(result)); });
+    messageService.readById(req.params.id, (result) => { log.info(JSON.stringify(result)); });
     res.send('Read message by ID successful');
 });
 

@@ -37,6 +37,10 @@ var userService = new UserService();
  *         type: integer
  *       privilege:
  *         type: string
+ *       createdBy:
+ *         type: string
+ *       updatedBy:
+ *         type: string
  */
 /**
  * @swagger
@@ -200,6 +204,12 @@ router.get('/controllers/updateActivate/:token', function(req, res) {
  *         type: integer
  *       rating:
  *         type: integer
+ *       token:
+ *         type: string
+ *       activate:
+ *         type: number
+ *       privilege:
+ *         type: string
  *       createdTime:
  *         type: string
  *         format: date
@@ -213,7 +223,7 @@ router.get('/controllers/updateActivate/:token', function(req, res) {
  */
 /**
  * @swagger
- * /userClone/controllers/createUserClone:
+ * /user/controllers/createUserClone:
  *   post:
  *     tags:
  *       - UserClone
@@ -240,7 +250,7 @@ router.post('/controllers/createUserClone', (req, res) => {
 
 /**
  * @swagger
- * /userClone/controllers/readAllUserClones:
+ * /user/controllers/readAllUserClones:
  *   get:
  *     tags:
  *       - UserClone
@@ -260,7 +270,7 @@ router.get('/controllers/readAllUserClones', (req, res) => {
 
 /**
  * @swagger
- * /userClone/controllers/readUserCloneById/{id}:
+ * /user/controllers/readUserCloneById/{id}:
  *   get:
  *     tags:
  *       - UserClone
@@ -286,7 +296,7 @@ router.get('/controllers/readUserCloneById/:id', (req, res) => {
 
 /**
  * @swagger
- * /userClone/controllers/updateUserClone:
+ * /user/controllers/updateUserClone:
  *   put:
  *     tags:
  *       - UserClone
@@ -311,7 +321,7 @@ router.put('/controllers/updateUserClone', (req, res) => {
 
 /**
  * @swagger
- * /userClone/controllers/removeUserClone/{id}:
+ * /user/controllers/removeUserClone/{id}:
  *   delete:
  *     tags:
  *       - UserClone

@@ -61,7 +61,7 @@ var router = express.Router();
  *         description: Successfully created in MySql db
  */
 router.post('/controllers/createOrderRequest', (req, res) => {
-    orderRequestsService.createOrderRequest(req.body, (result) => {
+    orderRequestsService.create(req.body, (result) => {
         res.json(result);
     });
 });
@@ -82,7 +82,7 @@ router.post('/controllers/createOrderRequest', (req, res) => {
  *           $ref: '#/definitions/OrderRequest'
  */
 router.get('/controllers/readAllOrderRequests', (req, res) => {
-    orderRequestsService.readAllOrderRequests((results) => {
+    orderRequestsService.readAll((results) => {
         res.json(results);
     });
 });
@@ -109,7 +109,7 @@ router.get('/controllers/readAllOrderRequests', (req, res) => {
  *         description: An orderRequest return from MySql db
  */
 router.get('/controllers/readOrderRequestById/:id', (req, res) => {
-    orderRequestsService.readOrderRequestById(req.params.id, (result) => {
+    orderRequestsService.readById(req.params.id, (result) => {
         res.json(result);
     });
 });
@@ -135,7 +135,7 @@ router.get('/controllers/readOrderRequestById/:id', (req, res) => {
  *         description: Successfully updated in MySql db
  */
 router.put('/controllers/updateOrderRequest', (req, res) => {
-    orderRequestsService.updateOrderRequest(req.body, (result) => {
+    orderRequestsService.update(req.body, (result) => {
         res.json(result);
     });
 });
@@ -160,7 +160,7 @@ router.put('/controllers/updateOrderRequest', (req, res) => {
  *         description: Successfully deleted from MySql db
  */
 router.delete('/controllers/removeOrderRequest/:id', (req, res) => {
-    orderRequestsService.removeOrderRequest(req.params.id, (result) => {
+    orderRequestsService.remove(req.params.id, (result) => {
         res.send('OrderRequest deleted');
     });
 });
