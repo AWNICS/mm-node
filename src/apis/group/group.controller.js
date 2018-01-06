@@ -334,8 +334,9 @@ router.delete('/controllers/deleteGroupUser/:id', function(req, res) {
  *           $ref: '#/definitions/GroupClone'
  */
 router.get('/controllers/getAllGroupClones', (req, res) => {
-    groupService.readAllObj((results) => { log.info('Return groupClones: ' + JSON.stringify(results)); });
-    res.send('Fetched all groupClones');
+    groupService.readAllObj((results) => {
+        res.send(results)
+    });
 });
 
 /**
