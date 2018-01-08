@@ -62,7 +62,7 @@ var router = express.Router();
  */
 router.get('/controllers/getMessage', (req, res) => {
     //var message = new Message();
-    messageService.readAllMessages((results) => {
+    messageService.readAll((results) => {
         res.send(results)
     });
 });

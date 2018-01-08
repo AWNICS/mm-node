@@ -27,7 +27,7 @@ class MessageService {
         //createMessage and createGroupMap using DAO object
         var msg = new Message(message);
         var grpMessage = new GroupMessageMap({
-            messageId: msg.id,
+            messageId: msg._id,
             groupId: message.receiverId,
             userSId: message.senderId,
             createdBy: message.senderId,
@@ -43,7 +43,7 @@ class MessageService {
         //createMessage and createUserMap using DAO object
         var msg = new Message(message);
         var userMessage = new UserMessageMap({
-            messageId: msg.id,
+            messageId: msg._id,
             userRId: message.receiverId,
             userSId: message.senderId,
             createdBy: message.senderId,

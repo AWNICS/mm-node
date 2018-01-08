@@ -9,7 +9,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var MessageSchema = new Schema({
-    id: { type: Date, default: Date.now },
+    _id: { type: Number, auto: true },
     receiverId: String,
     receiverType: String, // group or individual
     senderId: String,
