@@ -58,7 +58,7 @@ var userService = new UserService();
  *       200:
  *         description: Successfully created in MySql db
  */
-router.post('/controllers/createdUser', function(req, res) {
+router.post('/controllers/createUser', function(req, res) {
     var user = req.body;
     userService.register(user, (result) => {
         res.send('User created: ' + JSON.stringify(result));
@@ -80,7 +80,7 @@ router.post('/controllers/createdUser', function(req, res) {
  *         schema:
  *           $ref: '#/definitions/User'
  */
-router.get('/controllers/getUser', function(req, res) {
+router.get('/controllers/getUsers', function(req, res) {
     userService.getAll((result) => {
         res.send('All data: ' + JSON.stringify(result));
     });
@@ -174,163 +174,6 @@ router.get('/controllers/updateActivate/:token', function(req, res) {
     userService.activateUser(req.params.token, (result) => {
         res.sendFile('./activate.html', { root: __dirname })
     });
-});
-
-/**
- * @swagger
- * definitions:
- *   UserClone:
- *     properties:
- *       id:
- *         type: string
- *         format: date
- *       name:
- *         type: string
- *       email:
- *         type: string
- *       phoneNo:
- *         type: integer
- *       picUrl:
- *         type: string
- *       description:
- *         type: string
- *       status:
- *         type: string
- *       waitingTime:
- *         type: integer
- *       rating:
- *         type: integer
- *       createdTime:
- *         type: string
- *         format: date
- *       createdBy:
- *         type: string
- *       updatedTime:
- *         type: string
- *         format: date
- *       updatedBy:
- *         type: string
- */
-/**
- * @swagger
- * /userClone/controllers/createUserClone:
- *   post:
- *     tags:
- *       - UserClone
- *     description: Creates a new userClone in Mongo db
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: user
- *         description: userClone object
- *         in: body
- *         required: true
- *         schema:
- *           $ref: '#/definitions/UserClone'
- *     responses:
- *       200:
- *         description: Successfully created in Mongo db
- */
-router.post('/controllers/createUserClone', (req, res) => {
-    userService.createObj(req.body, (result) => {
-        log.info('UserClone created : ' + JSON.stringify(result));
-    });
-    res.send('UserClone created successfully');
-});
-
-/**
- * @swagger
- * /userClone/controllers/readAllUserClones:
- *   get:
- *     tags:
- *       - UserClone
- *     description: Returns all userClone from Mongo db
- *     produces:
- *       - application/json
- *     responses:
- *       200:
- *         description: An array of userClone from Mongo db
- *         schema:
- *           $ref: '#/definitions/UserClone'
- */
-router.get('/controllers/readAllUserClones', (req, res) => {
-    userService.readAllObj((results) => { log.info('All user clones are: ' + JSON.stringify(results)); });
-    res.send('Fetched the userClones successfully');
-});
-
-/**
- * @swagger
- * /userClone/controllers/readUserCloneById/{id}:
- *   get:
- *     tags:
- *       - UserClone
- *     description: Returns userClone by id from Mongo db
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: id
- *         in: path
- *         description: id for userClone to return 
- *         required: true
- *         type: string
- *         schema:
- *           $ref: '#/definitions/UserClone'
- *     responses:
- *       200:
- *         description: An user return from Mongo db
- */
-router.get('/controllers/readUserCloneById/:id', (req, res) => {
-    userService.readByIdObj(req.params.id, (result) => { log.info('User clone by id:' + JSON.stringify(result)); });
-    res.send('Read useClone by ID successful');
-});
-
-/**
- * @swagger
- * /userClone/controllers/updateUserClone:
- *   put:
- *     tags:
- *       - UserClone
- *     description: Updates a single userClone in Mongo db
- *     produces:
- *       - application/json
- *     parameters:
- *       - in: body
- *         name: body
- *         description: UserClone data that needs to be update
- *         required: true
- *         schema:
- *           $ref: '#/definitions/UserClone'
- *     responses:
- *       200:
- *         description: Successfully updated in Mongo db
- */
-router.put('/controllers/updateUserClone', (req, res) => {
-    userService.updateObj(req.body, (result) => { log.info('UserClone updated') });
-    res.send('UserClone updated successfully');
-});
-
-/**
- * @swagger
- * /userClone/controllers/removeUserClone/{id}:
- *   delete:
- *     tags:
- *       - UserClone
- *     description: Deletes a userClone from Mongo db
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: id
- *         description: UserClone's id
- *         in: path
- *         required: true
- *         type: string
- *     responses:
- *       200:
- *         description: Successfully deleted from Mongo db
- */
-router.delete('/controllers/removeUserClone/:id', (req, res) => {
-    userService.deleteObj(req.params.id, (result) => { log.info(JSON.stringify(result)); });
-    res.send('UserClone deleted');
 });
 
 module.exports = router;
