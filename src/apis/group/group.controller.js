@@ -193,10 +193,10 @@ router.delete('/controllers/deleteGroup/:id', function(req, res) {
  *       200:
  *         description: Successfully created in MySql db
  */
-router.post('/controllers/createGroupUser', function(req, res) {
+router.post('/controllers/createGroupUserMap', function(req, res) {
     var groupUser = req.body;
-    groupService.createGroupUser(groupUser, (result) => {
-        res.send('Group created: ' + JSON.stringify(result));
+    groupService.createGroupUserMap(groupUser, (result) => {
+        res.send('Group user map created: ' + JSON.stringify(result));
     });
 });
 
@@ -215,9 +215,9 @@ router.post('/controllers/createGroupUser', function(req, res) {
  *         schema:
  *           $ref: '#/definitions/GroupUserMap'
  */
-router.get('/controllers/getGroupUsers', function(req, res) {
-    groupService.getAllGroupUser((result) => {
-        res.send('All group user lists: ' + JSON.stringify(result));
+router.get('/controllers/getGroupUserMaps', function(req, res) {
+    groupService.getAllGroupUserMaps((result) => {
+        res.send('All group user map lists: ' + JSON.stringify(result));
     });
 });
 
@@ -242,10 +242,10 @@ router.get('/controllers/getGroupUsers', function(req, res) {
  *       200:
  *         description: An GroupUserMap return from MySql db
  */
-router.get('/controllers/getGroupUserById/:id', function(req, res) {
+router.get('/controllers/getGroupUserMapById/:id', function(req, res) {
     var id = req.params.id;
-    groupService.getByIdGroupUser(id, (result) => {
-        res.send('Read group user by id: ' + JSON.stringify(result));
+    groupService.getGroupUserMapById(id, (result) => {
+        res.send('Read group user map by id: ' + JSON.stringify(result));
     });
 });
 
@@ -269,10 +269,10 @@ router.get('/controllers/getGroupUserById/:id', function(req, res) {
  *       200:
  *         description: Successfully updated in MySql db
  */
-router.put('/controllers/putGroupUser', function(req, res) {
+router.put('/controllers/putGroupUserMap', function(req, res) {
     var groupUser = req.body;
-    groupService.updateGroupUser(groupUser, (result) => {
-        res.send('Group user updated' + JSON.stringify(result));
+    groupService.updateGroupUserMap(groupUser, (result) => {
+        res.send('Group user map updated' + JSON.stringify(result));
     });
 });
 
@@ -295,310 +295,17 @@ router.put('/controllers/putGroupUser', function(req, res) {
  *       200:
  *         description: Successfully deleted from MySql db
  */
-router.delete('/controllers/deleteGroupUser/:id', function(req, res) {
+router.delete('/controllers/deleteGroupUserMap/:id', function(req, res) {
     var id = req.params.id;
-    groupService.deleteGroupUser(id, (result) => {
-        res.send('Group user deleted: ' + JSON.stringify(result));
+    groupService.deleteGroupUserMap(id, (result) => {
+        res.send('Group user map deleted: ' + JSON.stringify(result));
     });
 });
 
-/**
- * @swagger
- * definitions:
- *   GroupClone:
- *     properties:
- *       id:
- *         type: string
- *         format: date
- *       name:
- *         type: string
- *       url:
- *         type: string
- *       picture:
- *         type: string
- *       description:
- *         type: string
- *       userIds:
- *         type: string
- *       createdBy:
- *         type: string
- *       updatedBy:
- *         type: string
- *       createdTime:
- *         type: string
- *         format: date
- *       updatedTime:
- *         type: string
- *         format: date
- */
-/**
- * @swagger
- * /group/controllers/getAllGroupClones:
- *   get:
- *     tags:
- *       - GroupClone
- *     description: Returns all groupClones from Mongo db
- *     produces:
- *       - application/json
- *     responses:
- *       200:
- *         description: An array of groupClones from Mongo db
- *         schema:
- *           $ref: '#/definitions/GroupClone'
- */
-router.get('/controllers/getAllGroupClones', (req, res) => {
-    groupService.readAllObj((results) => { log.info('Return groupClones: ' + JSON.stringify(results)); });
-    res.send('Fetched all groupClones');
-});
-
-/**
- * @swagger
- * /group/controllers/createGroupClone:
- *   post:
- *     tags:
- *       - GroupClone
- *     description: Creates a new Group in Mongo db
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: GroupClone
- *         description: group object
- *         in: body
- *         required: true
- *         schema:
- *           $ref: '#/definitions/GroupClone'
- *     responses:
- *       200:
- *         description: Successfully created in Mongo db
- */
-router.post('/controllers/createGroupClone', (req, res) => {
-    groupService.createObj(req.body, (result) => { log.info('GroupClone created: ' + JSON.stringify(result)); });
-    res.send('GroupClone created successfully');
-});
-
-/**
- * @swagger
- * /group/controllers/updateGroupClone:
- *   put:
- *     tags:
- *       - GroupClone
- *     description: Updates a single group in Mongo db
- *     produces:
- *       - application/json
- *     parameters:
- *       - in: body
- *         name: body
- *         description: GroupClone data that needs to be update
- *         required: true
- *         schema:
- *           $ref: '#/definitions/GroupClone'
- *     responses:
- *       200:
- *         description: Successfully updated in Mongo db
- */
-router.put('/controllers/updateGroupClone', (req, res) => {
-    groupService.updateObj(req.body, (result) => { log.info('Updated groupClone details'); });
-    res.send('Updated groupClone');
-});
-
-/**
- * @swagger
- * /group/controllers/removeGroupClone/{id}:
- *   delete:
- *     tags:
- *       - GroupClone
- *     description: Deletes a groupClone from Mongo db
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: id
- *         description: GroupClone's id
- *         in: path
- *         required: true
- *         type: string
- *     responses:
- *       200:
- *         description: Successfully deleted from Mongo db
- */
-router.delete('/controllers/removeGroupClone/:id', (req, res) => {
-    groupService.deleteObj(req.params.id, (result) => { log.info('Removed groupClone: ' + JSON.stringify(result)); });
-    res.send('GroupClone deleted');
-});
-
-/**
- * @swagger
- * /group/controllers/getGroupCloneById/{id}:
- *   get:
- *     tags:
- *       - GroupClone
- *     description: Returns GroupClone by id from MySql
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: id
- *         in: path
- *         description: id for GroupClone to return
- *         required: true
- *         type: string
- *         schema:
- *           $ref: '#/definitions/GroupClone'
- *     responses:
- *       200:
- *         description: An Group return from MySql
- */
-router.get('/controllers/getGroupCloneById/:id', (req, res) => {
-    groupService.readByIdObj(req.params.id, (result) => { log.info('GroupClone to be read is: ' + JSON.stringify(result)); });
-    res.send('Fetched groupClone details using ID');
-});
-
-/**
- * @swagger
- * definitions:
- *   GroupUserMapClone:
- *     properties:
- *       id:
- *         type: string
- *         format: integer
- *       groupId:
- *         type: string
- *       userId:
- *         type: string
- *       createdBy:
- *         type: string
- *       updatedBy:
- *         type: string
- *       createdTime:
- *         type: string
- *         format: date
- *       updatedTime:
- *         type: string
- *         format: date
- */
-/**
- * @swagger
- * /group/controllers/getAllGroupUserMapClones:
- *   get:
- *     tags:
- *       - GroupUserMapClone
- *     description: Returns all groupUserMapClone from Mongo db
- *     produces:
- *       - application/json
- *     responses:
- *       200:
- *         description: An array of groupUserMapClone from Mongo db
- *         schema:
- *           $ref: '#/definitions/GroupUserMapClone'
- */
-router.get('/controllers/getAllGroupUserMapClones', (req, res) => {
-    groupService.readAllGroupUserMapObj((results) => { log.info('Return groupUserMapClones: ' + JSON.stringify(results)); });
-    res.send('Fetched all groupUserMapClones');
-});
-
-/**
- * @swagger
- * /group/controllers/createGroupUserMapClone:
- *   post:
- *     tags:
- *       - GroupUserMapClone
- *     description: Creates a new GroupUserMapClone in Mongo db
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: groupUserMapClone
- *         description: GroupUserMapClone object
- *         in: body
- *         required: true
- *         schema:
- *           $ref: '#/definitions/GroupUserMapClone'
- *     responses:
- *       200:
- *         description: Successfully created in Mongo db
- */
-router.post('/controllers/createGroupUserMapClone', (req, res) => {
-    groupService.createGroupUserMapObj(req.body, (result) => { log.info('GroupUserMapClone created: ' + JSON.stringify(result)); });
-    res.send('GroupUserMapClone created successfully');
-});
-
-/**
- * @swagger
- * /group/controllers/updateGroupUserMapClone:
- *   put:
- *     tags:
- *       - GroupUserMapClone
- *     description: Updates a single GroupUserMapClone in Mongo db
- *     produces:
- *       - application/json
- *     parameters:
- *       - in: body
- *         name: body
- *         description: GroupUserMapClone data that needs to be update
- *         required: true
- *         schema:
- *           $ref: '#/definitions/GroupUserMapClone'
- *     responses:
- *       200:
- *         description: Successfully updated in Mongo db
- */
-router.put('/controllers/updateGroupUserMapClone', (req, res) => {
-    groupService.updateGroupUserMapObj(req.body, (result) => { log.info('Updated groupUserMapClone details'); });
-    res.send('Updated groupUserMapClone');
-});
-
-/**
- * @swagger
- * /group/controllers/deleteGroupUserMapClone/{id}:
- *   delete:
- *     tags:
- *       - GroupUserMapClone
- *     description: Deletes a single groupUserMapClone from Mongo db
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: id
- *         description: GroupUserMapClone's id
- *         in: path
- *         required: true
- *         type: string
- *     responses:
- *       200:
- *         description: Successfully deleted from Mongo db
- */
-router.delete('/controllers/deleteGroupUserMapClone/:id', (req, res) => {
-    groupService.deleteGroupUserMapObj(req.params.id, (result) => { log.info('Removed groupUserMapClone: ' + JSON.stringify(result)); });
-    res.send('GroupUserMapClone deleted');
-});
-
-/**
- * @swagger
- * /group/controllers/getGroupUserMapCloneById/{id}:
- *   get:
- *     tags:
- *       - GroupUserMapClone
- *     description: Returns groupUserMapClone by id from Mongo db
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: id
- *         in: path
- *         description: id for groupUserMapClone to return
- *         required: true
- *         type: string
- *         schema:
- *           $ref: '#/definitions/GroupUserMapClone'
- *     responses:
- *       200:
- *         description: An groupUserMapClone return from Mongo db
- */
-router.get('/controllers/getGroupUserMapCloneById/:id', (req, res) => {
-    groupService.readByIdGroupUserMapObj(req.params.id, (result) => { log.info('GroupUserMapClone to be read is: ' + JSON.stringify(result)); });
-    res.send('Fetched groupUserMapClone details using ID');
-});
-
-/**
  * for fetching all the groups for given user
  */
-router.get('/controllers/getAllGroupsBasedOnUserId/:userId', (req, res) => {
-    groupService.getAllGroupsBasedOnUserId((req.params.userId), (result) => {
+router.get('/controllers/getGroups/user/:userId/groups', (req, res) => {
+    groupService.getAllGroupsByUserId((req.params.userId), (result) => {
         log.info('Group list: ' + JSON.stringify(result));
     });
     res.send('Fetched all group list');
@@ -607,8 +314,8 @@ router.get('/controllers/getAllGroupsBasedOnUserId/:userId', (req, res) => {
 /**
  * get 100 messages on click of any group
  */
-router.get('/controllers/getLimitedMessages/:receiverId', (req, res) => {
-    groupService.getLimitedMessages((req.params.receiverId), (result) => {
+router.get('/controllers/getLimitedMessages/user/:userId/groups/:groupId/messages', (req, res) => {
+    groupService.getLimitedMessages((req.params.groupId), (req.params.userId), (result) => {
         log.info('100 message records: ' + JSON.stringify(result));
     });
     res.send('Fething 100 messages');

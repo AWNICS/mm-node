@@ -1,7 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
     var Contact = sequelize.define('Contact', {
         id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.DOUBLE,
             primaryKey: true,
             autoIncrement: true
         },
