@@ -3,7 +3,7 @@
 module.exports = (sequelize, DataTypes) => {
     var User = sequelize.define('User', {
         id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.DOUBLE,
             primaryKey: true,
             autoIncrement: true
         },
@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING
         },
         phoneNo: {
-            type: DataTypes.NUMERIC
+            type: DataTypes.STRING
         },
         picUrl: {
             type: DataTypes.STRING

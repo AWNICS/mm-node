@@ -5,8 +5,6 @@ import log from '../../config/log4js.config';
 import sequelize from '../../util/conn.mysql';
 import userModel from './index';
 import UserDao from './user.dao';
-import userCloneDao from './userClone.dao';
-import UserClone from './userClone.model';
 
 var userDao = new UserDao();
 
@@ -122,28 +120,6 @@ class UserService {
 
     deleteRegisteredUser(id, callback) {
         return userDao.delete(id, callback);
-    }
-
-    //for userClone
-    createObj(userClone, callback) {
-        var userClone = new UserClone(userClone);
-        userCloneDao.create(userClone, callback);
-    }
-
-    readAllObj(callback) {
-        userCloneDao.getAll(callback);
-    }
-
-    readByIdObj(id, callback) {
-        userCloneDao.getById(id, callback);
-    }
-
-    deleteObj(id, callback) {
-        userCloneDao.delete(id, callback);
-    }
-
-    updateObj(userClone, callback) {
-        userCloneDao.update(userClone, callback);
     }
 }
 

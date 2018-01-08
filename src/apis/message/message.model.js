@@ -12,7 +12,7 @@ var MessageSchema = new Schema({
     _id: { type: Number, auto: true },
     receiverId: String,
     receiverType: String, // group or individual
-    senderId: String,
+    senderId: String, //userId
     picUrl: String,
     text: String,
     type: String,
