@@ -1,15 +1,38 @@
+import MessageService from '../apis/message/message.service';
+import GroupService from '../apis/group/group.service';
+import UserService from '../apis/user/user.service';
 var log = require('../config/log4js.config');
+const messageService = new MessageService();
 
 exports.connectSocket = (io) => {
     //connect the socket with frontend.
     io.on('connection', function(socket) {
         log.info('a user connected');
         //when user 1st tym connect
-        /* socket.on('connect', function() {
-             log.info('a user connected')
-         });
-         //when user disconnect from user
-         socket.on('disconnect', function() {
+        socket.on('connectGroup', function(userName) {
+            log.info(userName + 'join now');
+        });
+        //implementation of Typing
+        socket.on('typing', function(userName) {
+            socket.broadcast.emit('typing', userName + 'typing');
+        });
+        /**
+         * send the messages to the user
+         */
+        socket.on('send-message', (message) => {
+            messageService.sendMessage(message, (error, response) => {
+                socket.to(message.reciverId).emit('send-message', message);
+            });
+        });
+        /**
+         * When a user 1st tyme join a group
+         */
+        socket.on('user-join', (user, groupUserMapClone) => {
+            socket.emit('user-join', 'you have connected to ' + groupUserMapClone.groupId + ' group ');
+            socket.broadcast.to(groupUserMapClone.groupId).emit('updatechat', groupUserMapClone.groupId + 'join now');
+        });
+        //when user disconnect from user
+        /* socket.on('disconnect', function() {
              log.info('user disconnected');
          });
 
@@ -17,10 +40,6 @@ exports.connectSocket = (io) => {
              socket.broadcast.emit('chat', msg);
              // room codes will be generated dynamically
              log.info('Message sent is: ' + msg);
-         });
-         //implementation of Typing
-         socket.on('typing', function() {
-             socket.broadcast.emit('typing', userName + 'typing');
          });
          //when user send message to a perticular user
          socket.on('sendchatUser', function(msg) {
