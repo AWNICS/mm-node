@@ -1,7 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
     var Group = sequelize.define('Group', {
         id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.DOUBLE,
             primaryKey: true,
             autoIncrement: true
         },
@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING
         },
         userId: {
-            type: DataTypes.STRING
+            type: DataTypes.DOUBLE
         },
         description: {
             type: DataTypes.STRING

@@ -62,7 +62,7 @@ var router = express.Router();
  */
 router.get('/controllers/getMessage', (req, res) => {
     //var message = new Message();
-    messageService.readAllMessages((results) => { log.info('Messages are: ' + JSON.stringify(results)); });
+    messageService.readAll((results) => { log.info('Messages are: ' + JSON.stringify(results)); });
     res.send('Fetched the messages successfully');
 });
 
@@ -119,7 +119,7 @@ router.post('/controllers/sendMessage', (req, res) => {
  *         description: Successfully updated in Mongo db
  */
 router.put('/controllers/putMessage', (req, res) => {
-    messageService.updateMessage(req.body, (result) => { log.info('Message updated') });
+    messageService.update(req.body, (result) => { log.info('Message updated') });
     res.send('Message updated successfully');
 });
 
@@ -143,7 +143,7 @@ router.put('/controllers/putMessage', (req, res) => {
  *         description: Successfully deleted from Mongo db
  */
 router.delete('/controllers/removeMessage/:id', (req, res) => {
-    messageService.removeMessage(req.params.id, (result) => { log.info(JSON.stringify(result)); });
+    messageService.remove(req.params.id, (result) => { log.info(JSON.stringify(result)); });
     res.send('Message deleted');
 });
 
@@ -169,7 +169,7 @@ router.delete('/controllers/removeMessage/:id', (req, res) => {
  *         description: An message return from Mongo db
  */
 router.get('/controllers/getMessageById/:id', (req, res) => {
-    messageService.readMessageById(req.params.id, (result) => { log.info(JSON.stringify(result)); });
+    messageService.readById(req.params.id, (result) => { log.info(JSON.stringify(result)); });
     res.send('Read message by ID successful');
 });
 

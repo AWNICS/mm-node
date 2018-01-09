@@ -4,24 +4,24 @@ import OrderRequest from './orderRequest.model';
 class OrderRequestsService {
     constructor() {}
 
-    createOrderRequest(orderRequest, callback) {
+    create(orderRequest, callback) {
         var order = new OrderRequest(orderRequest);
         orderRequestDao.create(order, callback);
     }
 
-    readAllOrderRequests(callback) {
+    readAll(callback) {
         orderRequestDao.getAll(callback);
     }
 
-    readOrderRequestById(id, callback) {
+    readById(id, callback) {
         orderRequestDao.getById(id, callback);
     }
 
-    removeOrderRequest(id, callback) {
+    remove(id, callback) {
         orderRequestDao.delete(id, callback);
     }
 
-    updateOrderRequest(orderRequest, callback) {
+    update(orderRequest, callback) {
         orderRequestDao.update(orderRequest, callback);
     }
 }

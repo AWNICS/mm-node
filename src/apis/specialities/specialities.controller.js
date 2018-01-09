@@ -37,7 +37,7 @@ var router = express.Router();
  *         description: Successfully created in MySql db
  */
 router.post('/controllers/createSpeciality', (req, res) => {
-    specialitiesService.createSpeciality(req.body, (result) => {
+    specialitiesService.create(req.body, (result) => {
         log.info('Speciality created : ' + JSON.stringify(result));
     });
     res.send('Speciality created successfully');
@@ -59,7 +59,7 @@ router.post('/controllers/createSpeciality', (req, res) => {
  *           $ref: '#/definitions/Specialities'
  */
 router.get('/controllers/readAllSpecialities', (req, res) => {
-    specialitiesService.readAllSpecialities((results) => { res.json(results) });
+    specialitiesService.readAll((results) => { res.json(results) });
 });
 
 /**
@@ -84,7 +84,7 @@ router.get('/controllers/readAllSpecialities', (req, res) => {
  *         description: An Speciality return from MySql db
  */
 router.get('/controllers/readSpecialityById/:id', (req, res) => {
-    specialitiesService.readSpecialityById(req.params.id, (result) => { log.info(JSON.stringify(result)); });
+    specialitiesService.readById(req.params.id, (result) => { log.info(JSON.stringify(result)); });
     res.send('Read Speciality by ID successful');
 });
 
@@ -109,7 +109,7 @@ router.get('/controllers/readSpecialityById/:id', (req, res) => {
  *         description: Successfully updated in MySql db
  */
 router.put('/controllers/updateSpeciality', (req, res) => {
-    specialitiesService.updateSpeciality(req.body, (result) => { log.info('Speciality updated') });
+    specialitiesService.update(req.body, (result) => { log.info('Speciality updated') });
     res.send('Speciality updated successfully');
 });
 
@@ -133,7 +133,7 @@ router.put('/controllers/updateSpeciality', (req, res) => {
  *         description: Successfully deleted from MySql
  */
 router.delete('/controllers/removeSpeciality/:id', (req, res) => {
-    specialitiesService.removeSpeciality(req.params.id, (result) => { log.info(JSON.stringify(result)); });
+    specialitiesService.remove(req.params.id, (result) => { log.info(JSON.stringify(result)); });
     res.send('Speciality deleted');
 });
 
