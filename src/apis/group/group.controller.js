@@ -299,17 +299,15 @@ router.delete('/controllers/deleteGroupUserMap/:id', function(req, res) {
  * for fetching all the groups for given user
  */
 router.get('/controllers/getGroups/user/:userId/groups', (req, res) => {
-    groupService.getAllGroupsByUserId((req.params.userId), (result) => {
-        log.info('Group list: ' + JSON.stringify(result));
-    });
-    res.send('Fetched all group list');
+    groupService.getAllGroupsByUserId((req.params.userId))
+        .then(result => res.send('res: ' + JSON.stringify(result)));
 });
 
 /**
  * get 100 messages on click of any group
  */
 router.get('/controllers/getLimitedMessages/user/:userId/groups/:groupId/messages', (req, res) => {
-    groupService.getLimitedMessages((req.params.groupId), (req.params.userId), (result) => {
+    groupService.getLimitedMessages((req.params.groupId), (req.params.userId), (req.query.size), (result) => {
         log.info('100 message records: ' + JSON.stringify(result));
     });
     res.send('Fething 100 messages');
