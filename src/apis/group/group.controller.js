@@ -16,10 +16,17 @@ var groupService = new GroupService();
  *         type: string
  *       url:
  *         type: string
+ *       userId:
+ *         type: string
  *       description:
  *         type: string
  *       picture:
  *         type: string
+ *       createdBy:
+ *         type: string
+ *       updatedBy:
+ *         type: string
+ *       
  */
 /**
  * @swagger
@@ -295,7 +302,6 @@ router.delete('/controllers/deleteGroupUserMap/:id', function(req, res) {
     });
 });
 
-/**
  * for fetching all the groups for given user
  */
 router.get('/controllers/getGroups/user/:userId/groups', (req, res) => {

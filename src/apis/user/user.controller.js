@@ -37,6 +37,10 @@ var userService = new UserService();
  *         type: integer
  *       privilege:
  *         type: string
+ *       createdBy:
+ *         type: string
+ *       updatedBy:
+ *         type: string
  */
 /**
  * @swagger
