@@ -20,9 +20,13 @@ exports.connectSocket = (io) => {
          * send the messages to the user
          */
         socket.on('send-message', (message) => {
-            messageService.sendMessage(message, (error, response) => {
-                socket.to(message.reciverId).emit('send-message', message);
+            messageService.sendMessage(message, (response) => {
+                console.log('socket message sending', message);
+                socket.to(message.reciverId).emit('recive-message', message);
+                // console.log('socket recieve message', message);
+
             });
+
         });
         /**
          * When a user 1st tyme join a group

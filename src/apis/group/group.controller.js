@@ -301,7 +301,7 @@ router.delete('/controllers/deleteGroupUserMap/:id', function(req, res) {
         res.send('Group user map deleted: ' + JSON.stringify(result));
     });
 });
-
+/*
  * for fetching all the groups for given user
  */
 router.get('/controllers/getGroups/user/:userId/groups', (req, res) => {
