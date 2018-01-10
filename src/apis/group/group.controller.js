@@ -72,7 +72,7 @@ router.post('/controllers/createGroup', function(req, res) {
  */
 router.get('/controllers/getGroups', function(req, res) {
     groupService.getAll((result) => {
-        res.send('All group lists: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
@@ -302,11 +302,12 @@ router.delete('/controllers/deleteGroupUserMap/:id', function(req, res) {
     });
 });
 
+/**
  * for fetching all the groups for given user
  */
 router.get('/controllers/getGroups/user/:userId/groups', (req, res) => {
     groupService.getAllGroupsByUserId((req.params.userId))
-        .then(result => res.send('res: ' + JSON.stringify(result)));
+        .then(result => res.send(result));
 });
 
 /**

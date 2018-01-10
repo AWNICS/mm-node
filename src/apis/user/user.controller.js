@@ -86,7 +86,7 @@ router.post('/controllers/createUser', function(req, res) {
  */
 router.get('/controllers/getUsers', function(req, res) {
     userService.getAll((result) => {
-        res.send('All data: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
