@@ -310,14 +310,4 @@ router.get('/controllers/getGroups/user/:userId/groups', (req, res) => {
         .then(result => res.send(result));
 });
 
-/**
- * get 100 messages on click of any group
- */
-router.get('/controllers/getLimitedMessages/user/:userId/groups/:groupId/messages', (req, res) => {
-    groupService.getLimitedMessages((req.params.groupId), (req.params.userId), (req.query.size), (result) => {
-        log.info('100 message records: ' + JSON.stringify(result));
-    });
-    res.send('Fething 100 messages');
-});
-
 module.exports = router;
