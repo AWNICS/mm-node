@@ -307,7 +307,7 @@ router.delete('/controllers/deleteGroupUserMap/:id', function(req, res) {
  */
 router.get('/controllers/getGroups/user/:userId/groups', (req, res) => {
     groupService.getAllGroupsByUserId((req.params.userId))
-        .then(result => res.send('res: ' + JSON.stringify(result)));
+        .then(result => res.send(result));
 });
 
 /**
