@@ -70,6 +70,16 @@ class MessageService {
     update(message, callback) {
         messageDao.update(message, callback);
     }
+
+    /**
+     * render 100 message onclick of any group
+     */
+    getLimitedMessages(receiverId, senderId, offset, size, callback) {
+        Message.find({ receiverId: receiverId }, (err, messages) => {
+            if (err) throw err;
+            callback(messages);
+        }).sort({ $natural: 1 }).limit(parseInt(size)).skip(parseInt(offset));
+    }
 }
 
 export default MessageService;

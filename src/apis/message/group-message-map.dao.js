@@ -8,7 +8,6 @@ import GroupMessageMap from './group-message-map.model';
 exports.create = (groupMessageMap) => {
     groupMessageMap.save((err, groupMessageMap) => {
         if (err) throw err;
-        callback(groupMessageMap);
     });
 }
 
