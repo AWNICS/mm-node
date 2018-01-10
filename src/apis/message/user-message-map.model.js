@@ -9,7 +9,7 @@ import mongoose from 'mongoose';
 var Schema = mongoose.Schema;
 
 var UserMessageMapSchema = new Schema({
-    messageId: { type: Date, default: null },
+    messageId: String,
     userRId: String,
     userSId: String,
     createdBy: String,
