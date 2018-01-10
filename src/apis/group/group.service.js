@@ -76,16 +76,6 @@ class GroupService {
             });
         });
     }
-
-    /**
-     * render 100 message onclick of any group
-     */
-    getLimitedMessages(receiverId, senderId, size, callback) {
-        Message.find({ receiverId: receiverId }, (err, messages) => {
-            if (err) throw err;
-            callback(messages);
-        }).sort({ $natural: -1 }).limit(parseInt(size));
-    }
 }
 
 export default GroupService;

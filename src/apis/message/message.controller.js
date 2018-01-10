@@ -173,4 +173,13 @@ router.get('/controllers/getMessageById/:id', (req, res) => {
     res.send('Read message by ID successful');
 });
 
+/**
+ * get 100 messages on click of any group
+ */
+router.get('/controllers/getLimitedMessages/user/:userId/groups/:groupId/messages', (req, res) => {
+    messageService.getLimitedMessages((req.params.groupId), (req.params.userId), (req.query.offset), (req.query.size), (result) => {
+        res.send(result);
+    });
+});
+
 module.exports = router;
