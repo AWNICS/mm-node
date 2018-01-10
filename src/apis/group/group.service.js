@@ -4,6 +4,8 @@ import GroupUserMapDao from '../../apis/group/groupUserMap.dao';
 import Message from '../message/message.model';
 import sequelize from '../../util/conn.mysql';
 import groupUserMapModel from './index';
+import groupModel from './index';
+var Promise = require('bluebird');
 
 var groupDao = new GroupDao();
 var groupUserMapDao = new GroupUserMapDao();
@@ -60,18 +62,17 @@ class GroupService {
     /**
      * fetching all the groups for particular userId from group-user-map
      */
-    getAllGroupsByUserId(userId, callback) {
+    getAllGroupsByUserId(userId) {
         return sequelize.transaction().then(function(t) {
-            groupUserMapModel.GroupUserMap.findAll({
+            return groupUserMapModel.GroupUserMap.findAll({
                 where: {
                     userId: userId
                 },
                 transaction: t
             }).then((allGroupsByUserId) => {
-                for (var i in allGroupsByUserId) {
-                    console.log(allGroupsByUserId[i].groupId);
-                }
-                callback(allGroupsByUserId);
+                return Promise.map(allGroupsByUserId, groupUserMap => {
+                    return groupModel.Group.findById(groupUserMap.groupId);
+                });
             });
         });
     }
@@ -79,12 +80,11 @@ class GroupService {
     /**
      * render 100 message onclick of any group
      */
-    getLimitedMessages(receiverId, senderId, callback) {
+    getLimitedMessages(receiverId, senderId, size, callback) {
         Message.find({ receiverId: receiverId }, (err, messages) => {
             if (err) throw err;
-            log.info('value: ' + JSON.stringify(messages));
             callback(messages);
-        }).sort({ $natural: -1 }).limit(2);
+        }).sort({ $natural: -1 }).limit(parseInt(size));
     }
 }
 

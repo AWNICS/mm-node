@@ -30,7 +30,7 @@ class Config {
         this.flash = flash;
         this.socket = socket;
         this.http = http.Server(this.app);
-        this.io = this.socket(this.http);
+        this.io = this.socket.listen(this.http);
         this.dotenv = dotenv;
         /*this.passport = passport;
         this.LocalStrategy = passportLocal.Strategy;

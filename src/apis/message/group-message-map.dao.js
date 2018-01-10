@@ -5,7 +5,7 @@ DAO for Group-Message-Map api
 // Require model
 import GroupMessageMap from './group-message-map.model';
 
-exports.create = (groupMessageMap, callback) => {
+exports.create = (groupMessageMap) => {
     groupMessageMap.save((err, groupMessageMap) => {
         if (err) throw err;
         callback(groupMessageMap);

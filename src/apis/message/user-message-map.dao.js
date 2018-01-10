@@ -5,7 +5,7 @@ DAO for User-Message-Map api
 // Require model
 import UserMessageMap from './user-message-map.model';
 
-exports.create = (userMessageMap, callback) => {
+exports.create = (userMessageMap) => {
     userMessageMap.save((err, userMessageMap) => {
         if (err) throw err;
         callback(userMessageMap);

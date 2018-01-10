@@ -72,7 +72,7 @@ router.post('/controllers/createGroup', function(req, res) {
  */
 router.get('/controllers/getGroups', function(req, res) {
     groupService.getAll((result) => {
-        res.send('All group lists: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
@@ -175,7 +175,7 @@ router.delete('/controllers/deleteGroup/:id', function(req, res) {
  */
 /**
  * @swagger
- * /group/controllers/createGroupUser:
+ * /group/controllers/createGroupUserMap:
  *   post:
  *     tags:
  *       - GroupUserMap
@@ -202,7 +202,7 @@ router.post('/controllers/createGroupUserMap', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/getGroupUsers:
+ * /group/controllers/getGroupUserMaps:
  *   get:
  *     tags:
  *       - GroupUserMap
@@ -223,7 +223,7 @@ router.get('/controllers/getGroupUserMaps', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/getGroupUserById/{id}:
+ * /group/controllers/getGroupUserMapById/{id}:
  *   get:
  *     tags:
  *       - GroupUserMap
@@ -251,7 +251,7 @@ router.get('/controllers/getGroupUserMapById/:id', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/putGroupUser:
+ * /group/controllers/putGroupUserMap:
  *   put:
  *     tags:
  *       - GroupUserMap
@@ -278,7 +278,7 @@ router.put('/controllers/putGroupUserMap', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/deleteGroupUser/{id}:
+ * /group/controllers/deleteGroupUserMap/{id}:
  *   delete:
  *     tags:
  *       - GroupUserMap
@@ -301,21 +301,20 @@ router.delete('/controllers/deleteGroupUserMap/:id', function(req, res) {
         res.send('Group user map deleted: ' + JSON.stringify(result));
     });
 });
-/*
+
+/**
  * for fetching all the groups for given user
  */
 router.get('/controllers/getGroups/user/:userId/groups', (req, res) => {
-    groupService.getAllGroupsByUserId((req.params.userId), (result) => {
-        log.info('Group list: ' + JSON.stringify(result));
-    });
-    res.send('Fetched all group list');
+    groupService.getAllGroupsByUserId((req.params.userId))
+        .then(result => res.send(result));
 });
 
 /**
  * get 100 messages on click of any group
  */
 router.get('/controllers/getLimitedMessages/user/:userId/groups/:groupId/messages', (req, res) => {
-    groupService.getLimitedMessages((req.params.groupId), (req.params.userId), (result) => {
+    groupService.getLimitedMessages((req.params.groupId), (req.params.userId), (req.query.size), (result) => {
         log.info('100 message records: ' + JSON.stringify(result));
     });
     res.send('Fething 100 messages');
