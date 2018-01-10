@@ -72,7 +72,7 @@ router.post('/controllers/createGroup', function(req, res) {
  */
 router.get('/controllers/getGroups', function(req, res) {
     groupService.getAll((result) => {
-        res.send('All group lists: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 

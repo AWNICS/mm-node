@@ -30,7 +30,7 @@ exports.getById = (id, callback) => {
 }
 
 exports.update = (message, callback) => {
-    var condition = { id: message.id };
+    var condition = { id: message._id };
     var options = { multi: true };
 
     Message.update(condition, message, options, callback);

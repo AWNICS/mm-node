@@ -62,8 +62,9 @@ var router = express.Router();
  */
 router.get('/controllers/getMessage', (req, res) => {
     //var message = new Message();
-    messageService.readAll((results) => { log.info('Messages are: ' + JSON.stringify(results)); });
-    res.send('Fetched the messages successfully');
+    messageService.readAll((results) => {
+        res.send(results)
+    });
 });
 
 /**
@@ -93,9 +94,8 @@ router.get('/controllers/getMessage', (req, res) => {
 router.post('/controllers/sendMessage', (req, res) => {
     // call service and pass the control from service to DAO
     messageService.sendMessage(req.body, (result) => {
-        log.info('The message sent is: ' + JSON.stringify(result));
+        res.send(result);
     });
-    res.send('Message sent successfully');
 });
 
 /**
