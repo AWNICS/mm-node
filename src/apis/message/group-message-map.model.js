@@ -9,7 +9,7 @@ import mongoose from 'mongoose';
 var Schema = mongoose.Schema;
 
 var GroupMessageMapSchema = new Schema({
-    messageId: { type: Date, default: null },
+    messageId: String,
     groupId: String,
     userSId: String,
     createdBy: String,

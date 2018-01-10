@@ -36,7 +36,7 @@ class MessageService {
             updatedTime: new Date()
         });
         messageDao.create(msg, callback);
-        groupMapDao.create(grpMessage, callback);
+        groupMapDao.create(grpMessage);
     }
 
     sendUserMessage(message, callback) {
@@ -52,7 +52,7 @@ class MessageService {
             updatedTime: new Date()
         });
         messageDao.create(msg, callback);
-        userMapDao.create(userMessage, callback);
+        userMapDao.create(userMessage);
     }
 
     readAll(callback) {
@@ -78,7 +78,7 @@ class MessageService {
         Message.find({ receiverId: receiverId }, (err, messages) => {
             if (err) throw err;
             callback(messages);
-        }).sort({ $natural: -1 }).limit(parseInt(size)).skip(parseInt(offset));
+        }).sort({ $natural: 1 }).limit(parseInt(size)).skip(parseInt(offset));
     }
 }
 
