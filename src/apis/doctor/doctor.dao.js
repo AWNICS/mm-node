@@ -1,23 +1,23 @@
-import groupModel from './index';
+import doctorModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
 /*
 DAO for Doctor api
 */
-class GroupDao {
+class DoctorDao {
     constructor() {}
 
     /**
      * insert method
      */
-    insert(group, callback) {
+    insert(doctor, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                groupModel.Group.sync({ force: false }).then(function() {
-                    return groupModel.Group.create(group, { transaction: t }).then(function(groupInserted) {
-                        resolve(groupInserted);
-                        callback(groupInserted);
+                doctorModel.Doctor.sync({ force: false }).then(function() {
+                    return doctorModel.Doctor.create(doctor, { transaction: t }).then(function(doctorInserted) {
+                        resolve(doctorInserted);
+                        callback(doctorInserted);
                     }).then(function() {
                         t.commit();
                     }).catch(function(error) {
@@ -33,8 +33,8 @@ class GroupDao {
      */
     readAll(callback) {
         return sequelize.transaction().then(function(t) {
-            groupModel.Group.findAll({ transaction: t }).then((allGroup) => {
-                callback(allGroup);
+            doctorModel.Doctor.findAll({ transaction: t }).then((allDoctor) => {
+                callback(allDoctor);
             });
         });
     }
@@ -45,9 +45,9 @@ class GroupDao {
     readById(id, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                groupModel.Group.findById(id, { transaction: t }).then((group) => {
-                    resolve(group);
-                    callback(group);
+                doctorModel.Doctor.findById(id, { transaction: t }).then((doctor) => {
+                    resolve(doctor);
+                    callback(doctor);
                 });
             }, reject);
         });
@@ -56,16 +56,16 @@ class GroupDao {
     /**
      * Update method
      */
-    update(group, callback) {
+    update(doctor, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                return groupModel.Group.update(group, {
+                return doctorModel.Doctor.update(doctor, {
                     where: {
-                        id: group.id
+                        id: doctor.id
                     }
-                }, { transaction: t }).then(function(groupUpdated) {
-                    resolve(groupUpdated);
-                    callback(groupUpdated);
+                }, { transaction: t }).then(function(doctorUpdated) {
+                    resolve(doctorUpdated);
+                    callback(doctorUpdated);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
@@ -81,13 +81,13 @@ class GroupDao {
     delete(id, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                groupModel.Group.destroy({
+                doctorModel.Doctor.destroy({
                     where: {
                         id: id
                     }
-                }).then(function(groupDeleted) {
-                    resolve(groupDeleted);
-                    callback(groupDeleted);
+                }).then(function(doctorDeleted) {
+                    resolve(doctorDeleted);
+                    callback(doctorDeleted);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
@@ -98,4 +98,4 @@ class GroupDao {
     }
 }
 
-export default GroupDao;
+export default DoctorDao;

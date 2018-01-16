@@ -1,5 +1,7 @@
+//import sequelize from '../../util/conn.mysql';
+
 module.exports = (sequelize, DataTypes) => {
-    var Contact = sequelize.define('Contact', {
+    var User = sequelize.define('User', {
         id: {
             type: DataTypes.DOUBLE,
             primaryKey: true,
@@ -8,25 +10,16 @@ module.exports = (sequelize, DataTypes) => {
         name: {
             type: DataTypes.STRING
         },
-        picUrl: {
-            type: DataTypes.STRING
-        },
-        regNo: {
-            type: DataTypes.STRING
-        },
-        speciality: {
-            type: DataTypes.STRING
-        },
-        experience: {
-            type: DataTypes.NUMERIC
-        },
-        description: {
-            type: DataTypes.STRING
-        },
         email: {
             type: DataTypes.STRING
         },
         phoneNo: {
+            type: DataTypes.STRING
+        },
+        picUrl: {
+            type: DataTypes.STRING
+        },
+        description: {
             type: DataTypes.STRING
         },
         status: {
@@ -38,18 +31,23 @@ module.exports = (sequelize, DataTypes) => {
         rating: {
             type: DataTypes.NUMERIC
         },
-        videoUrl: {
+        token: {
             type: DataTypes.STRING
         },
-        appearUrl: {
+        activate: {
+            type: DataTypes.NUMERIC,
+            defaultValue: 0
+        },
+        privilege: {
+            type: DataTypes.STRING,
+            defaultValue: null
+        },
+        createdBy: {
             type: DataTypes.STRING
         },
-        thumbnailUrl: {
+        updatedBy: {
             type: DataTypes.STRING
-        },
-        termsAccepted: {
-            type: DataTypes.BOOLEAN
         }
     });
-    return Contact;
+    return User;
 };

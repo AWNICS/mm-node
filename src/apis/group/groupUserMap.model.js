@@ -1,24 +1,15 @@
 module.exports = (sequelize, DataTypes) => {
-    var Group = sequelize.define('Group', {
+    var GroupUserMap = sequelize.define('GroupUserMap', {
         id: {
             type: DataTypes.DOUBLE,
             primaryKey: true,
             autoIncrement: true
         },
-        name: {
-            type: DataTypes.STRING
-        },
-        url: {
-            type: DataTypes.STRING
+        groupId: {
+            type: DataTypes.DOUBLE
         },
         userId: {
             type: DataTypes.DOUBLE
-        },
-        description: {
-            type: DataTypes.STRING
-        },
-        picture: {
-            type: DataTypes.STRING
         },
         createdBy: {
             type: DataTypes.STRING
@@ -27,5 +18,5 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING
         }
     });
-    return Group;
+    return GroupUserMap;
 };

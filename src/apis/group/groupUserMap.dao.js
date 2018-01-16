@@ -1,23 +1,23 @@
-import groupModel from './index';
+import groupUserMapModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
 /*
-DAO for Doctor api
+DAO for GroupUserMapDao api
 */
-class GroupDao {
+class GroupUserMapDao {
     constructor() {}
 
     /**
      * insert method
      */
-    insert(group, callback) {
+    insert(groupUser, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                groupModel.Group.sync({ force: false }).then(function() {
-                    return groupModel.Group.create(group, { transaction: t }).then(function(groupInserted) {
-                        resolve(groupInserted);
-                        callback(groupInserted);
+                groupUserMapModel.GroupUserMap.sync({ force: false }).then(function() {
+                    return groupUserMapModel.GroupUserMap.create(groupUser, { transaction: t }).then(function(groupUserInserted) {
+                        resolve(groupUserInserted);
+                        callback(groupUserInserted);
                     }).then(function() {
                         t.commit();
                     }).catch(function(error) {
@@ -33,8 +33,8 @@ class GroupDao {
      */
     readAll(callback) {
         return sequelize.transaction().then(function(t) {
-            groupModel.Group.findAll({ transaction: t }).then((allGroup) => {
-                callback(allGroup);
+            groupUserMapModel.GroupUserMap.findAll({ transaction: t }).then((allGroupUser) => {
+                callback(allGroupUser);
             });
         });
     }
@@ -45,7 +45,7 @@ class GroupDao {
     readById(id, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                groupModel.Group.findById(id, { transaction: t }).then((group) => {
+                groupUserMapModel.GroupUserMap.findById(id, { transaction: t }).then((group) => {
                     resolve(group);
                     callback(group);
                 });
@@ -56,16 +56,16 @@ class GroupDao {
     /**
      * Update method
      */
-    update(group, callback) {
+    update(groupUser, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                return groupModel.Group.update(group, {
+                return groupUserMapModel.GroupUserMap.update(groupUser, {
                     where: {
-                        id: group.id
+                        id: groupUser.id
                     }
-                }, { transaction: t }).then(function(groupUpdated) {
-                    resolve(groupUpdated);
-                    callback(groupUpdated);
+                }, { transaction: t }).then(function(groupUserUpdated) {
+                    resolve(groupUserUpdated);
+                    callback(groupUserUpdated);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
@@ -81,13 +81,13 @@ class GroupDao {
     delete(id, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                groupModel.Group.destroy({
+                groupUserMapModel.GroupUserMap.destroy({
                     where: {
                         id: id
                     }
-                }).then(function(groupDeleted) {
-                    resolve(groupDeleted);
-                    callback(groupDeleted);
+                }).then(function(groupUserDeleted) {
+                    resolve(groupUserDeleted);
+                    callback(groupUserDeleted);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
@@ -98,4 +98,4 @@ class GroupDao {
     }
 }
 
-export default GroupDao;
+export default GroupUserMapDao;

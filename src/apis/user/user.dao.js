@@ -1,23 +1,23 @@
-import groupModel from './index';
+import userModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
-/*
-DAO for Doctor api
-*/
-class GroupDao {
+/**
+ * DAO for user api
+ */
+class UserDao {
     constructor() {}
 
     /**
      * insert method
      */
-    insert(group, callback) {
+    insert(user, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                groupModel.Group.sync({ force: false }).then(function() {
-                    return groupModel.Group.create(group, { transaction: t }).then(function(groupInserted) {
-                        resolve(groupInserted);
-                        callback(groupInserted);
+                userModel.User.sync({ force: false }).then(function() {
+                    return userModel.User.create(user, { transaction: t }).then(function(userInserted) {
+                        resolve(userInserted);
+                        callback(userInserted);
                     }).then(function() {
                         t.commit();
                     }).catch(function(error) {
@@ -33,8 +33,9 @@ class GroupDao {
      */
     readAll(callback) {
         return sequelize.transaction().then(function(t) {
-            groupModel.Group.findAll({ transaction: t }).then((allGroup) => {
-                callback(allGroup);
+            userModel.User.findAll({ transaction: t }).then((user) => {
+                //log.info('All users: ' + JSON.stringify(user));
+                callback(user);
             });
         });
     }
@@ -45,9 +46,10 @@ class GroupDao {
     readById(id, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                groupModel.Group.findById(id, { transaction: t }).then((group) => {
-                    resolve(group);
-                    callback(group);
+                userModel.User.findById(id, { transaction: t }).then((user) => {
+                    //log.info('By id ' + JSON.stringify(user));
+                    resolve(user);
+                    callback(user);
                 });
             }, reject);
         });
@@ -56,16 +58,17 @@ class GroupDao {
     /**
      * Update method
      */
-    update(group, callback) {
+    update(user, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                return groupModel.Group.update(group, {
+                return userModel.User.update(user, {
                     where: {
-                        id: group.id
+                        id: user.id
                     }
-                }, { transaction: t }).then(function(groupUpdated) {
-                    resolve(groupUpdated);
-                    callback(groupUpdated);
+                }, { transaction: t }).then(function(userUpdated) {
+                    resolve(userUpdated);
+                    log.info('updated ' + JSON.stringify(userUpdated));
+                    callback(userUpdated);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
@@ -81,13 +84,15 @@ class GroupDao {
     delete(id, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                groupModel.Group.destroy({
+                userModel.User.destroy({
                     where: {
                         id: id
                     }
-                }).then(function(groupDeleted) {
-                    resolve(groupDeleted);
-                    callback(groupDeleted);
+                }).then(function(user) {
+                    log.info('user deleted: ' + JSON.stringify(user));
+                    resolve(user);
+                    log.info('deleted ' + JSON.stringify(user));
+                    callback(user);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
@@ -98,4 +103,4 @@ class GroupDao {
     }
 }
 
-export default GroupDao;
+module.exports = UserDao;

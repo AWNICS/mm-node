@@ -1,39 +1,20 @@
-import dotenv from 'dotenv';
+import Sequelize from 'sequelize';
+import log from '../config/log4js.config'
 
-const log = require('../config/log4js.config');
+var sequelize = new Sequelize('test', 'arun', '', {
+    host: 'localhost',
+    dialect: 'mysql',
+    operatorsAliases: false,
+    logging: false
+});
 
-class MySqlConfig {
+sequelize = sequelize;
 
-    constructor() {
-            this.dotenv = dotenv;
-            this.dotenv.config({ path: '.env.dev' });
-        }
-        /*
-            getting the sequelize connection
-        */
-    getConnection() {
-        const Sequelize = require('sequelize');
-        const sequelize = new Sequelize('test', 'arun', '', {
-            host: 'localhost',
-            dialect: 'mysql',
-            operatorsAliases: false,
-            logging: false
-        })
+/**
+ * connection authentication
+ */
+sequelize.authenticate()
+    .then(() => log.info('connection successfull for sequelize'))
+    .catch(error => log.error('error in connection: ', error));
 
-        /*
-            connection test
-        */
-
-        .authenticate()
-            .then(() => {
-                log.info('Connection has been established successfully for MySql.');
-            })
-
-        .catch((err) => {
-            log.error('Unable to connect to MySql database ', err);
-        });
-        return sequelize;
-    }
-}
-
-export default MySqlConfig;
+module.exports = sequelize;

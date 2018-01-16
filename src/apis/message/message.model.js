@@ -9,9 +9,9 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var MessageSchema = new Schema({
-    id: { type: Date, default: Date.now },
     receiverId: String,
-    senderId: String,
+    receiverType: String, // group or individual
+    senderId: String, //userId
     picUrl: String,
     text: String,
     type: String,
@@ -23,7 +23,11 @@ var MessageSchema = new Schema({
     responseData: {
         data: [String]
     },
-    lastUpdateTime: Date
+    lastUpdateTime: Date,
+    createdBy: String,
+    updatedBy: String,
+    createdBy: { type: Date, default: Date.now() },
+    updatedTime: { type: Date }
 });
 
 // Compile model from schema

@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    var Contact = sequelize.define('Contact', {
+    var Doctor = sequelize.define('Doctor', {
         id: {
             type: DataTypes.DOUBLE,
             primaryKey: true,
@@ -47,9 +47,12 @@ module.exports = (sequelize, DataTypes) => {
         thumbnailUrl: {
             type: DataTypes.STRING
         },
+        lastUpdateTime: {
+            type: DataTypes.DATE
+        },
         termsAccepted: {
             type: DataTypes.BOOLEAN
         }
     });
-    return Contact;
+    return Doctor;
 };
