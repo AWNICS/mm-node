@@ -1,6 +1,7 @@
 import MessageService from '../apis/message/message.service';
 import GroupService from '../apis/group/group.service';
 import UserService from '../apis/user/user.service';
+import groupDao from '../apis/group/group.dao';
 var log = require('../config/log4js.config');
 const messageService = new MessageService();
 
@@ -21,50 +22,50 @@ exports.connectSocket = (io) => {
          */
         socket.on('send-message', (message) => {
             messageService.sendMessage(message, (response) => {
+                //socket.to(message.reciverId).emit('send-message', message);
                 console.log('socket message sending', message);
-                socket.to(message.reciverId).emit('recive-message', message);
-                // console.log('socket recieve message', message);
-
+                socket.emit('recive-message', message);
+                console.log('socket recieve message', message);
             });
 
         });
         /**
          * When a user 1st tyme join a group
          */
-        socket.on('user-join', (user, groupUserMapClone) => {
-            socket.emit('user-join', 'you have connected to ' + groupUserMapClone.groupId + ' group ');
-            socket.broadcast.to(groupUserMapClone.groupId).emit('updatechat', groupUserMapClone.groupId + 'join now');
-        });
-        //when user disconnect from user
-        /* socket.on('disconnect', function() {
-             log.info('user disconnected');
-         });
+        socket.on('joinGroup', (groupId) => {
+                socket.to(groupId).emit('updateGroup', 'you have connected to' + groupId + 'group');
+                console.log('updated group methode is called');
+            })
+            //when user disconnect from user
+            /* socket.on('disconnect', function() {
+                 log.info('user disconnected');
+             });
 
-         socket.on('chat', function(msg) {
-             socket.broadcast.emit('chat', msg);
-             // room codes will be generated dynamically
-             log.info('Message sent is: ' + msg);
-         });
-         //when user send message to a perticular user
-         socket.on('sendchatUser', function(msg) {
-             socket.to('userSId').emit('updateChat', msg)
-         });
-         //1st tym when user enter to the group
-         socket.on('newUser', function(userSId, groupId) {
-             //to store userid for this socket session
-             socket.userid = userSId;
-             //to store groupid for this socket session
-             socket.grouid = groupId;
-             //usernames[username]=username;
-             socket.join('groupId');
-             socket.emit('updatechat', 'you have connected to ' + groupId + ' group ');
-             socket.broadcast.to('groupId').emit('updatechat', userSId + 'join now');
-         });
-         //send chat message to a perticular group
-         socket.on('sendchatGroup', function(msg) {
-             // we tell the client to execute 'updatechat' with 2 parameters
-             io.sockets.in(socket.groupId).emit('updatechat', socket.username, msg);
-         });*/
+             socket.on('chat', function(msg) {
+                 socket.broadcast.emit('chat', msg);
+                 // room codes will be generated dynamically
+                 log.info('Message sent is: ' + msg);
+             });
+             //when user send message to a perticular user
+             socket.on('sendchatUser', function(msg) {
+                 socket.to('userSId').emit('updateChat', msg)
+             });
+             //1st tym when user enter to the group
+             socket.on('newUser', function(userSId, groupId) {
+                 //to store userid for this socket session
+                 socket.userid = userSId;
+                 //to store groupid for this socket session
+                 socket.grouid = groupId;
+                 //usernames[username]=username;
+                 socket.join('groupId');
+                 socket.emit('updatechat', 'you have connected to ' + groupId + ' group ');
+                 socket.broadcast.to('groupId').emit('updatechat', userSId + 'join now');
+             });
+             //send chat message to a perticular group
+             socket.on('sendchatGroup', function(msg) {
+                 // we tell the client to execute 'updatechat' with 2 parameters
+                 io.sockets.in(socket.groupId).emit('updatechat', socket.username, msg);
+             });*/
     });
 }
 
