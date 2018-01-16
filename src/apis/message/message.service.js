@@ -78,7 +78,7 @@ class MessageService {
         Message.find({ receiverId: receiverId }, (err, messages) => {
             if (err) throw err;
             callback(messages);
-        }).sort({ $natural: 1 }).limit(parseInt(size)).skip(parseInt(offset));
+        }).limit(parseInt(offset + size)).skip(parseInt(offset)).sort({ $natural: -1 });
     }
 }
 
