@@ -17,8 +17,10 @@ class MessageService {
     sendMessage(message, callback) {
         if (message.receiverType === 'group') {
             this.sendGroupMessage(message, callback);
-        } else {
+        } else if (message.receiverType === 'private') {
             this.sendUserMessage(message, callback)
+        } else {
+            return;
         }
     }
 
