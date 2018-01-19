@@ -44,7 +44,7 @@ var userService = new UserService();
  */
 /**
  * @swagger
- * /user/controllers/createdUser:
+ * /user/controllers/createUser:
  *   post:
  *     tags:
  *       - Users

@@ -26,7 +26,7 @@ var MessageSchema = new Schema({
     lastUpdateTime: Date,
     createdBy: String,
     updatedBy: String,
-    createdBy: { type: Date, default: Date.now() },
+    createdTime: { type: Date, default: Date.now() },
     updatedTime: { type: Date }
 });
 

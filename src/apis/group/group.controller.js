@@ -175,7 +175,7 @@ router.delete('/controllers/deleteGroup/:id', function(req, res) {
  */
 /**
  * @swagger
- * /group/controllers/createGroupUser:
+ * /group/controllers/createGroupUserMap:
  *   post:
  *     tags:
  *       - GroupUserMap
@@ -202,7 +202,7 @@ router.post('/controllers/createGroupUserMap', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/getGroupUsers:
+ * /group/controllers/getGroupUserMaps:
  *   get:
  *     tags:
  *       - GroupUserMap
@@ -223,7 +223,7 @@ router.get('/controllers/getGroupUserMaps', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/getGroupUserById/{id}:
+ * /group/controllers/getGroupUserMapById/{id}:
  *   get:
  *     tags:
  *       - GroupUserMap
@@ -251,7 +251,7 @@ router.get('/controllers/getGroupUserMapById/:id', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/putGroupUser:
+ * /group/controllers/putGroupUserMap:
  *   put:
  *     tags:
  *       - GroupUserMap
@@ -278,7 +278,7 @@ router.put('/controllers/putGroupUserMap', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/deleteGroupUser/{id}:
+ * /group/controllers/deleteGroupUserMap/{id}:
  *   delete:
  *     tags:
  *       - GroupUserMap
