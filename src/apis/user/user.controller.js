@@ -114,7 +114,7 @@ router.get('/controllers/getUsers', function(req, res) {
 router.get('/controllers/getUserById/:id', function(req, res) {
     var id = req.params.id;
     userService.getById(id, (result) => {
-        res.send('Read user by id: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 

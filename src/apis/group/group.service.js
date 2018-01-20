@@ -93,9 +93,7 @@ class GroupService {
                 transaction: t
             }).then((allUsersByGroupId) => {
                 return Promise.map(allUsersByGroupId, groupUserMap => {
-                    userService.getById(groupUserMap.userId, (res) => {
-                        log.info('res: ' + JSON.stringify(res));
-                    });
+                    return userService.getById(groupUserMap.userId, (res) => {});
                 });
             });
         });
