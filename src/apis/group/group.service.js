@@ -5,10 +5,14 @@ import Message from '../message/message.model';
 import sequelize from '../../util/conn.mysql';
 import groupUserMapModel from './index';
 import groupModel from './index';
+import userModel from '../user/index';
+import UserService from '../user/user.service';
+
 var Promise = require('bluebird');
 
 var groupDao = new GroupDao();
 var groupUserMapDao = new GroupUserMapDao();
+var userService = new UserService();
 
 class GroupService {
     constructor() {}
@@ -72,6 +76,26 @@ class GroupService {
             }).then((allGroupsByUserId) => {
                 return Promise.map(allGroupsByUserId, groupUserMap => {
                     return groupModel.Group.findById(groupUserMap.groupId);
+                });
+            });
+        });
+    }
+
+    /**
+     * getting all users based on groupId 
+     */
+    getAllUsersByGroupId(groupId) {
+        return sequelize.transaction().then(function(t) {
+            return groupUserMapModel.GroupUserMap.findAll({
+                where: {
+                    groupId: groupId
+                },
+                transaction: t
+            }).then((allUsersByGroupId) => {
+                return Promise.map(allUsersByGroupId, groupUserMap => {
+                    userService.getById(groupUserMap.userId, (res) => {
+                        log.info('res: ' + JSON.stringify(res));
+                    });
                 });
             });
         });
