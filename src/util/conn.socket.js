@@ -23,7 +23,7 @@ exports.connectSocket = (io) => {
          */
         socket.on('send-message', (msg) => {
             messageService.sendMessage(msg, (result) => {
-                console.log('message received is: ' + JSON.stringify(result));
+                log.info('message received is: ' + JSON.stringify(result));
             });
             if (msg.receiverType === "group") {
                 groupService.getAllUsersByGroupId(msg.receiverId)
@@ -34,9 +34,10 @@ exports.connectSocket = (io) => {
                     });
             } else if (msg.receiverType === "private") {
                 log.info('msg details: ' + JSON.stringify(msg));
-                io.to(socket.id).emit('send-message', msg);
+                socket.join(msg.receiverId);
+                io.to(msg.receiverId).to(msg.senderId).emit('send-message', msg); //send to only sender and receiver
             } else {
-                io.emit('send-message', { "text": 'Please try again' });
+                io.to(msg.senderId).emit('send-message', { "text": 'Please try again' }); //only to sender
             }
         });
 
