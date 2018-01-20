@@ -1,9 +1,11 @@
 import MessageService from '../apis/message/message.service';
 import GroupService from '../apis/group/group.service';
 import log from '../config/log4js.config';
+import UserService from '../apis/user/user.service';
 
 var messageService = new MessageService();
 var groupService = new GroupService();
+var userService = new UserService();
 
 exports.connectSocket = (io) => {
     io.on('connection', function(socket) {
@@ -11,6 +13,7 @@ exports.connectSocket = (io) => {
         // get userId from client
         socket.on('user-connected', userId => {
             console.log('a user connected with ID: ' + userId);
+            console.log('socketId', socket.id);
 
             //user disconnected
             socket.on('disconnect', () => {
@@ -22,27 +25,25 @@ exports.connectSocket = (io) => {
          * for sending message to group/user which is emitted from client(msg with an groupId/userId)
          */
         socket.on('send-message', (msg) => {
-            messageService.sendMessage(msg, (result) => {
-                log.info('message received is: ' + JSON.stringify(result));
-            });
-            if (msg.receiverType === "group") {
-                groupService.getAllUsersByGroupId(msg.receiverId)
+            if (msg.receiverType === "group" || "private") {
+                /*groupService.getAllUsersByGroupId(msg.receiverId)
                     .then((users) => {
                         users.map(user => {
-                            io.emit('send-message', msg); //emit one-by-one for all users
+                            msg.createdBy = user.name;
+                            msg.picUrl = user.picUrl;
+                            socket.broadcast.emit('receive-message', msg);
+                            // io.in(user.id).emit('receive-message', msg); //emit one-by-one for all users
                         });
-                    });
-            } else if (msg.receiverType === "private") {
-                log.info('msg details: ' + JSON.stringify(msg));
-                socket.join(msg.receiverId);
-                io.to(msg.receiverId).to(msg.senderId).emit('send-message', msg); //send to only sender and receiver
+                    });*/
+                userService.getById(msg.senderId, (result) => {
+                    msg.createdBy = result.name;
+                    msg.picUrl = result.picUrl;
+                    io.emit('receive-message', msg);
+                    messageService.sendMessage(msg, (result) => {});
+                });
             } else {
-                io.to(msg.senderId).emit('send-message', { "text": 'Please try again' }); //only to sender
+                io.emit('receive-message', { "text": 'Something went wrong. Please try again.' }); //only to sender
             }
         });
-
-        /**
-         * for receiving message sent by client
-         */
     });
 }
