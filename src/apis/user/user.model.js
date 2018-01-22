@@ -42,12 +42,18 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             defaultValue: null
         },
+        socketId: {
+            type: DataTypes.STRING,
+            defaultValue: null
+        },
         createdBy: {
             type: DataTypes.STRING
         },
         updatedBy: {
             type: DataTypes.STRING
         }
+    }, {
+        freezeTableName: true
     });
     return User;
 };

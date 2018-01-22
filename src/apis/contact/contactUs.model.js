@@ -50,6 +50,8 @@ module.exports = (sequelize, DataTypes) => {
         termsAccepted: {
             type: DataTypes.BOOLEAN
         }
+    }, {
+        freezeTableName: true
     });
     return Contact;
 };

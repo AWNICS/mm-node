@@ -26,6 +26,8 @@ module.exports = (sequelize, DataTypes) => {
         updatedBy: {
             type: DataTypes.STRING
         }
+    }, {
+        freezeTableName: true
     });
     return Group;
 };

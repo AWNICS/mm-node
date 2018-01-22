@@ -14,8 +14,8 @@ class GroupUserMapDao {
     insert(groupUser, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                groupUserMapModel.GroupUserMap.sync({ force: false }).then(function() {
-                    return groupUserMapModel.GroupUserMap.create(groupUser, { transaction: t }).then(function(groupUserInserted) {
+                groupUserMapModel.group_user_map.sync({ force: false }).then(function() {
+                    return groupUserMapModel.group_user_map.create(groupUser, { transaction: t }).then(function(groupUserInserted) {
                         resolve(groupUserInserted);
                         callback(groupUserInserted);
                     }).then(function() {
@@ -33,7 +33,7 @@ class GroupUserMapDao {
      */
     readAll(callback) {
         return sequelize.transaction().then(function(t) {
-            groupUserMapModel.GroupUserMap.findAll({ transaction: t }).then((allGroupUser) => {
+            groupUserMapModel.group_user_map.findAll({ transaction: t }).then((allGroupUser) => {
                 callback(allGroupUser);
             });
         });
@@ -45,7 +45,7 @@ class GroupUserMapDao {
     readById(id, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                groupUserMapModel.GroupUserMap.findById(id, { transaction: t }).then((group) => {
+                groupUserMapModel.group_user_map.findById(id, { transaction: t }).then((group) => {
                     resolve(group);
                     callback(group);
                 });
@@ -59,7 +59,7 @@ class GroupUserMapDao {
     update(groupUser, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                return groupUserMapModel.GroupUserMap.update(groupUser, {
+                return groupUserMapModel.group_user_map.update(groupUser, {
                     where: {
                         id: groupUser.id
                     }
@@ -81,7 +81,7 @@ class GroupUserMapDao {
     delete(id, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
-                groupUserMapModel.GroupUserMap.destroy({
+                groupUserMapModel.group_user_map.destroy({
                     where: {
                         id: id
                     }

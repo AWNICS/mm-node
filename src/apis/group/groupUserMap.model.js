@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    var GroupUserMap = sequelize.define('GroupUserMap', {
+    var GroupUserMap = sequelize.define('group_user_map', {
         id: {
             type: DataTypes.DOUBLE,
             primaryKey: true,
@@ -17,6 +17,8 @@ module.exports = (sequelize, DataTypes) => {
         updatedBy: {
             type: DataTypes.STRING
         }
+    }, {
+        freezeTableName: true
     });
     return GroupUserMap;
 };
