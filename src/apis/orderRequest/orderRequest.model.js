@@ -21,7 +21,7 @@ var OrderRequestsSchema = new Schema({
     dp: String,
     button: String,
     speciality: String
-});
+}, { collection: 'order_request' });
 
 // Compile model from schema
 var OrderRequests = mongoose.model('OrderRequests', OrderRequestsSchema);

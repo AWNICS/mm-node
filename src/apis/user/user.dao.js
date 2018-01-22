@@ -67,7 +67,7 @@ class UserDao {
                     }
                 }, { transaction: t }).then(function(userUpdated) {
                     resolve(userUpdated);
-                    log.info('updated ' + JSON.stringify(userUpdated));
+                    //log.info('updated ' + JSON.stringify(userUpdated));
                     callback(userUpdated);
                 }).then(function() {
                     t.commit();

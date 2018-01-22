@@ -68,7 +68,7 @@ class GroupService {
      */
     getAllGroupsByUserId(userId) {
         return sequelize.transaction().then(function(t) {
-            return groupUserMapModel.GroupUserMap.findAll({
+            return groupUserMapModel.group_user_map.findAll({
                 where: {
                     userId: userId
                 },
@@ -86,7 +86,7 @@ class GroupService {
      */
     getAllUsersByGroupId(groupId) {
         return sequelize.transaction().then(function(t) {
-            return groupUserMapModel.GroupUserMap.findAll({
+            return groupUserMapModel.group_user_map.findAll({
                 where: {
                     groupId: groupId
                 },

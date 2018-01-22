@@ -28,7 +28,7 @@ var MessageSchema = new Schema({
     updatedBy: String,
     createdTime: { type: Date, default: Date.now() },
     updatedTime: { type: Date }
-});
+}, { collection: 'message' });
 
 // Compile model from schema
 var Message = mongoose.model('Message', MessageSchema);
