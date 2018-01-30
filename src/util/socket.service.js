@@ -80,12 +80,12 @@ exports.connectSocket = (io) => {
             else if (data.receiverType === "private") {
                 userService.getById(data.receiver.id, (result) => {
                     socket.to(result.socketId).emit('receive-typing', data);
-                })
+                });
             }
             // if neither group nor user is selected
             else {
                 console.log('There has been an error');
             }
-        })
+        });
     });
 }
