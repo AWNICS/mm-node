@@ -121,6 +121,25 @@ class UserService {
     deleteRegisteredUser(id, callback) {
         return userDao.delete(id, callback);
     }
+
+    /**
+     * Find user by name for the login component
+     */
+
+    findUserByName(username, callback) {
+        return new Promise((resolve, reject) => {
+            return sequelize.transaction().then(function(t) {
+                userModel.User.findOne({
+                    where: {
+                        name: username
+                    }
+                }, { transaction: t }).then((user) => {
+                    resolve(user);
+                    callback(user);
+                });
+            }, reject);
+        });
+    }
 }
 
 export default UserService;

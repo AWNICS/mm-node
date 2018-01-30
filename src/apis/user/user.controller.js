@@ -180,4 +180,13 @@ router.get('/controllers/updateActivate/:token', function(req, res) {
     });
 });
 
+/**
+ * find user by name
+ */
+router.get('/controllers/findUserByName/:username', (req, res) => {
+    userService.findUserByName(req.params.username, (result) => {
+        res.send(result);
+    });
+});
+
 module.exports = router;
