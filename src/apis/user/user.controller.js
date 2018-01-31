@@ -185,7 +185,11 @@ router.get('/controllers/updateActivate/:token', function(req, res) {
  */
 router.get('/controllers/findUserByName/:username', (req, res) => {
     userService.findUserByName(req.params.username, (result) => {
-        res.send(result);
+        if (result) {
+            res.send(result);
+        } else {
+            res.status(401).send({ success: false, message: 'authentication failed' });
+        }
     });
 });
 
