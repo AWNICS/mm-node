@@ -1,12 +1,19 @@
 import rtg from 'random-token-generator';
 import nodemailer from 'nodemailer';
+import Sequelize from 'sequelize';
 
 import log from '../../config/log4js.config';
 import sequelize from '../../util/conn.mysql';
 import userModel from './index';
 import UserDao from './user.dao';
+import GroupDao from '../group/group.dao';
+import GroupUserMapDao from '../group/groupUserMap.dao';
+import groupModel from '../group/index';
+import groupUserMapModel from '../group/index';
 
 var userDao = new UserDao();
+var groupDao = new GroupDao();
+var groupUserMapDao = new GroupUserMapDao();
 
 /**
  * UserService 
@@ -43,7 +50,25 @@ class UserService {
         });
         return userDao.insert(user, callback).then((userInserted) => {
             this.activationLink(userInserted.token);
-        });
+            var group = {
+                name: 'MedHelp',
+                url: `/medhelp/${userInserted.id}`,
+                userId: userInserted.id,
+                description: 'Med help',
+                picture: 'https://d30y9cdsu7xlg0.cloudfront.net/png/363633-200.png',
+                createdBy: 'docbot',
+                updatedBy: 'docbot'
+            };
+            return groupDao.insert(group, () => {}).then((createdGroup) => {
+                var groupUserMap = {
+                    userId: createdGroup.userId,
+                    groupId: createdGroup.id,
+                    createdBy: 'bot',
+                    updatedBy: 'bot'
+                };
+                return groupUserMapDao.insert(groupUserMap, () => {}).then((createdGroupUserMap) => {}).catch(err => console.log('guMap ', err));
+            }).catch(err => console.log('group err', err));
+        }).catch(err => console.log('user err', err));;
     }
 
     /**
@@ -125,7 +150,6 @@ class UserService {
     /**
      * Find user by name for the login component
      */
-
     findUserByName(username, callback) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
@@ -136,6 +160,23 @@ class UserService {
                 }, { transaction: t }).then((user) => {
                     resolve(user);
                     callback(user);
+                });
+            }, reject);
+        });
+    }
+
+    /**
+     * get all bots 
+     */
+    getAllBots() {
+        return new Promise((resolve, reject) => {
+            return sequelize.transaction().then(function(t) {
+                userModel.User.findAll({
+                    where: {
+                        name: Sequelize.literal(' name REGEXP "BOT*" ')
+                    }
+                }, { transaction: t }).then((user) => {
+                    resolve(user);
                 });
             }, reject);
         });

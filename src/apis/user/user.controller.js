@@ -65,7 +65,7 @@ var userService = new UserService();
 router.post('/controllers/createUser', function(req, res) {
     var user = req.body;
     userService.register(user, (result) => {
-        res.send('User created: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 

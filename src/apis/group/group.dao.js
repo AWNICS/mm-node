@@ -23,8 +23,8 @@ class GroupDao {
                     }).catch(function(error) {
                         t.rollback();
                     });
-                }, reject);
-            }, reject);
+                }, reject).catch(err => console.log('err: ' + err));
+            }, reject).catch(err => console.log('err: ' + err));
         });
     }
 

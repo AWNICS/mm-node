@@ -44,7 +44,7 @@ class GroupService {
      * CRUD for groupUser
      */
     createGroupUserMap(groupUser, callback) {
-        return groupUserMapDao.insert(groupUser, callback).then((result) => {});
+        return groupUserMapDao.insert(groupUser, callback);
     }
 
     getAllGroupUserMaps(callback) {
@@ -96,6 +96,24 @@ class GroupService {
                     return userService.getById(groupUserMap.userId, (res) => {});
                 });
             });
+        });
+    }
+
+    /**
+     * get groups based on the group url
+     */
+    getGroupByUrl(url) {
+        return new Promise((resolve, reject) => {
+            return sequelize.transaction().then(function(t) {
+                groupModel.Group.findOne({
+                    where: {
+                        url: url
+                    }
+                }, { transaction: t }).then((group) => {
+                    resolve(group);
+                    //callback(group);
+                });
+            }, reject);
         });
     }
 }
