@@ -194,9 +194,9 @@ router.delete('/controllers/deleteGroup/:id', function(req, res) {
  *         description: Successfully created in MySql db
  */
 router.post('/controllers/createGroupUserMap', function(req, res) {
-    var groupUser = req.body;
-    groupService.createGroupUserMap(groupUser, (result) => {
-        res.send('Group user map created: ' + JSON.stringify(result));
+    //var groupUser = req.body;
+    groupService.createGroupUserMap(req.body, (result) => {
+        res.send(result);
     });
 });
 

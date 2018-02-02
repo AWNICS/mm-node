@@ -17,8 +17,32 @@ exports.connectSocket = (io) => {
 
             userService.getById(userId, (user) => {
                 if (user.id === userId) {
-                    userService.updateRegisteredUser({ 'id': userId, 'socketId': socket.id }, (user) => {});
+                    userService.updateRegisteredUser({ 'id': userId, 'socketId': socket.id }, (user) => {
+                        log.info('updated user with socketId: ' + JSON.stringify(user));
+                    });
                 }
+            });
+
+            /**
+             * 1. get group based on the user id by using group url(/medHelp/:userId)
+             * 2. get docBotId
+             * 3. created groupUserMap(groupId,docBotId)
+             * 4. create a welcome message
+             */
+            groupService.getGroupByUrl(`/medhelp/${userId}`).then((group) => {
+                //log.info('group list: ' + JSON.stringify(group));
+                userService.getAllBots().then((botList) => {
+                    //log.info('bot list: ' + JSON.stringify(botList));
+                    var groupUserMap = {
+                        groupId: group.id,
+                        userId: 14,
+                        createdBy: 'bot',
+                        updatedBy: 'bot'
+                    }
+                    groupService.createGroupUserMap(groupUserMap, () => {}).then((createdGroupUserMap) => {
+                        log.info('bot groupUserMap: ' + JSON.stringify(createdGroupUserMap));
+                    });
+                });
             });
 
             //user disconnected
