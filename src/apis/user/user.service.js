@@ -10,10 +10,14 @@ import GroupDao from '../group/group.dao';
 import GroupUserMapDao from '../group/groupUserMap.dao';
 import groupModel from '../group/index';
 import groupUserMapModel from '../group/index';
+import MessageService from '../message/message.service';
 
 var userDao = new UserDao();
 var groupDao = new GroupDao();
 var groupUserMapDao = new GroupUserMapDao();
+var messageService = new MessageService();
+var offset = 0,
+    a;
 
 /**
  * UserService 
@@ -66,9 +70,31 @@ class UserService {
                     createdBy: 'bot',
                     updatedBy: 'bot'
                 };
-                return groupUserMapDao.insert(groupUserMap, () => {}).then((createdGroupUserMap) => {}).catch(err => console.log('guMap ', err));
-            }).catch(err => console.log('group err', err));
-        }).catch(err => console.log('user err', err));;
+                groupUserMapDao.insert(groupUserMap, () => {}).then((createdGroupUserMap) => {}).catch(err => err);
+                if (offset == 4) {
+                    offset = 0;
+                } else {
+                    a = offset++;
+                }
+                this.getAllBots(a).then((botList) => {
+                    //botList.push(botList.shift());
+                    var groupUserMapBot = {
+                        groupId: createdGroup.id,
+                        userId: botList[0].id,
+                        createdBy: 'bot',
+                        updatedBy: 'bot'
+                    }
+                    groupUserMapDao.insert(groupUserMapBot, () => {}).then((createdGroupUserMap) => {});
+                    var msg = {
+                        receiverId: group.id,
+                        receiverType: 'group', // group or individual
+                        senderId: botList[0].id,
+                        text: 'Welcome to Mesomeds!! How can we help you?'
+                    }
+                    messageService.sendMessage(msg, (result) => {});
+                });
+            });
+        });
     }
 
     /**
@@ -168,10 +194,11 @@ class UserService {
     /**
      * get all bots 
      */
-    getAllBots() {
+    getAllBots(offset) {
         return new Promise((resolve, reject) => {
             return sequelize.transaction().then(function(t) {
                 userModel.User.findAll({
+                    offset: offset,
                     where: {
                         name: Sequelize.literal(' name REGEXP "BOT*" ')
                     }
