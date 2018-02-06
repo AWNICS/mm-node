@@ -1,6 +1,7 @@
 import rtg from 'random-token-generator';
 import nodemailer from 'nodemailer';
 import Sequelize from 'sequelize';
+var Promise = require('bluebird');
 
 import log from '../../config/log4js.config';
 import sequelize from '../../util/conn.mysql';
@@ -16,8 +17,6 @@ var userDao = new UserDao();
 var groupDao = new GroupDao();
 var groupUserMapDao = new GroupUserMapDao();
 var messageService = new MessageService();
-var offset = 0,
-    a;
 
 /**
  * UserService 
@@ -67,32 +66,27 @@ class UserService {
                 var groupUserMap = {
                     userId: createdGroup.userId,
                     groupId: createdGroup.id,
-                    createdBy: 'bot',
-                    updatedBy: 'bot'
+                    createdBy: 'user',
+                    updatedBy: 'user'
                 };
                 groupUserMapDao.insert(groupUserMap, () => {}).then((createdGroupUserMap) => {}).catch(err => err);
-                if (offset == 4) {
-                    offset = 0;
-                } else {
-                    a = offset++;
-                }
-                this.getAllBots(a).then((botList) => {
-                    //botList.push(botList.shift());
-                    var groupUserMapBot = {
-                        groupId: createdGroup.id,
-                        userId: botList[0].id,
-                        createdBy: 'bot',
-                        updatedBy: 'bot'
-                    }
-                    groupUserMapDao.insert(groupUserMapBot, () => {}).then((createdGroupUserMap) => {});
-                    var msg = {
-                        receiverId: group.id,
-                        receiverType: 'group', // group or individual
-                        senderId: botList[0].id,
-                        text: 'Welcome to Mesomeds!! How can we help you?'
-                    }
-                    messageService.sendMessage(msg, (result) => {});
-                });
+                sequelize.query("select u.id, u.name, u.email, count(gu.userId) from user u, group_user_map gu where u.id=gu.userId and u.privilege='BOT' group by u.id order by count(gu.userId) limit 1", { type: sequelize.QueryTypes.SELECT })
+                    .then((groupUserMaps) => {
+                        var groupUserMapBot = {
+                            groupId: createdGroup.id,
+                            userId: groupUserMaps[0].id,
+                            createdBy: 'bot',
+                            updatedBy: 'bot'
+                        }
+                        groupUserMapDao.insert(groupUserMapBot, () => {}).then((createdGroupUserMap) => {});
+                        var msg = {
+                            receiverId: group.id,
+                            receiverType: 'group', // group or individual
+                            senderId: groupUserMaps[0].id,
+                            text: 'Welcome to Mesomeds!! How can we help you?'
+                        }
+                        messageService.sendMessage(msg, (result) => {});
+                    });
             });
         });
     }
