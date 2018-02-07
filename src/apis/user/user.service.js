@@ -52,42 +52,57 @@ class UserService {
             }
         });
         return userDao.insert(user, callback).then((userInserted) => {
-            this.activationLink(userInserted.token);
-            var group = {
-                name: 'MedHelp',
-                url: `/medhelp/${userInserted.id}`,
-                userId: userInserted.id,
-                description: 'Med help',
-                picture: 'https://d30y9cdsu7xlg0.cloudfront.net/png/363633-200.png',
-                createdBy: 'docbot',
-                updatedBy: 'docbot'
-            };
-            return groupDao.insert(group, () => {}).then((createdGroup) => {
-                var groupUserMap = {
-                    userId: createdGroup.userId,
-                    groupId: createdGroup.id,
-                    createdBy: 'user',
-                    updatedBy: 'user'
+            if (userInserted.privilege == 'user') {
+                this.activationLink(userInserted.token);
+                var group = {
+                    name: 'MedHelp',
+                    url: `/medhelp/${userInserted.id}`,
+                    userId: userInserted.id,
+                    description: 'Med help',
+                    picture: 'https://d30y9cdsu7xlg0.cloudfront.net/png/363633-200.png',
+                    createdBy: 'docbot',
+                    updatedBy: 'docbot'
                 };
-                groupUserMapDao.insert(groupUserMap, () => {}).then((createdGroupUserMap) => {}).catch(err => err);
-                sequelize.query("select u.id, u.name, u.email, count(gu.userId) from user u, group_user_map gu where u.id=gu.userId and u.privilege='BOT' group by u.id order by count(gu.userId) limit 1", { type: sequelize.QueryTypes.SELECT })
-                    .then((groupUserMaps) => {
-                        var groupUserMapBot = {
-                            groupId: createdGroup.id,
-                            userId: groupUserMaps[0].id,
-                            createdBy: 'bot',
-                            updatedBy: 'bot'
-                        }
-                        groupUserMapDao.insert(groupUserMapBot, () => {}).then((createdGroupUserMap) => {});
-                        var msg = {
-                            receiverId: group.id,
-                            receiverType: 'group', // group or individual
-                            senderId: groupUserMaps[0].id,
-                            text: 'Welcome to Mesomeds!! How can we help you?'
-                        }
-                        messageService.sendMessage(msg, (result) => {});
-                    });
-            });
+                return groupDao.insert(group, () => {}).then((createdGroup) => {
+                    var groupUserMap = {
+                        userId: createdGroup.userId,
+                        groupId: createdGroup.id,
+                        createdBy: 'user',
+                        updatedBy: 'user'
+                    };
+                    groupUserMapDao.insert(groupUserMap, () => {}).then((createdGroupUserMap) => {}).catch(err => err);
+                    sequelize.query("select u.id, u.name, u.privilege, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.privilege='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
+                        .then((groupUserMaps) => {
+                            var uId;
+                            for (var i = 0; i < groupUserMaps.length; i++) {
+                                if (groupUserMaps[i].privilege == 'user')
+                                    continue;
+                                else {
+                                    uId = groupUserMaps[i].id;
+                                    break;
+                                }
+                            }
+                            var groupUserMapBot = {
+                                groupId: createdGroup.id,
+                                userId: uId,
+                                createdBy: 'bot',
+                                updatedBy: 'bot'
+                            }
+                            groupUserMapDao.insert(groupUserMapBot, () => {}).then((createdGroupUserMap) => {
+                                log.info('bot mapped: ' + JSON.stringify(createdGroupUserMap));
+                            });
+                            var msg = {
+                                receiverId: group.id,
+                                receiverType: 'group', // group or individual
+                                senderId: uId,
+                                text: 'Welcome to Mesomeds!! How can we help you?'
+                            }
+                            messageService.sendMessage(msg, (result) => {});
+                        });
+                });
+            } else {
+                return; //in case of bot
+            }
         });
     }
 
