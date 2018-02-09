@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    var Contact = sequelize.define('Contact', {
+    var Contact = sequelize.define('contact', {
         id: {
             type: DataTypes.DOUBLE,
             primaryKey: true,

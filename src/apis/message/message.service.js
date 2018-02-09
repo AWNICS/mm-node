@@ -29,13 +29,10 @@ class MessageService {
         //createMessage and createGroupMap using DAO object
         var msg = new Message(message);
         var grpMessage = new GroupMessageMap({
-            messageId: msg._id,
             groupId: message.receiverId,
             userSId: message.senderId,
             createdBy: message.senderId,
-            updatedBy: message.senderId,
-            createdTime: new Date(),
-            updatedTime: new Date()
+            updatedBy: message.senderId
         });
         messageDao.create(msg, callback);
         groupMapDao.create(grpMessage);

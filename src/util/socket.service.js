@@ -10,7 +10,6 @@ var userService = new UserService();
 
 exports.connectSocket = (io) => {
     io.on('connection', function(socket) {
-
         // get userId from client
         socket.on('user-connected', userId => {
             console.log('a user connected with ID: ' + userId);
@@ -84,6 +83,20 @@ exports.connectSocket = (io) => {
             else {
                 console.log('There has been an error');
             }
+        });
+
+        /**
+         * for updating the message in mongo
+         */
+        socket.on('update-message', (data) => {
+            messageService.update(data, (res) => {
+                groupService.getAllUsersByGroupId(data.receiverId)
+                    .then((users) => {
+                        users.map(user => {
+                            io.in(user.socketId).emit('receive-message', res); //emit one-by-one for all users
+                        });
+                    });
+            });
         });
     });
 }

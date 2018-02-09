@@ -21,46 +21,66 @@ class GroupService {
      * CRUD for group
      */
     create(group, callback) {
-        return groupDao.insert(group, callback);
+        return groupDao.insert(group, (groupCreated) => {
+            callback(groupCreated);
+        });
     }
 
     getAll(callback) {
-        return groupDao.readAll(callback);
+        return groupDao.readAll((allgroups) => {
+            callback(allgroups);
+        });
     }
 
     getById(id, callback) {
-        return groupDao.readById(id, callback);
+        return groupDao.readById(id, (groupById) => {
+            callback(groupById);
+        });
     }
 
     update(group, callback) {
-        return groupDao.update(group, callback);
+        return groupDao.update(group, (groupUpdated) => {
+            callback(groupUpdated);
+        });
     }
 
     delete(id, callback) {
-        return groupDao.delete(id, callback);
+        return groupDao.delete(id, (groupDeleted) => {
+            callback(groupDeleted);
+        });
     }
 
     /**
      * CRUD for groupUser
      */
     createGroupUserMap(groupUser, callback) {
-        return groupUserMapDao.insert(groupUser, callback);
+        return groupUserMapDao.insert(groupUser, (groupUserMapCreated) => {
+            callback(groupUserMapCreated);
+        });
     }
 
     getAllGroupUserMaps(callback) {
-        return groupUserMapDao.readAll(callback);
+        return groupUserMapDao.readAll((allgroupUserMaps) => {
+            callback(allgroupUserMaps);
+        });
     }
 
     getGroupUserMapById(id, callback) {
-        return groupUserMapDao.readById(id, callback);
+        return groupUserMapDao.readById(id, (groupUserMapById) => {
+            callback(groupUserMapById);
+        });
     }
 
     updateGroupUserMap(groupUser, callback) {
-        return groupUserMapDao.update(groupUser, callback);
+        return groupUserMapDao.update(groupUser, (groupUserMapUpdated) => {
+            callback(groupUserMapUpdated);
+        });
     }
 
     deleteGroupUserMap(id, callback) {
-        return groupUserMapDao.delete(id, callback);
+        return groupUserMapDao.delete(id, (groupUserMapDeleted) => {
+            callback(groupUserMapDeleted);
+        });
     }
 
     /**
@@ -75,7 +95,7 @@ class GroupService {
                 transaction: t
             }).then((allGroupsByUserId) => {
                 return Promise.map(allGroupsByUserId, groupUserMap => {
-                    return groupModel.Group.findById(groupUserMap.groupId);
+                    return groupModel.group.findById(groupUserMap.groupId);
                 });
             });
         });
@@ -103,17 +123,12 @@ class GroupService {
      * get groups based on the group url
      */
     getGroupByUrl(url) {
-        return new Promise((resolve, reject) => {
-            return sequelize.transaction().then(function(t) {
-                groupModel.Group.findOne({
-                    where: {
-                        url: url
-                    }
-                }, { transaction: t }).then((group) => {
-                    resolve(group);
-                    //callback(group);
-                });
-            }, reject);
+        return sequelize.transaction().then(function(t) {
+            groupModel.group.findOne({
+                where: {
+                    url: url
+                }
+            }, { transaction: t }).then((group) => {});
         });
     }
 }

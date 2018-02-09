@@ -30,14 +30,18 @@ exports.getById = (id, callback) => {
 }
 
 exports.update = (message, callback) => {
-    var condition = { id: message._id };
-    var options = { multi: true };
+    var condition = { $and: [{ 'senderId': message.senderId }, { 'receiverId': message.receiverId }, { 'createdTime': message.createdTime }] };
+    var options = { "new": true }; //multi: true, upsert: true
 
-    Message.update(condition, message, options, callback);
-
-    (err, numAffected) => {
-        if (err) throw err;
-    }
+    Message.findOneAndUpdate(condition, {
+        $set: {
+            "text": message.text,
+            "type": "text",
+            "contentType": "text"
+        }
+    }, options, (message) => {
+        callback(message);
+    });
 }
 
 exports.delete = (id, callback) => {

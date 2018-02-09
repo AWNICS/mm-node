@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    var Group = sequelize.define('Group', {
+    var Group = sequelize.define('group', {
         id: {
             type: DataTypes.DOUBLE,
             primaryKey: true,
