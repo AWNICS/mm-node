@@ -34,26 +34,27 @@ exports.connectSocket = (io) => {
             if (msg.receiverType === "group") {
                 userService.getById(msg.senderId, (result) => {
                     msg.createdBy = result.name;
+                    msg.updatedBy = result.name;
                     msg.picUrl = result.picUrl;
-                    messageService.sendMessage(msg, (result) => {});
-                });
-                groupService.getAllUsersByGroupId(msg.receiverId)
-                    .then((users) => {
-                        users.map(user => {
-                            io.in(user.socketId).emit('receive-message', msg); //emit one-by-one for all users
+                    messageService.sendMessage(msg, (result) => {
+                        groupService.getAllUsersByGroupId(msg.receiverId, (user) => {
+                            io.in(user.socketId).emit('receive-message', result); //emit one-by-one for all users
                         });
                     });
+                });
             }
             // if it is a private message 
             else if (msg.receiverType === "private") {
                 userService.getById(msg.senderId, (result) => {
                     msg.createdBy = result.name;
+                    msg.updatedBy = result.name;
                     msg.picUrl = result.picUrl;
-                    messageService.sendMessage(msg, (result) => {});
+                    messageService.sendMessage(msg, (result) => {
+                        userService.getById(msg.receiverId, (user) => {
+                            socket.to(user.socketId).emit('receive-message', result);
+                        });
+                    });
                 });
-                userService.getById(msg.receiverId, (result) => {
-                    socket.to(result.socketId).emit('receive-message', msg);
-                })
             }
             // if neither group nor user is selected
             else {
@@ -90,12 +91,9 @@ exports.connectSocket = (io) => {
          */
         socket.on('update-message', (data) => {
             messageService.update(data, (res) => {
-                groupService.getAllUsersByGroupId(data.receiverId)
-                    .then((users) => {
-                        users.map(user => {
-                            io.in(user.socketId).emit('receive-message', res); //emit one-by-one for all users
-                        });
-                    });
+                groupService.getAllUsersByGroupId(data.receiverId, (user) => {
+                    io.in(user.socketId).emit('updated-message', res); //emit one-by-one for all users
+                });
             });
         });
     });
