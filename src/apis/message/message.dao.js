@@ -3,12 +3,15 @@ DAO for messages api
 */
 
 import Message from './message.model';
+import log from '../../config/log4js.config';
 
 exports.create = (message, callback) => {
 
     //create a new message
     message.save((err, message) => {
-        if (err) throw err;
+        if (err) {
+            log.error('err is: ', JSON.stringify(err));
+        }
         callback(message);
     });
 }
@@ -16,7 +19,9 @@ exports.create = (message, callback) => {
 exports.getAll = (callback) => {
     // get all the messages
     Message.find({}, (err, messages) => {
-        if (err) throw err;
+        if (err) {
+            log.error('err is: ', JSON.stringify(err));
+        }
         callback(messages);
     });
 }
@@ -24,14 +29,16 @@ exports.getAll = (callback) => {
 exports.getById = (id, callback) => {
     // get a specific the message
     Message.find({ id: id }, (err, message) => {
-        if (err) throw err;
+        if (err) {
+            log.error('err is: ', JSON.stringify(err));
+        }
         callback(message);
     });
 }
 
 exports.update = (message, callback) => {
     var condition = { $and: [{ 'senderId': message.senderId }, { 'receiverId': message.receiverId }, { 'createdTime': message.createdTime }] };
-    var options = { "new": true }; //multi: true, upsert: true
+    var options = { new: true }; //multi: true, upsert: true
 
     Message.findOneAndUpdate(condition, {
         $set: {
@@ -39,7 +46,10 @@ exports.update = (message, callback) => {
             "type": "text",
             "contentType": "text"
         }
-    }, options, (message) => {
+    }, options, (err, message) => {
+        if (err) {
+            log.error('err is: ', JSON.stringify(err));
+        }
         callback(message);
     });
 }
@@ -49,7 +59,9 @@ exports.delete = (id, callback) => {
     var condition = { id: id };
 
     Message.remove(condition, (err, message) => {
-        if (err) throw err;
+        if (err) {
+            log.error('err is: ', JSON.stringify(err));
+        }
         callback(message);
     });
 }

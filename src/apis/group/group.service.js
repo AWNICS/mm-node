@@ -104,17 +104,20 @@ class GroupService {
     /**
      * getting all users based on groupId 
      */
-    getAllUsersByGroupId(groupId) {
+    getAllUsersByGroupId(groupId, callback) {
         return sequelize.transaction().then(function(t) {
             return groupUserMapModel.group_user_map.findAll({
                 where: {
                     groupId: groupId
                 },
                 transaction: t
-            }).then((allUsersByGroupId) => {
-                return Promise.map(allUsersByGroupId, groupUserMap => {
-                    return userService.getById(groupUserMap.userId, (res) => {});
+            }).then((allUserIdsByGroupId) => {
+                return Promise.map(allUserIdsByGroupId, groupUserMap => {
+                    return userService.getById(groupUserMap.userId, (res) => {
+                        callback(res);
+                    });
                 });
+                // callback(res);
             });
         });
     }
