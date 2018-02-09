@@ -141,7 +141,7 @@ router.get('/controllers/getUserById/:id', function(req, res) {
 router.put('/controllers/putUser', function(req, res) {
     var user = req.body;
     userService.updateRegisteredUser(user, (result) => {
-        res.send('User updated' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
@@ -167,7 +167,7 @@ router.put('/controllers/putUser', function(req, res) {
 router.delete('/controllers/deleteUser/:id', function(req, res) {
     var id = req.params.id;
     userService.deleteRegisteredUser(id, (result) => {
-        res.send('User deleted' + JSON.stringify(result));
+        res.send('Number of user deleted: ' + result);
     });
 });
 

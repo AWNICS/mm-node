@@ -51,7 +51,8 @@ class UserService {
                 user.token = key; //assign generated key to user
             }
         });
-        return userDao.insert(user, callback).then((userInserted) => {
+        return userDao.insert(user, (userInserted) => {
+            callback(userInserted);
             if (userInserted.privilege == 'user') {
                 this.activationLink(userInserted.token);
                 var group = {
@@ -63,15 +64,16 @@ class UserService {
                     createdBy: 'docbot',
                     updatedBy: 'docbot'
                 };
-                return groupDao.insert(group, () => {}).then((createdGroup) => {
+                return groupDao.insert(group, (createdGroup) => {
                     var groupUserMap = {
                         userId: createdGroup.userId,
                         groupId: createdGroup.id,
                         createdBy: 'user',
                         updatedBy: 'user'
                     };
-                    groupUserMapDao.insert(groupUserMap, () => {}).then((createdGroupUserMap) => {}).catch(err => err);
-                    sequelize.query("select u.id, u.name, u.privilege, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.privilege='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
+                    groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
+                    sequelize
+                        .query("select u.id, u.name, u.privilege, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.privilege='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
                         .then((groupUserMaps) => {
                             var uId;
                             for (var i = 0; i < groupUserMaps.length; i++) {
@@ -88,11 +90,9 @@ class UserService {
                                 createdBy: 'bot',
                                 updatedBy: 'bot'
                             }
-                            groupUserMapDao.insert(groupUserMapBot, () => {}).then((createdGroupUserMap) => {
-                                log.info('bot mapped: ' + JSON.stringify(createdGroupUserMap));
-                            });
+                            groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
                             var msg = {
-                                receiverId: group.id,
+                                receiverId: createdGroup.id,
                                 receiverType: 'group', // group or individual
                                 senderId: uId,
                                 text: 'Welcome to Mesomeds!! How can we help you?'
@@ -146,57 +146,58 @@ class UserService {
      * change activate column and match token
      */
     activateUser(token, callback) {
-        return new Promise((resolve, reject) => {
-            return sequelize.transaction().then(function(t) {
-                userModel.User.find({ where: { token: token } }, { transaction: t }).then((resultFind) => {
-                    if (resultFind.token === token) {
-                        userModel.User.update({ "activate": 1, "privilege": "user" }, { where: { token: resultFind.token } });
-                        log.info('result: ' + JSON.stringify(resultFind));
-                        resolve(resultFind);
-                        callback(resultFind);
-                    } else {
-                        log.error('error');
-                    }
-                }).then(function() {
-                    t.commit();
-                }).catch(function(error) {
-                    t.rollback();
-                });
-            }, reject);
+        return sequelize.transaction().then(function(t) {
+            userModel.user.find({ where: { token: token } }, { transaction: t }).then((resultFind) => {
+                if (resultFind.token === token) {
+                    userModel.user.update({ "activate": 1, "privilege": "user" }, { where: { token: resultFind.token } });
+                    callback(resultFind);
+                } else {
+                    log.error('error');
+                }
+            }).then(function() {
+                t.commit();
+            }).catch(function(error) {
+                t.rollback();
+            });
         });
     }
 
     updateRegisteredUser(user, callback) {
-        return userDao.update(user, callback);
+        return userDao.update(user, (userUpdated) => {
+            callback(userUpdated);
+        });
     }
 
     getAll(callback) {
-        return userDao.readAll(callback);
+        return userDao.readAll((allUsers) => {
+            callback(allUsers);
+        });
     }
 
     getById(id, callback) {
-        return userDao.readById(id, callback);
+        return userDao.readById(id, (userById) => {
+            callback(userById);
+        });
     }
 
     deleteRegisteredUser(id, callback) {
-        return userDao.delete(id, callback);
+        return userDao.delete(id, (userDeleted) => {
+            callback(userDeleted);
+        });
     }
 
     /**
      * Find user by name for the login component
      */
     findUserByName(username, callback) {
-        return new Promise((resolve, reject) => {
-            return sequelize.transaction().then(function(t) {
-                userModel.User.findOne({
-                    where: {
-                        name: username
-                    }
-                }, { transaction: t }).then((user) => {
-                    resolve(user);
-                    callback(user);
-                });
-            }, reject);
+        return sequelize.transaction().then(function(t) {
+            userModel.user.findOne({
+                where: {
+                    name: username
+                }
+            }, { transaction: t }).then((user) => {
+                callback(user);
+            });
         });
     }
 
@@ -204,17 +205,13 @@ class UserService {
      * get all bots 
      */
     getAllBots(offset) {
-        return new Promise((resolve, reject) => {
-            return sequelize.transaction().then(function(t) {
-                userModel.User.findAll({
-                    offset: offset,
-                    where: {
-                        name: Sequelize.literal(' name REGEXP "BOT*" ')
-                    }
-                }, { transaction: t }).then((user) => {
-                    resolve(user);
-                });
-            }, reject);
+        return sequelize.transaction().then(function(t) {
+            userModel.user.findAll({
+                offset: offset,
+                where: {
+                    name: Sequelize.literal(' name REGEXP "BOT*" ')
+                }
+            }, { transaction: t }).then((user) => {});
         });
     }
 }
