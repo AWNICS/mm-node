@@ -27,10 +27,8 @@ class DoctorDao {
      * read all method
      */
     readAll(callback) {
-        sequelize.transaction().then(function(t) {
-            doctorModel.doctor.findAll({ transaction: t }).then((allDoctor) => {
-                callback(allDoctor);
-            });
+        doctorModel.doctor.findAll().then((allDoctor) => {
+            callback(allDoctor);
         });
     }
 
@@ -38,10 +36,8 @@ class DoctorDao {
      * read method based on id
      */
     readById(id, callback) {
-        sequelize.transaction().then(function(t) {
-            doctorModel.doctor.findById(id, { transaction: t }).then((doctor) => {
-                callback(doctor);
-            });
+        doctorModel.doctor.findById(id).then((doctor) => {
+            callback(doctor);
         });
     }
 

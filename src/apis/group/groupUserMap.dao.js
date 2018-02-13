@@ -27,10 +27,8 @@ class GroupUserMapDao {
      * read all method
      */
     readAll(callback) {
-        sequelize.transaction().then(function(t) {
-            groupUserMapModel.group_user_map.findAll({ transaction: t }).then((allGroupUser) => {
-                callback(allGroupUser);
-            });
+        groupUserMapModel.group_user_map.findAll().then((allGroupUser) => {
+            callback(allGroupUser);
         });
     }
 
@@ -38,10 +36,8 @@ class GroupUserMapDao {
      * read method based on id
      */
     readById(id, callback) {
-        sequelize.transaction().then(function(t) {
-            groupUserMapModel.group_user_map.findById(id, { transaction: t }).then((group) => {
-                callback(group);
-            });
+        groupUserMapModel.group_user_map.findById(id).then((group) => {
+            callback(group);
         });
     }
 

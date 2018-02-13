@@ -87,16 +87,13 @@ class GroupService {
      * fetching all the groups for particular userId from group-user-map
      */
     getAllGroupsByUserId(userId) {
-        return sequelize.transaction().then(function(t) {
-            return groupUserMapModel.group_user_map.findAll({
-                where: {
-                    userId: userId
-                },
-                transaction: t
-            }).then((allGroupsByUserId) => {
-                return Promise.map(allGroupsByUserId, groupUserMap => {
-                    return groupModel.group.findById(groupUserMap.groupId);
-                });
+        return groupUserMapModel.group_user_map.findAll({
+            where: {
+                userId: userId
+            }
+        }).then((allGroupsByUserId) => {
+            return Promise.map(allGroupsByUserId, groupUserMap => {
+                return groupModel.group.findById(groupUserMap.groupId);
             });
         });
     }
@@ -105,20 +102,17 @@ class GroupService {
      * getting all users based on groupId 
      */
     getAllUsersByGroupId(groupId, callback) {
-        return sequelize.transaction().then(function(t) {
-            return groupUserMapModel.group_user_map.findAll({
-                where: {
-                    groupId: groupId
-                },
-                transaction: t
-            }).then((allUserIdsByGroupId) => {
-                return Promise.map(allUserIdsByGroupId, groupUserMap => {
-                    return userService.getById(groupUserMap.userId, (res) => {
-                        callback(res);
-                    });
+        return groupUserMapModel.group_user_map.findAll({
+            where: {
+                groupId: groupId
+            }
+        }).then((allUserIdsByGroupId) => {
+            return Promise.map(allUserIdsByGroupId, groupUserMap => {
+                return userService.getById(groupUserMap.userId, (res) => {
+                    callback(res);
                 });
-                // callback(res);
             });
+            // callback(res);
         });
     }
 
@@ -126,13 +120,11 @@ class GroupService {
      * get groups based on the group url
      */
     getGroupByUrl(url) {
-        return sequelize.transaction().then(function(t) {
-            groupModel.group.findOne({
-                where: {
-                    url: url
-                }
-            }, { transaction: t }).then((group) => {});
-        });
+        groupModel.group.findOne({
+            where: {
+                url: url
+            }
+        }).then((group) => {});
     }
 }
 
