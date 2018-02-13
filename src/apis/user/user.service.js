@@ -146,19 +146,15 @@ class UserService {
      * change activate column and match token
      */
     activateUser(token, callback) {
-        return sequelize.transaction().then(function(t) {
-            userModel.user.find({ where: { token: token } }, { transaction: t }).then((resultFind) => {
-                if (resultFind.token === token) {
-                    userModel.user.update({ "activate": 1, "privilege": "user" }, { where: { token: resultFind.token } });
-                    callback(resultFind);
-                } else {
-                    log.error('error');
-                }
-            }).then(function() {
-                t.commit();
-            }).catch(function(error) {
-                t.rollback();
-            });
+        userModel.user.find({ where: { token: token } }).then((resultFind) => {
+            if (resultFind.token === token) {
+                userModel.user.update({ "activate": 1, "privilege": "user" }, { where: { token: resultFind.token } });
+                callback(resultFind);
+            } else {
+                log.error('Error while updating the user ');
+            }
+        }).catch((err) => {
+            log.error('Error while updating the user ', err);
         });
     }
 
@@ -190,14 +186,12 @@ class UserService {
      * Find user by name for the login component
      */
     findUserByName(username, callback) {
-        return sequelize.transaction().then(function(t) {
-            userModel.user.findOne({
-                where: {
-                    name: username
-                }
-            }, { transaction: t }).then((user) => {
-                callback(user);
-            });
+        userModel.user.findOne({
+            where: {
+                name: username
+            }
+        }).then((user) => {
+            callback(user);
         });
     }
 
@@ -205,14 +199,12 @@ class UserService {
      * get all bots 
      */
     getAllBots(offset) {
-        return sequelize.transaction().then(function(t) {
-            userModel.user.findAll({
-                offset: offset,
-                where: {
-                    name: Sequelize.literal(' name REGEXP "BOT*" ')
-                }
-            }, { transaction: t }).then((user) => {});
-        });
+        userModel.user.findAll({
+            offset: offset,
+            where: {
+                name: Sequelize.literal(' name REGEXP "BOT*" ')
+            }
+        }).then((user) => {});
     }
 }
 

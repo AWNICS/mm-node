@@ -27,10 +27,8 @@ class ContactDao {
      * read all method
      */
     readAll(callback) {
-        sequelize.transaction().then(function(t) {
-            contactUsModel.contact.findAll({ transaction: t }).then((allContact) => {
-                callback(allContact);
-            });
+        contactUsModel.contact.findAll().then((allContact) => {
+            callback(allContact);
         });
     }
 
@@ -38,10 +36,8 @@ class ContactDao {
      * read method based on id
      */
     readById(id, callback) {
-        sequelize.transaction().then(function(t) {
-            contactUsModel.contact.findById(id, { transaction: t }).then((contact) => {
-                callback(contact);
-            });
+        contactUsModel.contact.findById(id).then((contact) => {
+            callback(contact);
         });
     }
 

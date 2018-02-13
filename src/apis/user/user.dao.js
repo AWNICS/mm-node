@@ -27,10 +27,8 @@ class UserDao {
      * read all method
      */
     readAll(callback) {
-        return sequelize.transaction().then(function(t) {
-            userModel.user.findAll({ transaction: t }).then((user) => {
-                callback(user);
-            });
+        userModel.user.findAll().then((user) => {
+            callback(user);
         });
     }
 
@@ -38,10 +36,8 @@ class UserDao {
      * read method based on id
      */
     readById(id, callback) {
-        return sequelize.transaction().then(function(t) {
-            userModel.user.findById(id, { transaction: t }).then((user) => {
-                callback(user);
-            });
+        userModel.user.findById(id).then((user) => {
+            callback(user);
         });
     }
 

@@ -27,10 +27,8 @@ class GroupDao {
      * read all method
      */
     readAll(callback) {
-        sequelize.transaction().then(function(t) {
-            groupModel.group.findAll({ transaction: t }).then((allGroup) => {
-                callback(allGroup);
-            });
+        groupModel.group.findAll().then((allGroup) => {
+            callback(allGroup);
         });
     }
 
@@ -38,10 +36,8 @@ class GroupDao {
      * read method based on id
      */
     readById(id, callback) {
-        sequelize.transaction().then(function(t) {
-            groupModel.group.findById(id, { transaction: t }).then((group) => {
-                callback(group);
-            });
+        groupModel.group.findById(id).then((group) => {
+            callback(group);
         });
     }
 
