@@ -12,19 +12,14 @@ class GroupDao {
      * insert method
      */
     insert(group, callback) {
-        return new Promise((resolve, reject) => {
-            return sequelize.transaction().then(function(t) {
-                groupModel.Group.sync({ force: false }).then(function() {
-                    return groupModel.Group.create(group, { transaction: t }).then(function(groupInserted) {
-                        resolve(groupInserted);
-                        callback(groupInserted);
-                    }).then(function() {
-                        t.commit();
-                    }).catch(function(error) {
-                        t.rollback();
-                    });
-                }, reject);
-            }, reject);
+        sequelize.transaction().then(function(t) {
+            groupModel.group.create(group, { transaction: t }).then(function(groupInserted) {
+                callback(groupInserted);
+            }).then(function() {
+                t.commit();
+            }).catch(function(error) {
+                t.rollback();
+            });
         });
     }
 
@@ -32,10 +27,8 @@ class GroupDao {
      * read all method
      */
     readAll(callback) {
-        return sequelize.transaction().then(function(t) {
-            groupModel.Group.findAll({ transaction: t }).then((allGroup) => {
-                callback(allGroup);
-            });
+        groupModel.group.findAll().then((allGroup) => {
+            callback(allGroup);
         });
     }
 
@@ -43,13 +36,8 @@ class GroupDao {
      * read method based on id
      */
     readById(id, callback) {
-        return new Promise((resolve, reject) => {
-            return sequelize.transaction().then(function(t) {
-                groupModel.Group.findById(id, { transaction: t }).then((group) => {
-                    resolve(group);
-                    callback(group);
-                });
-            }, reject);
+        groupModel.group.findById(id).then((group) => {
+            callback(group);
         });
     }
 
@@ -57,21 +45,18 @@ class GroupDao {
      * Update method
      */
     update(group, callback) {
-        return new Promise((resolve, reject) => {
-            return sequelize.transaction().then(function(t) {
-                return groupModel.Group.update(group, {
-                    where: {
-                        id: group.id
-                    }
-                }, { transaction: t }).then(function(groupUpdated) {
-                    resolve(groupUpdated);
-                    callback(groupUpdated);
-                }).then(function() {
-                    t.commit();
-                }).catch(function(error) {
-                    t.rollback();
-                });
-            }, reject);
+        sequelize.transaction().then(function(t) {
+            groupModel.group.update(group, {
+                where: {
+                    id: group.id
+                }
+            }, { transaction: t }).then(function(groupUpdated) {
+                callback(groupUpdated);
+            }).then(function() {
+                t.commit();
+            }).catch(function(error) {
+                t.rollback();
+            });
         });
     }
 
@@ -79,21 +64,18 @@ class GroupDao {
      * Delete method
      */
     delete(id, callback) {
-        return new Promise((resolve, reject) => {
-            return sequelize.transaction().then(function(t) {
-                groupModel.Group.destroy({
-                    where: {
-                        id: id
-                    }
-                }).then(function(groupDeleted) {
-                    resolve(groupDeleted);
-                    callback(groupDeleted);
-                }).then(function() {
-                    t.commit();
-                }).catch(function(error) {
-                    t.rollback();
-                });
-            }, reject);
+        sequelize.transaction().then(function(t) {
+            groupModel.group.destroy({
+                where: {
+                    id: id
+                }
+            }).then(function(groupDeleted) {
+                callback(groupDeleted);
+            }).then(function() {
+                t.commit();
+            }).catch(function(error) {
+                t.rollback();
+            });
         });
     }
 }

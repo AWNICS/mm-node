@@ -12,7 +12,7 @@ import MongoConfig from '../util/conn.mongo';
 import MySql from '../util/conn.mysql';
 import http from 'http';
 import socket from 'socket.io';
-import socketConnection from '../util/conn.socket';
+import socketService from '../util/socket.service';
 import log from './log4js.config';
 import doctor from '../apis/doctor/doctor.controller';
 import message from '../apis/message/message.controller';
@@ -30,7 +30,7 @@ class Config {
         this.flash = flash;
         this.socket = socket;
         this.http = http.Server(this.app);
-        this.io = this.socket(this.http);
+        this.io = this.socket.listen(this.http);
         this.dotenv = dotenv;
         /*this.passport = passport;
         this.LocalStrategy = passportLocal.Strategy;
@@ -56,7 +56,7 @@ class Config {
         }));*/
         // Express Flash
         //this.app.use(this.flash());
-        socketConnection.connectSocket(this.io);
+        socketService.connectSocket(this.io);
     }
 
     configureCORS() {

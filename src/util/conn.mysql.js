@@ -5,7 +5,16 @@ var sequelize = new Sequelize('test', 'arun', '', {
     host: 'localhost',
     dialect: 'mysql',
     operatorsAliases: false,
-    logging: false
+    logging: false,
+    pool: {
+        max: 10,
+        min: 0,
+        idle: 10000,
+        acquire: 10000,
+        handleDisconnects: true,
+        evict: 60000,
+        connectRetries: 5
+    }
 });
 
 sequelize = sequelize;

@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    var Doctor = sequelize.define('Doctor', {
+    var Doctor = sequelize.define('doctor', {
         id: {
             type: DataTypes.DOUBLE,
             primaryKey: true,
@@ -53,6 +53,8 @@ module.exports = (sequelize, DataTypes) => {
         termsAccepted: {
             type: DataTypes.BOOLEAN
         }
+    }, {
+        freezeTableName: true
     });
     return Doctor;
 };

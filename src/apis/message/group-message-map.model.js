@@ -16,7 +16,7 @@ var GroupMessageMapSchema = new Schema({
     updatedBy: String,
     createdTime: { type: Date, default: Date.now },
     updatedTime: { type: Date, default: Date.now }
-});
+}, { collection: 'group_message_map' });
 
 // Compile model from schema
 var GroupMessageMap = mongoose.model('GroupMessageMap', GroupMessageMapSchema);

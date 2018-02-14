@@ -9,23 +9,33 @@ class ContactService {
     constructor() {}
 
     create(contact, callback) {
-        return contactDao.insert(contact, callback);
+        return contactDao.insert(contact, (contactCreated) => {
+            callback(contactCreated);
+        });
     }
 
     getAll(callback) {
-        return contactDao.readAll(callback);
+        return contactDao.readAll((allContacts) => {
+            callback(allContacts);
+        });
     }
 
     getById(id, callback) {
-        return contactDao.readById(id, callback);
+        return contactDao.readById(id, (contactById) => {
+            callback(contactById);
+        });
     }
 
     update(contact, callback) {
-        return contactDao.update(contact, callback);
+        return contactDao.update(contact, (contactUpdated) => {
+            callback(contactUpdated);
+        });
     }
 
     delete(id, callback) {
-        return contactDao.delete(id, callback);
+        return contactDao.delete(id, (contactDeleted) => {
+            callback(contactDeleted);
+        });
     }
 }
 

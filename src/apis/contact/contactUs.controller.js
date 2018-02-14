@@ -65,7 +65,7 @@ var contactService = new ContactService();
 router.post('/controllers/createContact', function(req, res) {
     var contact = req.body;
     contactService.create(contact, (result) => {
-        res.send('Contact created: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
@@ -86,7 +86,7 @@ router.post('/controllers/createContact', function(req, res) {
  */
 router.get('/controllers/getContacts', function(req, res) {
     contactService.getAll((result) => {
-        res.send('All contact lists: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
@@ -116,7 +116,7 @@ router.get('/controllers/getContacts', function(req, res) {
 router.get('/controllers/getContactById/:id', function(req, res) {
     var id = req.params.id;
     contactService.getById(id, (result) => {
-        res.send('Read contact by id: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
@@ -143,7 +143,7 @@ router.get('/controllers/getContactById/:id', function(req, res) {
 router.put('/controllers/putContact', function(req, res) {
     var contact = req.body;
     contactService.update(contact, (result) => {
-        res.send('Contact updated' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
@@ -169,7 +169,7 @@ router.put('/controllers/putContact', function(req, res) {
 router.delete('/controllers/deleteContact/:id', function(req, res) {
     var id = req.params.id;
     contactService.delete(id, (result) => {
-        res.send('User deleted: ' + JSON.stringify(result));
+        res.send('Number of contact deleted: ' + result);
     });
 });
 

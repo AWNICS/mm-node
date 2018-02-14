@@ -1,7 +1,7 @@
 //import sequelize from '../../util/conn.mysql';
 
 module.exports = (sequelize, DataTypes) => {
-    var User = sequelize.define('User', {
+    var User = sequelize.define('user', {
         id: {
             type: DataTypes.DOUBLE,
             primaryKey: true,
@@ -42,12 +42,18 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             defaultValue: null
         },
+        socketId: {
+            type: DataTypes.STRING,
+            defaultValue: null
+        },
         createdBy: {
             type: DataTypes.STRING
         },
         updatedBy: {
             type: DataTypes.STRING
         }
+    }, {
+        freezeTableName: true
     });
     return User;
 };

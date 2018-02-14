@@ -89,7 +89,7 @@ router.get('/controllers/getDoctors', function(req, res) {
 router.post('/controllers/createDoctor', function(req, res) {
     var doctor = req.body;
     doctorService.create(doctor, (result) => {
-        res.send('Doctor created: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
@@ -116,7 +116,7 @@ router.post('/controllers/createDoctor', function(req, res) {
 router.put('/controllers/putDoctor', function(req, res) {
     var doctor = req.body;
     doctorService.update(doctor, (result) => {
-        res.send('Doctor updated' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
@@ -142,7 +142,7 @@ router.put('/controllers/putDoctor', function(req, res) {
 router.delete('/controllers/deleteDoctor/:id', function(req, res) {
     var id = req.params.id;
     doctorService.delete(id, (result) => {
-        res.send('Doctor deleted: ' + JSON.stringify(result));
+        res.send('Number of doctor deleted: ' + result);
     });
 });
 
@@ -170,7 +170,7 @@ router.delete('/controllers/deleteDoctor/:id', function(req, res) {
 router.get('/controllers/getDoctorById/:id', function(req, res) {
     var id = req.params.id;
     doctorService.getById(id, (result) => {
-        res.send('Read doctor by id: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 

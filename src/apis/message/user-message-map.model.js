@@ -16,7 +16,7 @@ var UserMessageMapSchema = new Schema({
     updatedBy: String,
     createdTime: { type: Date, default: Date.now },
     updatedTime: { type: Date, default: Date.now }
-});
+}, { collection: 'user_message_map' });
 
 // Compile model from schema
 var UserMessageMap = mongoose.model('UserMessageMap', UserMessageMapSchema);

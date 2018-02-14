@@ -51,7 +51,7 @@ var groupService = new GroupService();
 router.post('/controllers/createGroup', function(req, res) {
     var group = req.body;
     groupService.create(group, (result) => {
-        res.send('Group created: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
@@ -100,7 +100,7 @@ router.get('/controllers/getGroups', function(req, res) {
 router.get('/controllers/getGroupById/:id', function(req, res) {
     var id = req.params.id;
     groupService.getById(id, (result) => {
-        res.send('Read group by id: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
@@ -127,7 +127,7 @@ router.get('/controllers/getGroupById/:id', function(req, res) {
 router.put('/controllers/putGroup', function(req, res) {
     var group = req.body;
     groupService.update(group, (result) => {
-        res.send('Group updated' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
@@ -153,7 +153,7 @@ router.put('/controllers/putGroup', function(req, res) {
 router.delete('/controllers/deleteGroup/:id', function(req, res) {
     var id = req.params.id;
     groupService.delete(id, (result) => {
-        res.send('Group deleted: ' + JSON.stringify(result));
+        res.send('Number of groups deleted: ' + result);
     });
 });
 
@@ -175,7 +175,7 @@ router.delete('/controllers/deleteGroup/:id', function(req, res) {
  */
 /**
  * @swagger
- * /group/controllers/createGroupUser:
+ * /group/controllers/createGroupUserMap:
  *   post:
  *     tags:
  *       - GroupUserMap
@@ -196,13 +196,13 @@ router.delete('/controllers/deleteGroup/:id', function(req, res) {
 router.post('/controllers/createGroupUserMap', function(req, res) {
     var groupUser = req.body;
     groupService.createGroupUserMap(groupUser, (result) => {
-        res.send('Group user map created: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
 /**
  * @swagger
- * /group/controllers/getGroupUsers:
+ * /group/controllers/getGroupUserMaps:
  *   get:
  *     tags:
  *       - GroupUserMap
@@ -217,13 +217,13 @@ router.post('/controllers/createGroupUserMap', function(req, res) {
  */
 router.get('/controllers/getGroupUserMaps', function(req, res) {
     groupService.getAllGroupUserMaps((result) => {
-        res.send('All group user map lists: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
 /**
  * @swagger
- * /group/controllers/getGroupUserById/{id}:
+ * /group/controllers/getGroupUserMapById/{id}:
  *   get:
  *     tags:
  *       - GroupUserMap
@@ -245,13 +245,13 @@ router.get('/controllers/getGroupUserMaps', function(req, res) {
 router.get('/controllers/getGroupUserMapById/:id', function(req, res) {
     var id = req.params.id;
     groupService.getGroupUserMapById(id, (result) => {
-        res.send('Read group user map by id: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
 /**
  * @swagger
- * /group/controllers/putGroupUser:
+ * /group/controllers/putGroupUserMap:
  *   put:
  *     tags:
  *       - GroupUserMap
@@ -272,13 +272,13 @@ router.get('/controllers/getGroupUserMapById/:id', function(req, res) {
 router.put('/controllers/putGroupUserMap', function(req, res) {
     var groupUser = req.body;
     groupService.updateGroupUserMap(groupUser, (result) => {
-        res.send('Group user map updated' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
 /**
  * @swagger
- * /group/controllers/deleteGroupUser/{id}:
+ * /group/controllers/deleteGroupUserMap/{id}:
  *   delete:
  *     tags:
  *       - GroupUserMap
@@ -298,7 +298,7 @@ router.put('/controllers/putGroupUserMap', function(req, res) {
 router.delete('/controllers/deleteGroupUserMap/:id', function(req, res) {
     var id = req.params.id;
     groupService.deleteGroupUserMap(id, (result) => {
-        res.send('Group user map deleted: ' + JSON.stringify(result));
+        res.send('Number of groupUserMap deleted: ' + result);
     });
 });
 

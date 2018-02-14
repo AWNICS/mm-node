@@ -12,19 +12,14 @@ class GroupUserMapDao {
      * insert method
      */
     insert(groupUser, callback) {
-        return new Promise((resolve, reject) => {
-            return sequelize.transaction().then(function(t) {
-                groupUserMapModel.GroupUserMap.sync({ force: false }).then(function() {
-                    return groupUserMapModel.GroupUserMap.create(groupUser, { transaction: t }).then(function(groupUserInserted) {
-                        resolve(groupUserInserted);
-                        callback(groupUserInserted);
-                    }).then(function() {
-                        t.commit();
-                    }).catch(function(error) {
-                        t.rollback();
-                    });
-                }, reject);
-            }, reject);
+        sequelize.transaction().then(function(t) {
+            groupUserMapModel.group_user_map.create(groupUser, { transaction: t }).then(function(groupUserInserted) {
+                callback(groupUserInserted);
+            }).then(function() {
+                t.commit();
+            }).catch(function(error) {
+                t.rollback();
+            });
         });
     }
 
@@ -32,10 +27,8 @@ class GroupUserMapDao {
      * read all method
      */
     readAll(callback) {
-        return sequelize.transaction().then(function(t) {
-            groupUserMapModel.GroupUserMap.findAll({ transaction: t }).then((allGroupUser) => {
-                callback(allGroupUser);
-            });
+        groupUserMapModel.group_user_map.findAll().then((allGroupUser) => {
+            callback(allGroupUser);
         });
     }
 
@@ -43,13 +36,8 @@ class GroupUserMapDao {
      * read method based on id
      */
     readById(id, callback) {
-        return new Promise((resolve, reject) => {
-            return sequelize.transaction().then(function(t) {
-                groupUserMapModel.GroupUserMap.findById(id, { transaction: t }).then((group) => {
-                    resolve(group);
-                    callback(group);
-                });
-            }, reject);
+        groupUserMapModel.group_user_map.findById(id).then((group) => {
+            callback(group);
         });
     }
 
@@ -57,21 +45,18 @@ class GroupUserMapDao {
      * Update method
      */
     update(groupUser, callback) {
-        return new Promise((resolve, reject) => {
-            return sequelize.transaction().then(function(t) {
-                return groupUserMapModel.GroupUserMap.update(groupUser, {
-                    where: {
-                        id: groupUser.id
-                    }
-                }, { transaction: t }).then(function(groupUserUpdated) {
-                    resolve(groupUserUpdated);
-                    callback(groupUserUpdated);
-                }).then(function() {
-                    t.commit();
-                }).catch(function(error) {
-                    t.rollback();
-                });
-            }, reject);
+        sequelize.transaction().then(function(t) {
+            groupUserMapModel.group_user_map.update(groupUser, {
+                where: {
+                    id: groupUser.id
+                }
+            }, { transaction: t }).then(function(groupUserUpdated) {
+                callback(groupUserUpdated);
+            }).then(function() {
+                t.commit();
+            }).catch(function(error) {
+                t.rollback();
+            });
         });
     }
 
@@ -79,21 +64,18 @@ class GroupUserMapDao {
      * Delete method
      */
     delete(id, callback) {
-        return new Promise((resolve, reject) => {
-            return sequelize.transaction().then(function(t) {
-                groupUserMapModel.GroupUserMap.destroy({
-                    where: {
-                        id: id
-                    }
-                }).then(function(groupUserDeleted) {
-                    resolve(groupUserDeleted);
-                    callback(groupUserDeleted);
-                }).then(function() {
-                    t.commit();
-                }).catch(function(error) {
-                    t.rollback();
-                });
-            }, reject);
+        sequelize.transaction().then(function(t) {
+            groupUserMapModel.group_user_map.destroy({
+                where: {
+                    id: id
+                }
+            }).then(function(groupUserDeleted) {
+                callback(groupUserDeleted);
+            }).then(function() {
+                t.commit();
+            }).catch(function(error) {
+                t.rollback();
+            });
         });
     }
 }

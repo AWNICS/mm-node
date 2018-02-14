@@ -44,7 +44,7 @@ var userService = new UserService();
  */
 /**
  * @swagger
- * /user/controllers/createdUser:
+ * /user/controllers/createUser:
  *   post:
  *     tags:
  *       - Users
@@ -65,7 +65,7 @@ var userService = new UserService();
 router.post('/controllers/createUser', function(req, res) {
     var user = req.body;
     userService.register(user, (result) => {
-        res.send('User created: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
@@ -114,7 +114,7 @@ router.get('/controllers/getUsers', function(req, res) {
 router.get('/controllers/getUserById/:id', function(req, res) {
     var id = req.params.id;
     userService.getById(id, (result) => {
-        res.send('Read user by id: ' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
@@ -141,7 +141,7 @@ router.get('/controllers/getUserById/:id', function(req, res) {
 router.put('/controllers/putUser', function(req, res) {
     var user = req.body;
     userService.updateRegisteredUser(user, (result) => {
-        res.send('User updated' + JSON.stringify(result));
+        res.send(result);
     });
 });
 
@@ -167,7 +167,7 @@ router.put('/controllers/putUser', function(req, res) {
 router.delete('/controllers/deleteUser/:id', function(req, res) {
     var id = req.params.id;
     userService.deleteRegisteredUser(id, (result) => {
-        res.send('User deleted' + JSON.stringify(result));
+        res.send('Number of user deleted: ' + result);
     });
 });
 
@@ -177,6 +177,19 @@ router.delete('/controllers/deleteUser/:id', function(req, res) {
 router.get('/controllers/updateActivate/:token', function(req, res) {
     userService.activateUser(req.params.token, (result) => {
         res.sendFile('./activate.html', { root: __dirname })
+    });
+});
+
+/**
+ * find user by name
+ */
+router.get('/controllers/findUserByName/:username', (req, res) => {
+    userService.findUserByName(req.params.username, (result) => {
+        if (result) {
+            res.send(result);
+        } else {
+            res.status(401).send({ success: false, message: 'authentication failed' });
+        }
     });
 });
 
