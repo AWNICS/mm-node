@@ -313,10 +313,10 @@ router.get('/controllers/getGroups/user/:userId/groups', (req, res) => {
 /**
  * creating new group by doctor/bot
  */
-router.post('/controllers/createNewGroup/:receiverId', function(req, res) {
+router.post('/controllers/createGroupAuto/:receiverId', function(req, res) {
     var group = req.body;
     var receiverId = req.params.receiverId;
-    groupService.createNewGroup(group, receiverId, (result) => {
+    groupService.createGroupAuto(group, receiverId, (result) => {
         res.send(result);
     });
 });
@@ -324,11 +324,11 @@ router.post('/controllers/createNewGroup/:receiverId', function(req, res) {
 /**
  * creating new group manually by doctor/bot
  */
-router.post('/controllers/createNewGroupManually/:receiverId/:doctorId', function(req, res) {
+router.post('/controllers/createGroupManual/:receiverId/:doctorId', function(req, res) {
     var group = req.body;
     var receiverId = req.params.receiverId;
     var doctorId = req.params.doctorId;
-    groupService.createNewGroupManually(group, receiverId, doctorId, (result) => {
+    groupService.createGroupManual(group, receiverId, doctorId, (result) => {
         res.send(result);
     });
 });
