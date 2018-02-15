@@ -7,7 +7,7 @@ var sequelize = new Sequelize('test', 'arun', '', {
     operatorsAliases: false,
     logging: false,
     pool: {
-        max: 50,
+        max: 10,
         min: 0,
         idle: 10000,
         acquire: 10000,
