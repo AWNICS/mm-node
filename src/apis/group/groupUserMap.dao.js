@@ -12,13 +12,15 @@ class GroupUserMapDao {
      * insert method
      */
     insert(groupUser, callback) {
-        sequelize.transaction().then(function(t) {
-            groupUserMapModel.group_user_map.create(groupUser, { transaction: t }).then(function(groupUserInserted) {
-                callback(groupUserInserted);
-            }).then(function() {
-                t.commit();
-            }).catch(function(error) {
-                t.rollback();
+        sequelize.sync({ force: false }).then(() => {
+            sequelize.transaction().then(function(t) {
+                groupUserMapModel.group_user_map.create(groupUser, { transaction: t }).then(function(groupUserInserted) {
+                    callback(groupUserInserted);
+                }).then(function() {
+                    t.commit();
+                }).catch(function(error) {
+                    t.rollback();
+                });
             });
         });
     }

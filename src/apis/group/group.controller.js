@@ -310,4 +310,27 @@ router.get('/controllers/getGroups/user/:userId/groups', (req, res) => {
         .then(result => res.send(result));
 });
 
+/**
+ * creating new group by doctor/bot
+ */
+router.post('/controllers/createNewGroup/:receiverId', function(req, res) {
+    var group = req.body;
+    var receiverId = req.params.receiverId;
+    groupService.createNewGroup(group, receiverId, (result) => {
+        res.send(result);
+    });
+});
+
+/**
+ * creating new group manually by doctor/bot
+ */
+router.post('/controllers/createNewGroupManually/:receiverId/:doctorId', function(req, res) {
+    var group = req.body;
+    var receiverId = req.params.receiverId;
+    var doctorId = req.params.doctorId;
+    groupService.createNewGroupManually(group, receiverId, doctorId, (result) => {
+        res.send(result);
+    });
+});
+
 module.exports = router;

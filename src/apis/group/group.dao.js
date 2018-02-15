@@ -12,13 +12,16 @@ class GroupDao {
      * insert method
      */
     insert(group, callback) {
-        sequelize.transaction().then(function(t) {
-            groupModel.group.create(group, { transaction: t }).then(function(groupInserted) {
-                callback(groupInserted);
-            }).then(function() {
-                t.commit();
-            }).catch(function(error) {
-                t.rollback();
+        sequelize.sync({ force: false }).then(() => {
+            sequelize.transaction().then(function(t) {
+                groupModel.group.create(group, { transaction: t }).then(function(groupInserted) {
+                    callback(groupInserted);
+                }).then(function() {
+                    t.commit();
+                }).catch(function(error) {
+                    log.error('Error while creating a new group: ', error);
+                    t.rollback();
+                });
             });
         });
     }
@@ -27,10 +30,8 @@ class GroupDao {
      * read all method
      */
     readAll(callback) {
-        sequelize.transaction().then(function(t) {
-            groupModel.group.findAll({ transaction: t }).then((allGroup) => {
-                callback(allGroup);
-            });
+        groupModel.group.findAll().then((allGroup) => {
+            callback(allGroup);
         });
     }
 
@@ -38,10 +39,8 @@ class GroupDao {
      * read method based on id
      */
     readById(id, callback) {
-        sequelize.transaction().then(function(t) {
-            groupModel.group.findById(id, { transaction: t }).then((group) => {
-                callback(group);
-            });
+        groupModel.group.findById(id).then((group) => {
+            callback(group);
         });
     }
 
