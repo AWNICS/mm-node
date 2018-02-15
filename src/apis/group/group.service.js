@@ -132,7 +132,7 @@ class GroupService {
     /**
      * group created by bot or doctor
      */
-    createNewGroup(group, receiverId, callback) {
+    createGroupAuto(group, receiverId, callback) {
         this.create(group, (createdGroup) => {
             callback(createdGroup);
             //incase of bot(manual, admin)
@@ -184,7 +184,7 @@ class GroupService {
     /**
      * create new group manually
      */
-    createNewGroupManually(group, receiverId, doctorId, callback) {
+    createGroupManual(group, receiverId, doctorId, callback) {
         this.create(group, (createdGroup) => {
             callback(createdGroup);
             groupUserMapModel.group_user_map.findAll({
