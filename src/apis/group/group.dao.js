@@ -12,13 +12,16 @@ class GroupDao {
      * insert method
      */
     insert(group, callback) {
-        sequelize.transaction().then(function(t) {
-            groupModel.group.create(group, { transaction: t }).then(function(groupInserted) {
-                callback(groupInserted);
-            }).then(function() {
-                t.commit();
-            }).catch(function(error) {
-                t.rollback();
+        sequelize.sync({ force: false }).then(() => {
+            sequelize.transaction().then(function(t) {
+                groupModel.group.create(group, { transaction: t }).then(function(groupInserted) {
+                    callback(groupInserted);
+                }).then(function() {
+                    t.commit();
+                }).catch(function(error) {
+                    log.error('Error while creating a new group: ', error);
+                    t.rollback();
+                });
             });
         });
     }

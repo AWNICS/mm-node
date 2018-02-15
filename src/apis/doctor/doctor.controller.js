@@ -1,5 +1,6 @@
 import express from 'express';
 import DoctorService from './doctor.service';
+import log from '../../config/log4js.config';
 
 var router = express.Router();
 var doctorService = new DoctorService();
@@ -171,6 +172,43 @@ router.get('/controllers/getDoctorById/:id', function(req, res) {
     var id = req.params.id;
     doctorService.getById(id, (result) => {
         res.send(result);
+    });
+});
+
+/**
+ * API's for consultation-schedule(user and doctor)
+ */
+router.post('/controllers/createConsultation', function(req, res) {
+    var consultation = req.body;
+    doctorService.createConsultation(consultation, (result) => {
+        res.send(result);
+    });
+})
+
+router.get('/controllers/getAllConsultation', function(req, res) {
+    doctorService.getAllConsultation((result) => {
+        res.send(result);
+    });
+});
+
+router.get('/controllers/getByIdConsultation/:id', function(req, res) {
+    var id = req.params.id;
+    doctorService.getByIdConsultation(id, (result) => {
+        res.send(result);
+    });
+});
+
+router.put('/controllers/updateConsultation', function(req, res) {
+    var consultation = req.body;
+    doctorService.updateConsultation(consultation, (result) => {
+        res.send(result);
+    });
+});
+
+router.delete('/controllers/deleteConsultation/:id', function(req, res) {
+    var id = req.params.id;
+    doctorService.deleteConsultation(id, (result) => {
+        res.send('Number of consultation deleted: ' + result);
     });
 });
 
