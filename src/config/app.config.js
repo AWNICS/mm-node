@@ -15,6 +15,7 @@ import socket from 'socket.io';
 import socketService from '../util/socket.service';
 import log from './log4js.config';
 import doctor from '../apis/doctor/doctor.controller';
+import fileUpload from '../apis/file-upload/file-upload.controller';
 import message from '../apis/message/message.controller';
 import swaggerSpec from './swagger.config';
 import user from '../apis/user/user.controller';
@@ -40,6 +41,7 @@ class Config {
         this.lodash = lodash;
         this.dotenv.config({ path: '.env.dev' });
         this.mongo = new MongoConfig();
+
     }
 
     configureApp() {
@@ -76,6 +78,7 @@ class Config {
 
     configureRoutes() {
         this.app.use('/doctor', doctor);
+        this.app.use('/file', fileUpload);
         this.app.use('/message', message);
         this.app.use('/user', user);
         this.app.use('/contact', contactUs);
