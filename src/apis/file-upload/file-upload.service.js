@@ -1,7 +1,7 @@
 class FileUploadService {
     constructor() {}
 
-    uploadFile(req, bucket, next) {
+    uploadFile(req, bucket, next, callback) {
         if (!req.file) {
             return next();
         }
@@ -29,11 +29,26 @@ class FileUploadService {
         });
 
         stream.end(req.file.buffer);
+        callback(gcsname);
     }
-
 
     getPublicUrl(filename) {
         return `https://storage.googleapis.com/mmstore/${filename}`;
+    }
+
+    downloadImage(bucket, fileName, callback) {
+        const destFilename = `C:/Users/arun-awnics/Downloads/google_downloads/${fileName}`;
+        const options = {
+                destination: destFilename
+            }
+            // Download a file from your bucket.
+        bucket.file(fileName).download(options).then(() => {
+                console.log(`Download of ${fileName} success at ${destFilename}`);
+                callback(this.getPublicUrl(fileName));
+            })
+            .catch((err) => {
+                console.log('Error ', err);
+            });
     }
 }
 
