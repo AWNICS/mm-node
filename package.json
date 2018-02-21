@@ -33,7 +33,6 @@
         "express-session": "^1.15.5",
         "express-status-monitor": "^1.0.0",
         "file-system": "^2.2.2",
-        "fs": "0.0.1-security",
         "jsonwebtoken": "^8.1.0",
         "lodash": "^4.17.4",
         "log4js": "^2.4.1",
