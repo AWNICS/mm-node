@@ -13,13 +13,18 @@ const multer = Multer({
 });
 
 router.post('/controllers/image/up', multer.single('file'), function(req, res, next) {
-    fileUploadService.uploadFile(req, bucket, next);
-    res.send({ 'value': 'File successfully uploaded' });
+    fileUploadService.uploadFile(req, bucket, next, (result) => {
+        res.send(result);
+    });
 });
 
-router.get('/controllers/image/down', multer.single('file'), function(req, res, next) {
-    fileUploadService.uploadFile(req, bucket, next);
-    res.send({ 'value': 'File successfully uploaded' });
+router.get('/controllers/image/down/:fileName', multer.single('file'), function(req, res) {
+    console.log('Downloading...');
+    const fileName = req.params.fileName;
+    fileUploadService.downloadImage(bucket, fileName, (result) => {
+        console.log('result ', JSON.stringify(result));
+        res.send(result);
+    });
 });
 
 module.exports = router;

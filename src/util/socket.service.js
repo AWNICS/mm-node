@@ -12,17 +12,12 @@ exports.connectSocket = (io) => {
     io.on('connection', function(socket) {
         // get userId from client
         socket.on('user-connected', userId => {
-            console.log('a user connected with ID: ' + userId);
+            log.info('a user connected with ID: ' + userId);
 
             userService.getById(userId, (user) => {
                 if (user.id === userId) {
                     userService.updateRegisteredUser({ 'id': userId, 'socketId': socket.id }, (user) => {});
                 }
-            });
-
-            //user disconnected
-            socket.on('disconnect', () => {
-                console.log('user disconnected with ID: ' + userId);
             });
         });
 
@@ -95,6 +90,11 @@ exports.connectSocket = (io) => {
                     io.in(user.socketId).emit('updated-message', res); //emit one-by-one for all users
                 });
             });
+        });
+
+        socket.on('user-logout', (userId) => {
+            socket.disconnect();
+            log.info('User logged out: ', userId);
         });
     });
 }
