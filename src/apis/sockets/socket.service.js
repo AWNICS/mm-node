@@ -1,8 +1,8 @@
-import MessageService from '../apis/message/message.service';
-import GroupService from '../apis/group/group.service';
-import log from '../config/log4js.config';
-import UserService from '../apis/user/user.service';
-import UserModel from '../apis/user/index';
+import MessageService from '../message/message.service';
+import GroupService from '../group/group.service';
+import log from '../../config/log4js.config';
+import UserService from '../user/user.service';
+import UserModel from '../user/index';
 
 var messageService = new MessageService();
 var groupService = new GroupService();
