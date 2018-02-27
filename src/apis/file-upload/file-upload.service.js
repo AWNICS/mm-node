@@ -2,26 +2,7 @@ import fs from 'fs';
 
 class FileUploadService {
 
-    constructor() {
-        this.mimeType = {
-            '.ico': 'image/x-icon',
-            '.html': 'text/html',
-            '.js': 'text/javascript',
-            '.json': 'application/json',
-            '.css': 'text/css',
-            '.png': 'image/png',
-            '.jpg': 'image/jpeg',
-            '.wav': 'audio/wav',
-            '.mp3': 'audio/mpeg',
-            '.mp4': 'video/mp4',
-            '.wmv': 'video/x-ms-wmv',
-            '.svg': 'image/svg+xml',
-            '.pdf': 'application/pdf',
-            '.doc': 'application/msword',
-            '.eot': 'appliaction/vnd.ms-fontobject',
-            '.ttf': 'aplication/font-sfnt'
-        };
-    }
+    constructor() {}
 
     uploadImage(req, bucket, next, callback) {
         if (!req.file) {
@@ -109,18 +90,27 @@ class FileUploadService {
 
     downloadImage(bucket, fileName, res) {
         var remoteFile = bucket.file(fileName);
-        remoteFile.createReadStream({ encoding: 'base64' })
-            .on('error', function(err) {
-                console.log('Error in download: ', err);
+        const readStream = remoteFile.createReadStream({ encoding: 'base64' });
+        remoteFile.getMetadata()
+            .then((result) => {
+                const metadata = result[0];
+                res.setHeader('Content-Length', metadata.size);
+                res.setHeader('Content-type', metadata.contentType || 'text/plain');
+                res.setHeader('Content-Disposition', 'attachment;');
+                readStream
+                    .on('error', function(err) {
+                        console.log('Error in download: ', err);
+                    })
+                    .on('response', function(response) {
+                        // Server connected and responded with the specified status and headers.
+                    })
+                    .on('end', function() {
+                        // The file is fully downloaded.
+                        console.log('Image download complete');
+                    })
+                    .pipe(res);
             })
-            .on('response', function(response) {
-                // Server connected and responded with the specified status and headers.
-            })
-            .on('end', function() {
-                // The file is fully downloaded.
-                console.log('File download complete');
-            })
-            .pipe(res);
+            .catch(err => console.log('err ', err));
     }
 
     downloadVideo(bucket, fileName, res) {
@@ -141,7 +131,7 @@ class FileUploadService {
                     })
                     .on('end', function() {
                         // The file is fully downloaded.
-                        console.log('File download complete');
+                        console.log('Video download complete');
                     })
                     .pipe(res);
             })
@@ -151,22 +141,26 @@ class FileUploadService {
     downloadDoc(bucket, fileName, res) {
         const remoteFile = bucket.file(fileName);
         const readStream = remoteFile.createReadStream({ encoding: 'base64' });
-        const ext = remoteFile.ext;
-        res.setHeader('Content-Length', remoteFile.size);
-        res.setHeader('Content-type', this.mimeType[ext] || 'text/plain');
-        res.setHeader('Content-Disposition', 'attachment;');
-        readStream
-            .on('error', function(err) {
-                console.log('Error in download: ', err);
+        remoteFile.getMetadata()
+            .then((result) => {
+                const metadata = result[0];
+                res.setHeader('Content-Length', metadata.size);
+                res.setHeader('Content-type', metadata.contentType || 'text/plain');
+                res.setHeader('Content-Disposition', 'attachment;');
+                readStream
+                    .on('error', function(err) {
+                        console.log('Error in download: ', err);
+                    })
+                    .on('response', function(response) {
+                        // Server connected and responded with the specified status and headers.
+                    })
+                    .on('end', function() {
+                        // The file is fully downloaded.
+                        console.log('Doc download complete');
+                    })
+                    .pipe(res);
             })
-            .on('response', function(response) {
-                // Server connected and responded with the specified status and headers.
-            })
-            .on('end', function() {
-                // The file is fully downloaded.
-                console.log('File download complete');
-            })
-            .pipe(res);
+            .catch(err => console.log('err ', err));
     }
 }
 
