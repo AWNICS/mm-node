@@ -193,15 +193,17 @@ class UserService {
     }
 
     /**
-     * Find user by name for the login component
+     * Find user by email for the login component
      */
-    findUserByName(username, callback) {
+    findUserByEmail(email, callback) {
         userModel.user.findOne({
             where: {
-                name: username
+                email: email
             }
         }).then((user) => {
             callback(user);
+        }).catch(err => {
+            log.error('Error while fetching user in user service: ', err);
         });
     }
 
