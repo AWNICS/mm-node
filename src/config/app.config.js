@@ -1,17 +1,20 @@
+/**
+ * import dependencies
+ */
 import express from 'express';
 import session from 'express-session';
 import flash from 'express-flash';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
-import passport from 'passport';
-import passportJWT from 'passport-jwt';
-import passportLocal from 'passport-local';
-import jwt from 'jsonwebtoken';
 import lodash from 'lodash';
-import MongoConfig from '../util/conn.mongo';
-import MySql from '../util/conn.mysql';
 import http from 'http';
 import socket from 'socket.io';
+
+/**
+ * import required files
+ */
+import MongoConfig from '../util/conn.mongo';
+import MySql from '../util/conn.mysql';
 import socketService from '../apis/sockets/socket.service';
 import log from './log4js.config';
 import doctor from '../apis/doctor/doctor.controller';
@@ -23,6 +26,8 @@ import contactUs from '../apis/contact/contactUs.controller';
 import group from '../apis/group/group.controller';
 import orderRequest from '../apis/orderRequest/orderRequest.controller';
 import specialities from '../apis/specialities/specialities.controller';
+import passport from '../auth/passport';
+import authenticate from '../auth/authenticate';
 
 class Config {
     constructor() {
@@ -33,31 +38,21 @@ class Config {
         this.http = http.Server(this.app);
         this.io = this.socket.listen(this.http);
         this.dotenv = dotenv;
-        /*this.passport = passport;
-        this.LocalStrategy = passportLocal.Strategy;
-        this.ExtractJwt = passportJWT.ExtractJwt;
-        this.JwtStrategy = passportJWT.Strategy;
-        this.jwt = jwt;*/
         this.lodash = lodash;
         this.dotenv.config({ path: '.env.dev' });
         this.mongo = new MongoConfig();
-
     }
 
     configureApp() {
+        // set port to use
         this.app.set('port', (process.env.PORT));
+        // use body parser as middleware
         this.app.use(bodyParser.json());
+        // use urlEncoder as middleware
         this.app.use(bodyParser.urlencoded({ extended: false }));
+        // connect mongo server
         this.mongo.connect();
-        //this.app.set('superSecret', 'secretsareoutdated');
-        // Express Session
-        /*this.app.use(session({
-            secret: 'secret',
-            saveUninitialized: true,
-            resave: true
-        }));*/
-        // Express Flash
-        //this.app.use(this.flash());
+        // pass io object to establish socket connection
         socketService.connectSocket(this.io);
     }
 
@@ -77,10 +72,12 @@ class Config {
     }
 
     configureRoutes() {
+        // configuring routes
+        this.app.use('/auth', authenticate);
         this.app.use('/doctor', doctor);
         this.app.use('/file', fileUpload);
         this.app.use('/message', message);
-        this.app.use('/user', user);
+        this.app.use('/user', passport.authenticate('jwt', { session: false }), user);
         this.app.use('/contact', contactUs);
         this.app.use('/group', group);
         this.app.use('/specialities', specialities);
@@ -92,12 +89,14 @@ class Config {
     }
 
     listen(port) {
+        // start server at port
         this.http.listen(port, () => {
             log.info(`Server started: http://localhost:${port}/`);
         });
     }
 
     run() {
+        // start application
         this.configureApp();
         this.configureCORS()
         this.configureRoutes();
