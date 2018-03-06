@@ -12,7 +12,7 @@ import MongoConfig from '../util/conn.mongo';
 import MySql from '../util/conn.mysql';
 import http from 'http';
 import socket from 'socket.io';
-import socketService from '../util/socket.service';
+import socketService from '../apis/sockets/socket.service';
 import log from './log4js.config';
 import doctor from '../apis/doctor/doctor.controller';
 import fileUpload from '../apis/file-upload/file-upload.controller';
