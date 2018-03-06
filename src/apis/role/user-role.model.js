@@ -1,24 +1,18 @@
 module.exports = (sequelize, DataTypes) => {
-    var GroupUserMap = sequelize.define('group_user_map', {
+    var UserRole = sequelize.define('user_role', {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
-        groupId: {
-            type: DataTypes.INTEGER
-        },
         userId: {
             type: DataTypes.INTEGER
         },
-        createdBy: {
-            type: DataTypes.STRING
-        },
-        updatedBy: {
-            type: DataTypes.STRING
+        roleId: {
+            type: DataTypes.INTEGER
         }
     }, {
         freezeTableName: true
     });
-    return GroupUserMap;
+    return UserRole;
 };

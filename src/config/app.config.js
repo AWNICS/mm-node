@@ -28,6 +28,7 @@ import orderRequest from '../apis/orderRequest/orderRequest.controller';
 import specialities from '../apis/specialities/specialities.controller';
 import passport from '../auth/passport';
 import authenticate from '../auth/authenticate';
+import role from '../apis/role/role.controller';
 
 class Config {
     constructor() {
@@ -76,12 +77,13 @@ class Config {
         this.app.use('/auth', authenticate);
         this.app.use('/doctor', doctor);
         this.app.use('/file', fileUpload);
-        this.app.use('/message', message);
-        this.app.use('/user', passport.authenticate('jwt', { session: false }), user);
+        this.app.use('/message', passport.authenticate('jwt', { session: false }), message);
+        this.app.use('/user', user);
         this.app.use('/contact', contactUs);
         this.app.use('/group', group);
         this.app.use('/specialities', specialities);
         this.app.use('/orderRequest', orderRequest);
+        this.app.use('/role', role);
         this.app.get('/swagger.json', (req, res) => {
             res.setHeader('Content-Type', 'application/json');
             res.send(swaggerSpec);

@@ -12,11 +12,14 @@ import GroupUserMapDao from '../group/groupUserMap.dao';
 import groupModel from '../group/index';
 import groupUserMapModel from '../group/index';
 import MessageService from '../message/message.service';
+import RoleService from '../role/role.service';
+import RoleModel from '../role/index';
 
 var userDao = new UserDao();
 var groupDao = new GroupDao();
 var groupUserMapDao = new GroupUserMapDao();
 var messageService = new MessageService();
+var roleService = new RoleService();
 
 /**
  * UserService 
@@ -53,7 +56,14 @@ class UserService {
         });
         return userDao.insert(user, (userInserted) => {
             callback(userInserted);
-            if (userInserted.privilege == 'user') {
+            RoleModel.role.findOne({ where: { name: userInserted.role } }).then((role) => {
+                var userRole = {
+                    userId: userInserted.id,
+                    roleId: role.id
+                };
+                roleService.createUserRole(userRole, (userRole) => {});
+            });
+            if (userInserted.role == 'patient') {
                 this.activationLink(userInserted.token);
                 var group = {
                     name: 'MedHelp',
@@ -73,11 +83,11 @@ class UserService {
                     };
                     groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
                     sequelize
-                        .query("select u.id, u.name, u.privilege, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.privilege='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
+                        .query("select u.id, u.name, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
                         .then((groupUserMaps) => {
                             var uId;
                             for (var i = 0; i < groupUserMaps.length; i++) {
-                                if (groupUserMaps[i].privilege == 'user')
+                                if (groupUserMaps[i].role == 'patient')
                                     continue;
                                 else {
                                     uId = groupUserMaps[i].id;
@@ -148,7 +158,7 @@ class UserService {
     activateUser(token, callback) {
         userModel.user.find({ where: { token: token } }).then((resultFind) => {
             if (resultFind.token === token) {
-                userModel.user.update({ "activate": 1, "privilege": "user" }, { where: { token: resultFind.token } });
+                userModel.user.update({ "activate": 1, "role": "patient" }, { where: { token: resultFind.token } });
                 callback(resultFind);
             } else {
                 log.error('Error while updating the user ');
