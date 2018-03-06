@@ -47,7 +47,7 @@ class DoctorService {
     createConsultation(consultation, callback) {
         return consultationDao.insert(consultation, (consultationCreated) => {
             callback(consultationCreated);
-        })
+        });
     }
 
     getAllConsultation(callback) {

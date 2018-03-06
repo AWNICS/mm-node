@@ -5,7 +5,7 @@ import log from '../../config/log4js.config';
 /*
 DAO for Doctor api
 */
-class consultationDao {
+class ConsultationDao {
     constructor() {}
 
     /**
@@ -70,4 +70,4 @@ class consultationDao {
     }
 }
 
-export default consultationDao;
+export default ConsultationDao;

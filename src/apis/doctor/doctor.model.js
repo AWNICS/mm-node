@@ -1,7 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
     var Doctor = sequelize.define('doctor', {
         id: {
-            type: DataTypes.DOUBLE,
+            type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
