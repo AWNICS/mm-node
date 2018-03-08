@@ -1,5 +1,7 @@
 import UserService from '../apis/user/user.service';
+import Dotenv from 'dotenv';
 
+const dotenv = Dotenv.config({ path: '.env.dev' });
 const userService = new UserService();
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
@@ -12,7 +14,7 @@ passport.use(new LocalStrategy({
         passwordField: 'password'
     },
     function(email, password, done) {
-        //this one is typically a DB call. Assume that the returned user object is pre-formatted and ready for storing in JWT
+        // call db to check if the user exists with tht correct password.
         return userService.findUserByEmail(email, (user, err) => {
             if (err) { return done(err); }
             if (!user) {
@@ -28,20 +30,19 @@ passport.use(new LocalStrategy({
 
 passport.use(new JWTStrategy({
         jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
-        secretOrKey: 'your_jwt_secret'
+        secretOrKey: process.env.JWT_SECRET
     },
-    function(jwtPayload, cb) {
+    (jwtPayload, next) => {
+        // console.log('jwtPayload: ', jwtPayload);
         //1. check the token
         //    - if(true) call authorization
         //    - else throw 401 error
-
-        //find the user in db if needed. This functionality may be omitted if you store everything you'll need in JWT payload.
-        return userService.getById(jwtPayload.id, (user) => {
-                return cb(null, user);
-            })
-            .catch(err => {
-                return cb(err);
-            });
+        if (!jwtPayload.data || !jwtPayload.data.role) {
+            next(new Error("Permission denied."));
+            return;
+        }
+        next(null, jwtPayload.data);
+        //});
     }
 ));
 

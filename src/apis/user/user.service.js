@@ -1,6 +1,7 @@
 import rtg from 'random-token-generator';
 import nodemailer from 'nodemailer';
 import Sequelize from 'sequelize';
+import bcrypt from 'bcrypt';
 var Promise = require('bluebird');
 
 import log from '../../config/log4js.config';
@@ -53,6 +54,11 @@ class UserService {
             } else {
                 user.token = key; //assign generated key to user
             }
+        });
+        console.log('new user: ', JSON.stringify(user));
+        bcrypt.hash(user.password, 5, (err, hash) => {
+            user.password = hash;
+            console.log('user after password hashed: ', JSON.stringify(user));
         });
         return userDao.insert(user, (userInserted) => {
             callback(userInserted);
