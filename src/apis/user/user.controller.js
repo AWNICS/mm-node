@@ -183,8 +183,8 @@ router.get('/controllers/updateActivate/:token', function(req, res) {
 /**
  * find user by name
  */
-router.get('/controllers/findUserByName/:username', (req, res) => {
-    userService.findUserByName(req.params.username, (result) => {
+router.get('/controllers/findUserByEmail/:email', (req, res) => {
+    userService.findUserByEmail(req.params.email, (result) => {
         if (result) {
             res.send(result);
         } else {

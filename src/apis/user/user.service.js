@@ -87,11 +87,11 @@ class UserService {
                         .then((groupUserMaps) => {
                             var uId;
                             for (var i = 0; i < groupUserMaps.length; i++) {
-                                if (groupUserMaps[i].role == 'patient')
-                                    continue;
-                                else {
+                                if (groupUserMaps[i].role == 'BOT') {
                                     uId = groupUserMaps[i].id;
                                     break;
+                                } else {
+                                    continue;
                                 }
                             }
                             var groupUserMapBot = {
@@ -193,15 +193,17 @@ class UserService {
     }
 
     /**
-     * Find user by name for the login component
+     * Find user by email for the login component
      */
-    findUserByName(username, callback) {
+    findUserByEmail(email, callback) {
         userModel.user.findOne({
             where: {
-                name: username
+                email: email
             }
         }).then((user) => {
             callback(user);
+        }).catch(err => {
+            log.error('Error while fetching user in user service: ', err);
         });
     }
 
