@@ -93,11 +93,11 @@ class UserService {
                         .then((groupUserMaps) => {
                             var uId;
                             for (var i = 0; i < groupUserMaps.length; i++) {
-                                if (groupUserMaps[i].role == 'patient')
-                                    continue;
-                                else {
+                                if (groupUserMaps[i].role == 'BOT') {
                                     uId = groupUserMaps[i].id;
                                     break;
+                                } else {
+                                    continue;
                                 }
                             }
                             var groupUserMapBot = {
