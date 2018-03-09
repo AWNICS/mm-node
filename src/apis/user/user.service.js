@@ -55,10 +55,8 @@ class UserService {
                 user.token = key; //assign generated key to user
             }
         });
-        console.log('new user: ', JSON.stringify(user));
-        bcrypt.hash(user.password, 5, (err, hash) => {
+        bcrypt.hash(user.password, 10, (err, hash) => {
             user.password = hash;
-            console.log('user after password hashed: ', JSON.stringify(user));
         });
         return userDao.insert(user, (userInserted) => {
             callback(userInserted);
@@ -93,7 +91,7 @@ class UserService {
                         .then((groupUserMaps) => {
                             var uId;
                             for (var i = 0; i < groupUserMaps.length; i++) {
-                                if (groupUserMaps[i].role == 'BOT') {
+                                if (groupUserMaps[i].role == 'bot' | groupUserMaps[i].role == 'BOT') {
                                     uId = groupUserMaps[i].id;
                                     break;
                                 } else {
@@ -201,7 +199,7 @@ class UserService {
     /**
      * Find user by email for the login component
      */
-    findUserByEmail(email, callback) {
+    findUserByEmail(email, password, callback) {
         userModel.user.findOne({
             where: {
                 email: email

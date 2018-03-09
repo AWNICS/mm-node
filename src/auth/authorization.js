@@ -1,11 +1,13 @@
-import UserService from '../apis/user/user.service';
+import bcrypt from 'bcrypt';
 import Dotenv from 'dotenv';
-
-const dotenv = Dotenv.config({ path: '.env.dev' });
-const userService = new UserService();
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const passportJWT = require("passport-jwt");
+
+import UserService from '../apis/user/user.service';
+
+const dotenv = Dotenv.config({ path: '.env.dev' });
+const userService = new UserService();
 const JWTStrategy = passportJWT.Strategy;
 const ExtractJWT = passportJWT.ExtractJwt;
 
@@ -15,15 +17,22 @@ passport.use(new LocalStrategy({
     },
     function(email, password, done) {
         // call db to check if the user exists with tht correct password.
-        return userService.findUserByEmail(email, (user, err) => {
+        return userService.findUserByEmail(email, password, (user, err) => {
             if (err) { return done(err); }
             if (!user) {
                 return done(null, false, { message: 'Incorrect email' });
+            } else {
+                // comparing the password that is stored in database with the given password using bcrypt
+                bcrypt.compare(password, user.password, function(err, res) {
+                    if (err) {
+                        // Passwords don't match
+                        return done(null, false, { message: 'Incorrect password.' });
+                    } else {
+                        // Passwords match
+                        return done(null, user, { message: 'Logged In Successfully' });
+                    }
+                });
             }
-            if (user.password !== password) {
-                return done(null, false, { message: 'Incorrect password.' });
-            }
-            return done(null, user, { message: 'Logged In Successfully' });
         });
     }
 ));
@@ -33,7 +42,6 @@ passport.use(new JWTStrategy({
         secretOrKey: process.env.JWT_SECRET
     },
     (jwtPayload, next) => {
-        // console.log('jwtPayload: ', jwtPayload);
         //1. check the token
         //    - if(true) call authorization
         //    - else throw 401 error
@@ -42,7 +50,6 @@ passport.use(new JWTStrategy({
             return;
         }
         next(null, jwtPayload.data);
-        //});
     }
 ));
 

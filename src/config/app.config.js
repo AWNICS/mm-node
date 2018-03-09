@@ -85,11 +85,12 @@ class Config {
         this.app.use('/doctor', passport.authenticate('jwt', { session: false }), doctor);
         this.app.use('/file', passport.authenticate('jwt', { session: false }), fileUpload);
         this.app.use('/message', passport.authenticate('jwt', { session: false }), message);
-        this.app.use('/user', passport.authenticate('jwt', { session: false }), user);
+        this.app.use('/user', user);
         this.app.use('/contact', passport.authenticate('jwt', { session: false }), contactUs);
         this.app.use('/group', passport.authenticate('jwt', { session: false }), group);
         this.app.use('/specialities', specialities);
         this.app.use('/orderRequest', passport.authenticate('jwt', { session: false }), orderRequest);
+        this.app.use('/role', role);
         this.app.get('/swagger.json', (req, res) => {
             res.setHeader('Content-Type', 'application/json');
             res.send(swaggerSpec);
