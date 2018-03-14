@@ -18,7 +18,7 @@ import MySql from '../util/conn.mysql';
 import socketService from '../apis/sockets/socket.service';
 import log from './log4js.config';
 import doctor from '../apis/doctor/doctor.controller';
-import fileUpload from '../apis/file-upload/file-upload.controller';
+import file from '../apis/file/file.controller';
 import message from '../apis/message/message.controller';
 import swaggerSpec from './swagger.config';
 import user from '../apis/user/user.controller';
@@ -81,13 +81,13 @@ class Config {
 
     configureRoutes() {
         // configuring routes
-        this.app.use('/auth', authenticate);
+        this.app.use('/', authenticate);
         this.app.use('/doctor', passport.authenticate('jwt', { session: false }), doctor);
-        this.app.use('/file', passport.authenticate('jwt', { session: false }), fileUpload);
-        this.app.use('/message', passport.authenticate('jwt', { session: false }), message);
-        this.app.use('/user', user);
+        this.app.use('/', file);
+        this.app.use('/', message);
+        this.app.use('/', user);
         this.app.use('/contact', passport.authenticate('jwt', { session: false }), contactUs);
-        this.app.use('/group', passport.authenticate('jwt', { session: false }), group);
+        this.app.use('/', group);
         this.app.use('/specialities', specialities);
         this.app.use('/orderRequest', passport.authenticate('jwt', { session: false }), orderRequest);
         this.app.use('/role', role);
