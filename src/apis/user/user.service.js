@@ -67,7 +67,7 @@ class UserService {
                 };
                 roleService.createUserRole(userRole, (userRole) => {});
             });
-            if (userInserted.role == 'patient') {
+            if (userInserted.role == 'patient' || userInserted.role == 'doctor') {
                 this.activationLink(userInserted.token);
                 var group = {
                     name: 'MedHelp',
