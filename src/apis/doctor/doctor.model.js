@@ -11,6 +11,9 @@ module.exports = (sequelize, DataTypes) => {
         name: {
             type: DataTypes.STRING
         },
+        password: {
+            type: DataTypes.STRING
+        },
         picUrl: {
             type: DataTypes.STRING
         },
@@ -53,7 +56,7 @@ module.exports = (sequelize, DataTypes) => {
         activate: {
             type: DataTypes.DOUBLE
         },
-        privilege: {
+        role: {
             type: DataTypes.STRING
         },
         createdBy: {
