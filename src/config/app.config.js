@@ -82,7 +82,7 @@ class Config {
     configureRoutes() {
         // configuring routes
         this.app.use('/', authenticate);
-        this.app.use('/doctor', doctor);
+        this.app.use('/', doctor);
         this.app.use('/', file);
         this.app.use('/', message);
         this.app.use('/', user);
