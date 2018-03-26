@@ -1,9 +1,12 @@
 module.exports = (sequelize, DataTypes) => {
     var Doctor = sequelize.define('doctor', {
         id: {
-            type: DataTypes.DOUBLE,
+            type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
+        },
+        socketId: {
+            type: DataTypes.STRING
         },
         name: {
             type: DataTypes.STRING
@@ -18,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING
         },
         experience: {
-            type: DataTypes.NUMERIC
+            type: DataTypes.DOUBLE
         },
         description: {
             type: DataTypes.STRING
@@ -33,10 +36,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING
         },
         waitingTime: {
-            type: DataTypes.NUMERIC
+            type: DataTypes.DOUBLE
         },
         rating: {
-            type: DataTypes.NUMERIC
+            type: DataTypes.DOUBLE
         },
         videoUrl: {
             type: DataTypes.STRING
@@ -44,11 +47,20 @@ module.exports = (sequelize, DataTypes) => {
         appearUrl: {
             type: DataTypes.STRING
         },
-        thumbnailUrl: {
+        token: {
             type: DataTypes.STRING
         },
-        lastUpdateTime: {
-            type: DataTypes.DATE
+        activate: {
+            type: DataTypes.DOUBLE
+        },
+        role: {
+            type: DataTypes.STRING
+        },
+        createdBy: {
+            type: DataTypes.STRING
+        },
+        updatedBy: {
+            type: DataTypes.STRING
         },
         termsAccepted: {
             type: DataTypes.BOOLEAN

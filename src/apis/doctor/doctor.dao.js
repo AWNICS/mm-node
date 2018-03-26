@@ -12,13 +12,15 @@ class DoctorDao {
      * insert method
      */
     insert(doctor, callback) {
-        sequelize.transaction().then(function(t) {
-            doctorModel.doctor.create(doctor, { transaction: t }).then(function(doctorInserted) {
-                callback(doctorInserted);
-            }).then(function() {
-                t.commit();
-            }).catch(function(error) {
-                t.rollback();
+        sequelize.sync({ force: false }).then(() => {
+            sequelize.transaction().then(function(t) {
+                doctorModel.doctor.create(doctor, { transaction: t }).then(function(doctorInserted) {
+                    callback(doctorInserted);
+                }).then(function() {
+                    t.commit();
+                }).catch(function(error) {
+                    t.rollback();
+                });
             });
         });
     }

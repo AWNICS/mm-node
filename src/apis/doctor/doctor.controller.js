@@ -1,5 +1,6 @@
 import express from 'express';
 import DoctorService from './doctor.service';
+import log from '../../config/log4js.config';
 
 var router = express.Router();
 var doctorService = new DoctorService();
@@ -60,7 +61,7 @@ var doctorService = new DoctorService();
  *         schema:
  *           $ref: '#/definitions/Doctor'
  */
-router.get('/controllers/getDoctors', function(req, res) {
+router.get('/doctors', function(req, res) {
     doctorService.getAll((result) => {
         res.json(result);
     });
@@ -86,7 +87,7 @@ router.get('/controllers/getDoctors', function(req, res) {
  *       200:
  *         description: Successfully created in MySql
  */
-router.post('/controllers/createDoctor', function(req, res) {
+router.post('/doctors', function(req, res) {
     var doctor = req.body;
     doctorService.create(doctor, (result) => {
         res.send(result);
@@ -113,7 +114,7 @@ router.post('/controllers/createDoctor', function(req, res) {
  *       200:
  *         description: Successfully updated in MySql db
  */
-router.put('/controllers/putDoctor', function(req, res) {
+router.put('/doctors', function(req, res) {
     var doctor = req.body;
     doctorService.update(doctor, (result) => {
         res.send(result);
@@ -139,7 +140,7 @@ router.put('/controllers/putDoctor', function(req, res) {
  *       200:
  *         description: Successfully deleted from MySql
  */
-router.delete('/controllers/deleteDoctor/:id', function(req, res) {
+router.delete('/doctors/:id', function(req, res) {
     var id = req.params.id;
     doctorService.delete(id, (result) => {
         res.send('Number of doctor deleted: ' + result);
@@ -167,10 +168,47 @@ router.delete('/controllers/deleteDoctor/:id', function(req, res) {
  *       200:
  *         description: An doctor return from MySql db
  */
-router.get('/controllers/getDoctorById/:id', function(req, res) {
+router.get('/doctors/:id', function(req, res) {
     var id = req.params.id;
     doctorService.getById(id, (result) => {
         res.send(result);
+    });
+});
+
+/**
+ * API's for consultation-schedule(user and doctor)
+ */
+router.post('/consultations', function(req, res) {
+    var consultation = req.body;
+    doctorService.createConsultation(consultation, (result) => {
+        res.send(result);
+    });
+})
+
+router.get('/consultations', function(req, res) {
+    doctorService.getAllConsultation((result) => {
+        res.send(result);
+    });
+});
+
+router.get('/consultations/:id', function(req, res) {
+    var id = req.params.id;
+    doctorService.getByIdConsultation(id, (result) => {
+        res.send(result);
+    });
+});
+
+router.put('/consultations', function(req, res) {
+    var consultation = req.body;
+    doctorService.updateConsultation(consultation, (result) => {
+        res.send(result);
+    });
+});
+
+router.delete('/consultations/:id', function(req, res) {
+    var id = req.params.id;
+    doctorService.deleteConsultation(id, (result) => {
+        res.send('Number of consultation deleted: ' + result);
     });
 });
 

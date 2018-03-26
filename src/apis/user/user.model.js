@@ -1,9 +1,7 @@
-//import sequelize from '../../util/conn.mysql';
-
 module.exports = (sequelize, DataTypes) => {
     var User = sequelize.define('user', {
         id: {
-            type: DataTypes.DOUBLE,
+            type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
@@ -11,6 +9,9 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING
         },
         email: {
+            type: DataTypes.STRING
+        },
+        password: {
             type: DataTypes.STRING
         },
         phoneNo: {
@@ -38,7 +39,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.NUMERIC,
             defaultValue: 0
         },
-        privilege: {
+        role: {
             type: DataTypes.STRING,
             defaultValue: null
         },

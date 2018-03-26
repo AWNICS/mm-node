@@ -12,13 +12,15 @@ class UserDao {
      * insert method
      */
     insert(user, callback) {
-        sequelize.transaction().then(function(t) {
-            userModel.user.create(user, { transaction: t }).then(function(userInserted) {
-                callback(userInserted);
-            }).then(function() {
-                t.commit();
-            }).catch(function(error) {
-                t.rollback();
+        sequelize.sync({ force: false }).then(() => {
+            sequelize.transaction().then(function(t) {
+                userModel.user.create(user, { transaction: t }).then(function(userInserted) {
+                    callback(userInserted);
+                }).then(function() {
+                    t.commit();
+                }).catch(function(error) {
+                    t.rollback();
+                });
             });
         });
     }
@@ -45,8 +47,8 @@ class UserDao {
      * Update method
      */
     update(user, callback) {
-        return sequelize.transaction().then(function(t) {
-            return userModel.user.update(user, {
+        sequelize.transaction().then(function(t) {
+            userModel.user.update(user, {
                 where: {
                     id: user.id
                 }
@@ -64,7 +66,7 @@ class UserDao {
      * Delete method
      */
     delete(id, callback) {
-        return sequelize.transaction().then(function(t) {
+        sequelize.transaction().then(function(t) {
             userModel.user.destroy({
                 where: {
                     id: id
