@@ -85,7 +85,7 @@ class Config {
         this.app.use('/', passport.authenticate('jwt', { session: false }), doctor);
         this.app.use('/', passport.authenticate('jwt', { session: false }), file);
         this.app.use('/', passport.authenticate('jwt', { session: false }), message);
-        this.app.use('/', passport.authenticate('jwt', { session: false }), user);
+        this.app.use('/', user);
         this.app.use('/contact', passport.authenticate('jwt', { session: false }), contactUs);
         this.app.use('/', passport.authenticate('jwt', { session: false }), group);
         this.app.use('/', specialities);
