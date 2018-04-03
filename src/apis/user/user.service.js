@@ -57,66 +57,66 @@ class UserService {
         });
         bcrypt.hash(user.password, 10, (err, hash) => {
             user.password = hash;
-        });
-        return userDao.insert(user, (userInserted) => {
-            callback(userInserted);
-            RoleModel.role.findOne({ where: { name: userInserted.role } }).then((role) => {
-                var userRole = {
-                    userId: userInserted.id,
-                    roleId: role.id
-                };
-                roleService.createUserRole(userRole, (userRole) => {});
-            });
-            if (userInserted.role == 'patient' || userInserted.role == 'doctor') {
-                this.activationLink(userInserted.token);
-                var group = {
-                    name: 'MedHelp',
-                    url: `/medhelp/${userInserted.id}`,
-                    userId: userInserted.id,
-                    description: 'Med help',
-                    picture: 'https://d30y9cdsu7xlg0.cloudfront.net/png/363633-200.png',
-                    createdBy: 'docbot',
-                    updatedBy: 'docbot'
-                };
-                return groupDao.insert(group, (createdGroup) => {
-                    var groupUserMap = {
-                        userId: createdGroup.userId,
-                        groupId: createdGroup.id,
-                        createdBy: 'user',
-                        updatedBy: 'user'
+            return userDao.insert(user, (userInserted) => {
+                callback(userInserted);
+                RoleModel.role.findOne({ where: { name: userInserted.role } }).then((role) => {
+                    var userRole = {
+                        userId: userInserted.id,
+                        roleId: role.id
                     };
-                    groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
-                    sequelize
-                        .query("select u.id, u.name, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
-                        .then((groupUserMaps) => {
-                            var uId;
-                            for (var i = 0; i < groupUserMaps.length; i++) {
-                                if (groupUserMaps[i].role == 'bot' | groupUserMaps[i].role == 'BOT') {
-                                    uId = groupUserMaps[i].id;
-                                    break;
-                                } else {
-                                    continue;
-                                }
-                            }
-                            var groupUserMapBot = {
-                                groupId: createdGroup.id,
-                                userId: uId,
-                                createdBy: 'bot',
-                                updatedBy: 'bot'
-                            }
-                            groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
-                            var msg = {
-                                receiverId: createdGroup.id,
-                                receiverType: 'group', // group or individual
-                                senderId: uId,
-                                text: 'Welcome to Mesomeds!! How can we help you?'
-                            }
-                            messageService.sendMessage(msg, (result) => {});
-                        });
+                    roleService.createUserRole(userRole, (userRole) => {});
                 });
-            } else {
-                return; //in case of bot
-            }
+                if (userInserted.role == 'patient' || userInserted.role == 'doctor') {
+                    this.activationLink(userInserted.token);
+                    var group = {
+                        name: 'MedHelp',
+                        url: `/medhelp/${userInserted.id}`,
+                        userId: userInserted.id,
+                        description: 'Med help',
+                        picture: 'https://d30y9cdsu7xlg0.cloudfront.net/png/363633-200.png',
+                        createdBy: 'docbot',
+                        updatedBy: 'docbot'
+                    };
+                    return groupDao.insert(group, (createdGroup) => {
+                        var groupUserMap = {
+                            userId: createdGroup.userId,
+                            groupId: createdGroup.id,
+                            createdBy: 'user',
+                            updatedBy: 'user'
+                        };
+                        groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
+                        sequelize
+                            .query("select u.id, u.name, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
+                            .then((groupUserMaps) => {
+                                var uId;
+                                for (var i = 0; i < groupUserMaps.length; i++) {
+                                    if (groupUserMaps[i].role == 'bot' | groupUserMaps[i].role == 'BOT') {
+                                        uId = groupUserMaps[i].id;
+                                        break;
+                                    } else {
+                                        continue;
+                                    }
+                                }
+                                var groupUserMapBot = {
+                                    groupId: createdGroup.id,
+                                    userId: uId,
+                                    createdBy: 'bot',
+                                    updatedBy: 'bot'
+                                }
+                                groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
+                                var msg = {
+                                    receiverId: createdGroup.id,
+                                    receiverType: 'group', // group or individual
+                                    senderId: uId,
+                                    text: 'Welcome to Mesomeds!! How can we help you?'
+                                }
+                                messageService.sendMessage(msg, (result) => {});
+                            });
+                    });
+                } else {
+                    return; //in case of bot
+                }
+            });
         });
     }
 
