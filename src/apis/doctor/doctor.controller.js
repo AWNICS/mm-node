@@ -69,33 +69,6 @@ router.get('/doctors', function(req, res) {
 
 /**
  * @swagger
- * /doctor/controllers/createDoctor:
- *   post:
- *     tags:
- *       - Doctor
- *     description: Creates a new doctor
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: doctor
- *         description: Doctor object
- *         in: body
- *         required: true
- *         schema:
- *           $ref: '#/definitions/Doctor'
- *     responses:
- *       200:
- *         description: Successfully created in MySql
- */
-router.post('/doctors', function(req, res) {
-    var doctor = req.body;
-    doctorService.create(doctor, (result) => {
-        res.send(result);
-    });
-});
-
-/**
- * @swagger
  * /doctor/controllers/putDoctor:
  *   put:
  *     tags:

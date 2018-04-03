@@ -42,32 +42,6 @@ var userService = new UserService();
  *       updatedBy:
  *         type: string
  */
-/**
- * @swagger
- * /user/controllers/createUser:
- *   post:
- *     tags:
- *       - Users
- *     description: Creates a new user in MySql db
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: user
- *         description: user object
- *         in: body
- *         required: true
- *         schema:
- *           $ref: '#/definitions/User'
- *     responses:
- *       200:
- *         description: Successfully created in MySql db
- */
-router.post('/users', function(req, res) {
-    var user = req.body;
-    userService.register(user, (result) => {
-        res.send(result);
-    });
-});
 
 /**
  * @swagger
