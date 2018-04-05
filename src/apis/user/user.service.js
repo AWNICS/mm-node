@@ -73,7 +73,6 @@ class UserService {
                         url: `/medhelp/${userInserted.id}`,
                         userId: userInserted.id,
                         description: 'Med help',
-                        picture: 'https://d30y9cdsu7xlg0.cloudfront.net/png/363633-200.png',
                         createdBy: 'docbot',
                         updatedBy: 'docbot'
                     };
@@ -86,7 +85,7 @@ class UserService {
                         };
                         groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
                         sequelize
-                            .query("select u.id, u.name, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
+                            .query("select u.id, u.firstname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
                             .then((groupUserMaps) => {
                                 var uId;
                                 for (var i = 0; i < groupUserMaps.length; i++) {
@@ -199,7 +198,7 @@ class UserService {
     /**
      * Find user by email for the login component
      */
-    findUserByEmail(email, password, callback) {
+    findUserByEmail(email, callback) {
         userModel.user.findOne({
             where: {
                 email: email
@@ -209,18 +208,6 @@ class UserService {
         }).catch(err => {
             log.error('Error while fetching user in user service: ', err);
         });
-    }
-
-    /**
-     * get all bots 
-     */
-    getAllBots(offset) {
-        userModel.user.findAll({
-            offset: offset,
-            where: {
-                name: Sequelize.literal(' name REGEXP "BOT*" ')
-            }
-        }).then((user) => {});
     }
 }
 

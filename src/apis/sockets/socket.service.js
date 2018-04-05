@@ -30,7 +30,7 @@ exports.connectSocket = (io) => {
 
                 userService.getById(userId, (user) => {
                     if (user.id === userId) {
-                        userService.updateRegisteredUser({ 'id': userId, 'socketId': socket.id }, (user) => {});
+                        userService.updateRegisteredUser({ 'id': userId, 'socketId': socket.id, 'status': 'online' }, (user) => {});
                     }
                 });
             });
@@ -106,9 +106,15 @@ exports.connectSocket = (io) => {
                 });
             });
 
-            socket.on('user-logout', (userId) => {
+            socket.on('user-disconnect', (userId) => {
                 socket.disconnect();
-                log.info('User logged out: ', userId);
+                userService.getById(userId, (user) => {
+                    if (user.id === userId) {
+                        userService.updateRegisteredUser({ 'id': userId, 'status': 'offline' }, (user) => {
+                            log.info('User logged out: ', userId);
+                        });
+                    }
+                });
             });
         });
 }

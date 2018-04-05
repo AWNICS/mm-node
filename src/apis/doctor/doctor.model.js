@@ -8,7 +8,10 @@ module.exports = (sequelize, DataTypes) => {
         socketId: {
             type: DataTypes.STRING
         },
-        name: {
+        firstname: {
+            type: DataTypes.STRING
+        },
+        lastname: {
             type: DataTypes.STRING
         },
         picUrl: {
