@@ -146,15 +146,6 @@ router.delete('/users/:id', function(req, res) {
 });
 
 /**
- * updateActivate 
- */
-router.get('/users/:token', function(req, res) {
-    userService.activateUser(req.params.token, (result) => {
-        res.sendFile('./activate.html', { root: __dirname })
-    });
-});
-
-/**
  * find user by name
  */
 router.get('/users/:email', (req, res) => {
