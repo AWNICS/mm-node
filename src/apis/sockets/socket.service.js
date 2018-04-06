@@ -42,8 +42,8 @@ exports.connectSocket = (io) => {
                 // if it is a group message
                 if (msg.receiverType === "group") {
                     userService.getById(msg.senderId, (result) => {
-                        msg.createdBy = result.name;
-                        msg.updatedBy = result.name;
+                        msg.createdBy = `${result.firstname} ${result.lastname}`;
+                        msg.updatedBy = `${result.firstname} ${result.lastname}`;
                         msg.picUrl = result.picUrl;
                         messageService.sendMessage(msg, (result) => {
                             groupService.getAllUsersByGroupId(msg.receiverId, (user) => {
@@ -55,8 +55,8 @@ exports.connectSocket = (io) => {
                 // if it is a private message 
                 else if (msg.receiverType === "private") {
                     userService.getById(msg.senderId, (result) => {
-                        msg.createdBy = result.name;
-                        msg.updatedBy = result.name;
+                        msg.createdBy = `${result.firstname} ${result.lastname}`;
+                        msg.updatedBy = `${result.firstname} ${result.lastname}`;
                         msg.picUrl = result.picUrl;
                         messageService.sendMessage(msg, (result) => {
                             userService.getById(msg.receiverId, (user) => {
