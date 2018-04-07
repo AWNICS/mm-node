@@ -137,4 +137,13 @@ router.post('/users', function(req, res) {
     });
 });
 
+/**
+ * updateActivate 
+ */
+router.get('/activates/:token', function(req, res) {
+    userService.activateUser(req.params.token, (result) => {
+        res.sendFile('./activate.html', { root: __dirname });
+    });
+});
+
 module.exports = router;
