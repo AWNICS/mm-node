@@ -89,7 +89,7 @@ class UserService {
                             .then((groupUserMaps) => {
                                 var uId;
                                 for (var i = 0; i < groupUserMaps.length; i++) {
-                                    if (groupUserMaps[i].role == 'bot' | groupUserMaps[i].role == 'BOT') {
+                                    if (groupUserMaps[i].role.toLowerCase() == 'bot') {
                                         uId = groupUserMaps[i].id;
                                         break;
                                     } else {
@@ -107,7 +107,9 @@ class UserService {
                                     receiverId: createdGroup.id,
                                     receiverType: 'group', // group or individual
                                     senderId: uId,
-                                    text: 'Welcome to Mesomeds!! How can we help you?'
+                                    text: 'Welcome to Mesomeds!! How can we help you?',
+                                    createdTime: Date.now(),
+                                    updatedTime: Date.now()
                                 }
                                 messageService.sendMessage(msg, (result) => {});
                             });
@@ -139,7 +141,7 @@ class UserService {
         const userOutput = `
             <p>Hello ${user.firstname} ${user.lastname}</p>
             <p>Thank you for registering. Please click on the below link for activation.</p>
-            <a href="http://localhost:3000/activates/${user.token}" target="_blank">
+            <a href="http://35.226.156.161:3000/activates/${user.token}" target="_blank">
                 Click here to confirm
             </a>
             <p>Thanks and Regards,<br/>Mesomeds</p>
