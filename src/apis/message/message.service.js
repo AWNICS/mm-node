@@ -71,13 +71,14 @@ class MessageService {
     }
 
     /**
-     * render 100 message onclick of any group
+     * render 20 message onclick of any group
      */
-    getLimitedMessages(receiverId, senderId, offset, size, callback) {
-        Message.find({ receiverId: receiverId }, (err, messages) => {
-            if (err) throw err;
-            callback(messages);
-        }).limit(parseInt(offset + size)).skip(parseInt(offset)).sort({ $natural: -1 });
+    getLimitedMessages(receiverId, senderId, page, size, callback) {
+        Message.find({ receiverId: receiverId })
+            .skip(parseInt(((size * page) - size)))
+            .limit(parseInt(size))
+            .sort({ $natural: -1 })
+            .exec(callback);
     }
 }
 

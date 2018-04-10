@@ -177,8 +177,12 @@ router.get('/messages/:id', (req, res) => {
  * get 100 messages on click of any group
  */
 router.get('/messages/users/:userId/groups/:groupId', (req, res) => {
-    messageService.getLimitedMessages((req.params.groupId), (req.params.userId), (req.query.offset), (req.query.size), (result) => {
-        res.send(result);
+    messageService.getLimitedMessages((req.params.groupId), (req.params.userId), (req.query.page), (req.query.size), (err, results) => {
+        if (err) {
+            log.error('err', err);
+            res.status(400).send(err);
+        }
+        res.send(results);
     });
 });
 
