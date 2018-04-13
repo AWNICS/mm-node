@@ -1,8 +1,6 @@
 import rtg from 'random-token-generator';
-import nodemailer from 'nodemailer';
 import Sequelize from 'sequelize';
 import bcrypt from 'bcrypt';
-var Promise = require('bluebird');
 
 import log from '../../config/log4js.config';
 import sequelize from '../../util/conn.mysql';
@@ -15,31 +13,21 @@ import groupUserMapModel from '../group/index';
 import MessageService from '../message/message.service';
 import RoleService from '../role/role.service';
 import RoleModel from '../role/index';
+import EmailService from '../../util/email.service';
+import Properties from '../../util/properties';
 
 var userDao = new UserDao();
 var groupDao = new GroupDao();
 var groupUserMapDao = new GroupUserMapDao();
 var messageService = new MessageService();
 var roleService = new RoleService();
+var emailService = new EmailService();
 
 /**
  * UserService 
  */
 class UserService {
-    constructor() {
-        this.transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 587,
-            secure: false,
-            auth: {
-                user: 'test.arung@gmail.com',
-                pass: 'changedPassword'
-            },
-            tls: {
-                rejectUnauthorized: false
-            }
-        });
-    }
+    constructor() {}
 
     register(user, callback) {
         //generate random key
@@ -125,35 +113,29 @@ class UserService {
      * activation link method
      */
     activationLink(user) {
-        this.transporter.sendMail(this.emailFormat(user), function(error, info) {
-            if (error) {
-                log.error('error occured: ' + error);
-            }
-            log.info('Message sent');
-        });
-    }
-
-    /**
-     * email format
-     */
-    emailFormat(user) {
-        var userMailOptions;
+        var subject = 'Email activation link';
+        // body of the mail for user
         const userOutput = `
             <p>Hello ${user.firstname} ${user.lastname}</p>
             <p>Thank you for registering. Please click on the below link for activation.</p>
-            <a href="http://35.226.156.161:3000/activates/${user.token}" target="_blank">
+            <a href="${Properties.activation}/${user.token}" target="_blank">
                 Click here to confirm
             </a>
             <p>Thanks and Regards,<br/>Mesomeds</p>
             `;
-
-        // setup email data for user
-        return userMailOptions = {
-            from: 'test.arung@gmail.com',
-            to: user.email,
-            subject: 'Email activation link',
-            html: userOutput
-        };
+        // body of the mail for admin
+        const adminOutput = `
+            <p>Newsletter Request</p>
+            <h3>Contact Details</h3>
+            <ul>
+                <li>FullName: ${user.name}</li>
+                <li>Email ID: ${user.email}</li>
+                <li>Subject: ${subject}</li>
+            </ul>
+            <h3>Message</h3>
+            <p>Message: User confirmed.</p>
+            `
+        emailService.sendEmail(userOutput, adminOutput, user.email, subject);
     }
 
     /**
@@ -208,6 +190,66 @@ class UserService {
             callback(user);
         }).catch(err => {
             log.error('Error while fetching user in user service: ', err);
+            callback({ message: 'Email id does not exists!!' });
+        });
+    }
+
+    /**
+     * send reset password link for the specified email
+     */
+    resetPasswordMail(email, callback) {
+        this.findUserByEmail(email, (result) => {
+            if (result.email === email) {
+                var subject = 'Reset password link';
+                const userOutput = `
+                <p>Hello</p>
+                <p>Thank you for contacting us. Please click on the below link to reset your password.</p>
+                <a href="${Properties.resetPassword}/${result.token}" target="_blank">
+                    Click here to reset password
+                </a>
+                <p>Thanks and Regards,<br/>Mesomeds</p>
+                `;
+
+                // body of the mail for admin
+                const adminOutput = `
+                <p>Newsletter Request</p>
+                <h3>Contact Details</h3>
+                <ul>
+                    <li>FullName: ${result.name}</li>
+                    <li>Email ID: ${result.email}</li>
+                    <li>Subject: ${subject}</li>
+                </ul>
+                <h3>Message</h3>
+                <p>Message: Reset password link.</p>
+                `
+                emailService.sendEmail(userOutput, adminOutput, result.email, subject, callback);
+            } else {
+                callback({ message: 'Email ID you have entered does not exist' });
+            }
+        });
+    }
+
+    verifyToken(token, callback) {
+        userModel.user.find({ where: { token: token } }).then((result) => {
+            if (result === null) {
+                callback(false);
+            } else {
+                callback(true);
+            }
+        }).catch((err) => {
+            callback(false);
+        });
+    }
+
+    resetPassword(password, token, callback) {
+        bcrypt.hash(password, 10, (err, hash) => {
+            password = hash;
+            userModel.user.update({ password: password }, { where: { token: token } })
+                .then(() => {
+                    callback({ message: 'password reset successfull' });
+                });
+        }).catch((err) => {
+            callback({ message: 'Error in password reset. Please try again..' });
         });
     }
 }
