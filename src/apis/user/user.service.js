@@ -198,13 +198,13 @@ class UserService {
      * send reset password link for the specified email
      */
     resetPasswordMail(email, callback) {
-        this.findUserByEmail(email, (result) => {
-            if (result.email === email) {
+        this.findUserByEmail(email, (user) => {
+            if (user.email === email) {
                 var subject = 'Reset password link';
                 const userOutput = `
                 <p>Hello</p>
                 <p>Thank you for contacting us. Please click on the below link to reset your password.</p>
-                <a href="${Properties.resetPassword}/${result.token}" target="_blank">
+                <a href="${Properties.resetPassword}/${user.token}" target="_blank">
                     Click here to reset password
                 </a>
                 <p>Thanks and Regards,<br/>Mesomeds</p>
@@ -215,14 +215,14 @@ class UserService {
                 <p>Newsletter Request</p>
                 <h3>Contact Details</h3>
                 <ul>
-                    <li>FullName: ${result.name}</li>
-                    <li>Email ID: ${result.email}</li>
+                    <li>FullName: ${user.name}</li>
+                    <li>Email ID: ${user.email}</li>
                     <li>Subject: ${subject}</li>
                 </ul>
                 <h3>Message</h3>
                 <p>Message: Reset password link.</p>
                 `
-                emailService.sendEmail(userOutput, adminOutput, result.email, subject, callback);
+                emailService.sendEmail(userOutput, adminOutput, user.email, subject, callback);
             } else {
                 callback({ message: 'Email ID you have entered does not exist' });
             }
@@ -230,8 +230,8 @@ class UserService {
     }
 
     verifyToken(token, callback) {
-        userModel.user.find({ where: { token: token } }).then((result) => {
-            if (result === null) {
+        userModel.user.find({ where: { token: token } }).then((user) => {
+            if (user === null) {
                 callback(false);
             } else {
                 callback(true);
@@ -243,13 +243,13 @@ class UserService {
 
     resetPassword(password, token, callback) {
         bcrypt.hash(password, 10, (err, hash) => {
-            password = hash;
-            userModel.user.update({ password: password }, { where: { token: token } })
+            userModel.user.update({ password: hash }, { where: { token: token } })
                 .then(() => {
-                    callback({ message: 'password reset successfull' });
+                    callback({ message: 'Password reset successfull' });
+                }).catch((err) => {
+                    log.error('Error in updating password: ' + err);
+                    callback({ message: 'Error in password reset. Please try again..' });
                 });
-        }).catch((err) => {
-            callback({ message: 'Error in password reset. Please try again..' });
         });
     }
 }
