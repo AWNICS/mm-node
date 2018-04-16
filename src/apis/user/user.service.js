@@ -190,7 +190,7 @@ class UserService {
             callback(user);
         }).catch(err => {
             log.error('Error while fetching user in user service: ', err);
-            callback({ message: 'Email id does not exists!!' });
+            callback({ message: 'Email ID you have entered does not exist' });
         });
     }
 
@@ -244,8 +244,13 @@ class UserService {
     resetPassword(password, token, callback) {
         bcrypt.hash(password, 10, (err, hash) => {
             userModel.user.update({ password: hash }, { where: { token: token } })
-                .then(() => {
-                    callback({ message: 'Password reset successfull' });
+                .then((res) => {
+                    if (res[0] > 0) {
+                        callback({ message: 'Updated password successfully.' });
+                    } else {
+                        log.error('Tokens do not match');
+                        callback({ message: 'Link in invalid. Please try again.' });
+                    }
                 }).catch((err) => {
                     log.error('Error in updating password: ' + err);
                     callback({ message: 'Error in password reset. Please try again..' });
