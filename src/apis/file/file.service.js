@@ -26,10 +26,10 @@ class FileService {
 
         stream.on('finish', () => {
             console.log('Upload complete');
+            callback(gcsname);
         });
 
         stream.end(req.file.buffer);
-        callback(gcsname);
     }
 
     download(bucket, fileName, res) {

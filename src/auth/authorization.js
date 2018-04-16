@@ -32,7 +32,7 @@ passport.use(new LocalStrategy({
                     } else if (res === false) {
                         // Passwords don't match
                         log.error('Incorrect password');
-                        return done(null, false, { message: 'Incorrect password.' });
+                        return done(null, false, { message: 'Incorrect password. Try again.' });
                     } else {
                         // Passwords match
                         log.info('Logged In Successfully');
