@@ -163,7 +163,7 @@ router.post('/resetPassword', function(req, res) {
 router.get('/resetPassword/:token', function(req, res) {
     userService.verifyToken(req.params.token, (result) => {
         if (result === true) {
-            res.redirect(`${Properties.redirectToClient}`);
+            res.redirect(`${Properties.redirectToClient}/${req.params.token}`);
         } else {
             res.send('Your link is expired. Try again');
         }

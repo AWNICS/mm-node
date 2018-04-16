@@ -37,18 +37,18 @@ class EmailService {
         // send mail to admin
         transporter.sendMail(adminMailOptions, function(error, info) {
             if (error) {
-                log.error('Error occured: ' + error);
+                log.error('Error occured in email service: ' + error);
             }
-            log.info('Message sent admin');
+            log.info('Email sent to admin');
         });
 
         // send mail to user
         transporter.sendMail(userMailOptions, function(error, info) {
             if (error) {
-                log.error('Error occured: ' + error);
+                log.error('Error occured in email service: ' + error);
                 callback({ message: 'There was error. Please try again after sometime' });
             }
-            log.info('Message sent user');
+            log.info('Email sent to user');
             callback({ message: 'An email has been sent. Please check your inbox.' });
         });
     }

@@ -7,7 +7,7 @@ var db = {};
 fs
     .readdirSync(__dirname)
     .filter(file => {
-        return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-13) === 'user.model.js');
+        return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-9) === '.model.js');
     })
     .forEach(file => {
         var model = sequelize['import'](path.join(__dirname, file));
