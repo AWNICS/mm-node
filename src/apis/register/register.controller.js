@@ -2,6 +2,7 @@ import express from 'express';
 import DoctorService from '../doctor/doctor.service';
 import UserService from '../user/user.service';
 import log from '../../config/log4js.config';
+import Properties from '../../util/properties';
 
 const router = express.Router();
 const doctorService = new DoctorService();
@@ -143,6 +144,39 @@ router.post('/users', function(req, res) {
 router.get('/activates/:token', function(req, res) {
     userService.activateUser(req.params.token, (result) => {
         res.sendFile('./activate.html', { root: __dirname });
+    });
+});
+
+/**
+ * forget password link
+ */
+router.post('/resetPassword', function(req, res) {
+    var email = req.body.email;
+    userService.resetPasswordMail(email, (result) => {
+        res.send(result);
+    });
+});
+
+/**
+ * token verification to redirect to angular reset password page
+ */
+router.get('/resetPassword/:token', function(req, res) {
+    userService.verifyToken(req.params.token, (result) => {
+        if (result === true) {
+            res.redirect(`${Properties.redirectToClient}`);
+        } else {
+            res.send('Your link is expired. Try again');
+        }
+    });
+});
+
+/**
+ * reset password 
+ */
+router.put('/resetPassword/:token', function(req, res) {
+    var password = req.body.password;
+    userService.resetPassword(password, req.params.token, (result) => {
+        res.send(result);
     });
 });
 
