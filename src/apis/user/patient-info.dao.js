@@ -6,7 +6,6 @@ import log from '../../config/log4js.config';
  * DAO for patient-info api
  */
 class PatientInfoDao {
-    constructor() {}
 
     /**
      * insert method
@@ -19,6 +18,7 @@ class PatientInfoDao {
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
+                    log.error('error in patientInfoDao ', error);
                     t.rollback();
                 });
             });
@@ -38,7 +38,7 @@ class PatientInfoDao {
      * read method based on id
      */
     readById(id, callback) {
-        patientInfoModel.patient_info.findById(id).then((patientInfo) => {
+        patientInfoModel.patient_info.find({ where: { userId: id } }).then((patientInfo) => {
             callback(patientInfo);
         });
     }
@@ -50,7 +50,7 @@ class PatientInfoDao {
         sequelize.transaction().then(function(t) {
             patientInfoModel.patient_info.update(patientInfo, {
                 where: {
-                    id: patientInfo.id
+                    userId: patientInfo.id
                 }
             }, { transaction: t }).then(function(patientInfoUpdated) {
                 callback(patientInfoUpdated);

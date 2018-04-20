@@ -28,7 +28,7 @@ exports.getAll = (callback) => {
 
 exports.getById = (id, callback) => {
     // get a specific the message
-    Message.find({ id: id }, (err, message) => {
+    Message.find({ _id: id }, (err, message) => {
         if (err) {
             log.error('err is: ', JSON.stringify(err));
         }
@@ -56,7 +56,7 @@ exports.update = (message, callback) => {
 
 exports.delete = (id, callback) => {
 
-    var condition = { id: id };
+    var condition = { _id: id };
 
     Message.remove(condition, (err, message) => {
         if (err) {
