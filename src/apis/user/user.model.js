@@ -20,6 +20,9 @@ module.exports = (sequelize, DataTypes) => {
         phoneNo: {
             type: DataTypes.STRING
         },
+        aadhaarNo: {
+            type: DataTypes.BIGINT
+        },
         picUrl: {
             type: DataTypes.STRING
         },

@@ -5,9 +5,7 @@ import log from '../../config/log4js.config';
 /**
  * DAO for staff-info api
  */
-class PatientInfoDao {
-    constructor() {}
-
+class StaffInfoDao {
     /**
      * insert method
      */
@@ -19,6 +17,7 @@ class PatientInfoDao {
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
+                    log.error('error in staffInfoDao ', error);
                     t.rollback();
                 });
             });
@@ -38,7 +37,7 @@ class PatientInfoDao {
      * read method based on id
      */
     readById(id, callback) {
-        staffInfoModel.staff_info.findById(id).then((staffInfo) => {
+        staffInfoModel.staff_info.find({ where: { userId: id } }).then((staffInfo) => {
             callback(staffInfo);
         });
     }
@@ -50,7 +49,7 @@ class PatientInfoDao {
         sequelize.transaction().then(function(t) {
             staffInfoModel.staff_info.update(staffInfo, {
                 where: {
-                    id: staffInfo.id
+                    userId: staffInfo.id
                 }
             }, { transaction: t }).then(function(staffInfoUpdated) {
                 callback(staffInfoUpdated);

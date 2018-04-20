@@ -8,6 +8,8 @@ import userModel from './index';
 import UserDao from './user.dao';
 import GroupDao from '../group/group.dao';
 import GroupUserMapDao from '../group/groupUserMap.dao';
+import StaffInfoDao from './staff-info.dao';
+import PatientInfoDao from './patient-info.dao';
 import groupModel from '../group/index';
 import groupUserMapModel from '../group/index';
 import MessageService from '../message/message.service';
@@ -16,12 +18,14 @@ import RoleModel from '../role/index';
 import EmailService from '../../util/email.service';
 import Properties from '../../util/properties';
 
-var userDao = new UserDao();
-var groupDao = new GroupDao();
-var groupUserMapDao = new GroupUserMapDao();
-var messageService = new MessageService();
-var roleService = new RoleService();
-var emailService = new EmailService();
+const userDao = new UserDao();
+const groupDao = new GroupDao();
+const groupUserMapDao = new GroupUserMapDao();
+const messageService = new MessageService();
+const roleService = new RoleService();
+const emailService = new EmailService();
+const staffInfoDao = new StaffInfoDao();
+const patientInfoDao = new PatientInfoDao();
 
 /**
  * UserService 
@@ -54,7 +58,7 @@ class UserService {
                     };
                     roleService.createUserRole(userRole, (userRole) => {});
                 });
-                if (userInserted.role == 'patient' || userInserted.role == 'doctor') {
+                if (userInserted.role.toLowerCase() == 'doctor') {
                     this.activationLink(userInserted);
                     var group = {
                         name: 'MedHelp',
@@ -102,8 +106,61 @@ class UserService {
                                 messageService.sendMessage(msg, (result) => {});
                             });
                     });
+                } else if (userInserted.role.toLowerCase() === 'patient') {
+                    this.activationLink(userInserted);
+                    this.creatPatientInfo(userInserted);
+                    var group = {
+                        name: 'MedHelp',
+                        url: `/medhelp/${userInserted.id}`,
+                        userId: userInserted.id,
+                        description: 'Med help',
+                        createdBy: 'docbot',
+                        updatedBy: 'docbot'
+                    };
+                    return groupDao.insert(group, (createdGroup) => {
+                        var groupUserMap = {
+                            userId: createdGroup.userId,
+                            groupId: createdGroup.id,
+                            createdBy: 'user',
+                            updatedBy: 'user'
+                        };
+                        groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
+                        sequelize
+                            .query("select u.id, u.firstname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
+                            .then((groupUserMaps) => {
+                                var uId;
+                                for (var i = 0; i < groupUserMaps.length; i++) {
+                                    if (groupUserMaps[i].role.toLowerCase() == 'bot') {
+                                        uId = groupUserMaps[i].id;
+                                        break;
+                                    } else {
+                                        continue;
+                                    }
+                                }
+                                var groupUserMapBot = {
+                                    groupId: createdGroup.id,
+                                    userId: uId,
+                                    createdBy: 'bot',
+                                    updatedBy: 'bot'
+                                }
+                                groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
+                                var msg = {
+                                    receiverId: createdGroup.id,
+                                    receiverType: 'group', // group or individual
+                                    senderId: uId,
+                                    text: 'Welcome to Mesomeds!! How can we help you?',
+                                    createdTime: Date.now(),
+                                    updatedTime: Date.now()
+                                }
+                                messageService.sendMessage(msg, (result) => {});
+                            });
+                    });
+                } else if (userInserted.role.toLowerCase() === 'bot') {
+                    // create staffInfo entry in staff_info table
+                    this.creatStaffInfo(userInserted);
                 } else {
-                    return; //in case of bot
+                    // return if none of the fields match
+                    return;
                 }
             });
         });
@@ -255,6 +312,48 @@ class UserService {
                     log.error('Error in updating password: ' + err);
                     callback({ message: 'Error in password reset. Please try again..' });
                 });
+        });
+    }
+
+    creatStaffInfo(userInserted) {
+        var staffInfo = {
+            userId: userInserted.id,
+            createdBy: userInserted.createdBy,
+            updatedBy: userInserted.updatedBy
+        };
+        staffInfoDao.insert(staffInfo, (staffInfoInserted) => {});
+    }
+
+    getStaffInfoById(id, callback) {
+        staffInfoDao.readById(id, (staffInfo) => {
+            callback(staffInfo);
+        });
+    }
+
+    updateStaffInfo(staffInfo, callback) {
+        staffInfoDao.update(staffInfo, (updatedStaffInfo) => {
+            callback(updatedStaffInfo);
+        });
+    }
+
+    creatPatientInfo(userInserted) {
+        var patientInfo = {
+            userId: userInserted.id,
+            createdBy: userInserted.createdBy,
+            updatedBy: userInserted.updatedBy
+        };
+        patientInfoDao.insert(patientInfo, (patientInfoInserted) => {});
+    }
+
+    getPatientInfoById(id, callback) {
+        patientInfoDao.readById(id, (patientInfo) => {
+            callback(patientInfo);
+        });
+    }
+
+    updatePatientInfo(patientInfo, callback) {
+        patientInfoDao.update(patientInfo, (updatedPatientInfo) => {
+            callback(updatedPatientInfo);
         });
     }
 }
