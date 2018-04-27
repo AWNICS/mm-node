@@ -10,9 +10,9 @@ import Message from './message.model';
 import GroupMessageMap from './group-message-map.model';
 import UserMessageMap from './user-message-map.model';
 import Status from '../../util/status.message';
+import log from '../../config/log4js.config';
 
 class MessageService {
-    constructor() {}
 
     sendMessage(message, callback) {
         if (message.receiverType === 'group') {
@@ -28,30 +28,35 @@ class MessageService {
 
         //createMessage and createGroupMap using DAO object
         var msg = new Message(message);
-        var grpMessage = new GroupMessageMap({
-            groupId: message.receiverId,
-            userSId: message.senderId,
-            createdBy: message.senderId,
-            updatedBy: message.senderId
+        messageDao.create(msg, (result) => {
+            var grpMessage = new GroupMessageMap({
+                messageId: result._id,
+                groupId: message.receiverId,
+                userSId: message.senderId,
+                createdBy: message.senderId,
+                updatedBy: message.senderId
+            });
+            groupMapDao.create(grpMessage, (groupMesasgeMap) => {});
+            callback(result);
         });
-        messageDao.create(msg, callback);
-        groupMapDao.create(grpMessage);
     }
 
     sendUserMessage(message, callback) {
         //createMessage and createUserMap using DAO object
         var msg = new Message(message);
-        var userMessage = new UserMessageMap({
-            messageId: msg._id,
-            userRId: message.receiverId,
-            userSId: message.senderId,
-            createdBy: message.senderId,
-            updatedBy: message.senderId,
-            createdTime: new Date(),
-            updatedTime: new Date()
+        messageDao.create(msg, (result) => {
+            var userMessage = new UserMessageMap({
+                messageId: result._id,
+                userRId: message.receiverId,
+                userSId: message.senderId,
+                createdBy: message.senderId,
+                updatedBy: message.senderId,
+                createdTime: new Date(),
+                updatedTime: new Date()
+            });
+            userMapDao.create(userMessage);
+            callback(result);
         });
-        messageDao.create(msg, callback);
-        userMapDao.create(userMessage);
     }
 
     readAll(callback) {
@@ -73,12 +78,48 @@ class MessageService {
     /**
      * render 20 message onclick of any group
      */
-    getLimitedMessages(receiverId, senderId, page, size, callback) {
-        Message.find({ receiverId: receiverId })
+    async getLimitedMessages(receiverId, senderId, page, size, callback) {
+        var promises = [];
+        var groupMessageMaps = await GroupMessageMap.find({ groupId: receiverId })
             .skip(parseInt(((size * page) - size)))
             .limit(parseInt(size))
-            .sort({ $natural: -1 })
-            .exec(callback);
+            .sort({ $natural: -1 });
+        groupMessageMaps.map((groupMessageMap) => {
+            promises.push(Message.findOne({ _id: groupMessageMap.messageId }));
+        });
+        var messages = await Promise.all(promises);
+        callback(messages);
+    }
+
+    /**
+     * group_message_map
+     */
+    readAllGroupMessageMap(callback) {
+        groupMapDao.getAll(callback);
+    }
+
+    readGroupMessageMapById(id, callback) {
+        groupMapDao.getById(id, callback);
+    }
+
+    updateGroupMessageMap(message, callback) {
+        groupMapDao.update(message, callback);
+    }
+
+    removeGroupMessageMap(id, callback) {
+        groupMapDao.delete(id, callback);
+    }
+
+    /**
+     * for getting all media files
+     */
+    allMediaFiles(callback) {
+        Message.find({ "type": { $in: ['image', 'video', 'doc'] } }, (err, files) => {
+            if (err) {
+                log.error('err is: ', JSON.stringify(err));
+            }
+            callback(files);
+        });
     }
 }
 

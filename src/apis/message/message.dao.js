@@ -28,7 +28,7 @@ exports.getAll = (callback) => {
 
 exports.getById = (id, callback) => {
     // get a specific the message
-    Message.find({ id: id }, (err, message) => {
+    Message.find({ _id: id }, (err, message) => {
         if (err) {
             log.error('err is: ', JSON.stringify(err));
         }
@@ -55,13 +55,15 @@ exports.update = (message, callback) => {
 }
 
 exports.delete = (id, callback) => {
-
-    var condition = { id: id };
-
+    var condition = { _id: id };
     Message.remove(condition, (err, message) => {
         if (err) {
-            log.error('err is: ', JSON.stringify(err));
+            log.error('Error while deleting message: ', err);
+            callback({ message: 'Error deleting the message. Please try again' });
+        } else if (JSON.parse(message).n > 0) {
+            callback({ message: 'Message deleted successfully' });
+        } else {
+            callback({ message: 'Message could not be found' });
         }
-        callback(message);
     });
 }

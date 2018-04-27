@@ -61,7 +61,6 @@ var router = express.Router();
  *           $ref: '#/definitions/Message'
  */
 router.get('/messages', (req, res) => {
-    //var message = new Message();
     messageService.readAll((results) => {
         res.send(results);
     });
@@ -143,8 +142,9 @@ router.put('/messages', (req, res) => {
  *         description: Successfully deleted from Mongo db
  */
 router.delete('/messages/:id', (req, res) => {
-    messageService.remove(req.params.id, (result) => { log.info(JSON.stringify(result)); });
-    res.send('Message deleted');
+    messageService.remove(req.params.id, (result) => {
+        res.send(result);
+    });
 });
 
 /**
@@ -177,12 +177,52 @@ router.get('/messages/:id', (req, res) => {
  * get 100 messages on click of any group
  */
 router.get('/messages/users/:userId/groups/:groupId', (req, res) => {
-    messageService.getLimitedMessages((req.params.groupId), (req.params.userId), (req.query.page), (req.query.size), (err, results) => {
-        if (err) {
-            log.error('err', err);
-            res.status(400).send(err);
-        }
+    messageService.getLimitedMessages((req.params.groupId), (req.params.userId), (req.query.page), (req.query.size), (results) => {
         res.send(results);
+    });
+});
+
+/**
+ * group_message_map
+ */
+router.get('/groupMessageMap', (req, res) => {
+    messageService.readAllGroupMessageMap((results) => {
+        res.send(results);
+    });
+});
+
+router.get('/groupMessageMap/:id', (req, res) => {
+    messageService.readGroupMessageMapById(req.params.id, (result) => {
+        res.send(result);
+    });
+});
+
+router.put('/groupMessageMap', (req, res) => {
+    messageService.updateGroupMessageMap(req.body, (result) => {
+        res.send(result);
+    });
+});
+
+router.delete('/groupMessageMap/:id', (req, res) => {
+    messageService.removeGroupMessageMap(req.params.id, (result) => {
+        res.send(result);
+    });
+});
+
+/**
+ * for getting all media files
+ */
+router.get('/allMediaFiles', (req, res) => {
+    messageService.allMediaFiles((files) => {
+        res.send(files);
+    });
+});
+
+router.get('/downloadMediaFile', (req, res) => {
+    messageService.allMediaFiles((files) => {
+        console.log('data: ' + files[0].contentData.data);
+        res.download("1524632854339data-scientist.jpeg", 'me.jpg');
+        //res.send(files);
     });
 });
 
