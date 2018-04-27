@@ -158,4 +158,28 @@ router.get('/users/:email', (req, res) => {
     });
 });
 
+router.get('/staffs/:id', (req, res) => {
+    userService.getStaffInfoById(req.params.id, (staffInfo) => {
+        res.send(staffInfo);
+    });
+});
+
+router.put('/staffs', (req, res) => {
+    userService.updateStaffInfo(req.body, (updatedStaffInfo) => {
+        res.send(updatedStaffInfo);
+    });
+});
+
+router.get('/patients/:id', (req, res) => {
+    userService.getPatientInfoById(req.params.id, (patientInfo) => {
+        res.send(patientInfo);
+    });
+});
+
+router.put('/patients', (req, res) => {
+    userService.updatePatientInfo(req.body, (updatedPatientInfo) => {
+        res.send(updatedPatientInfo);
+    });
+});
+
 module.exports = router;

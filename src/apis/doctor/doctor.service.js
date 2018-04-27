@@ -14,9 +14,22 @@ class DoctorService {
      * for doctor
      */
     create(doctor, callback) {
-        return doctorDao.insert(doctor, (doctorInserted) => {
-            userService.register(doctor, (doctorCreated) => {});
-            callback(doctorInserted);
+        userService.register(doctor, (userCreated) => {
+            var newDoctor = {
+                userId: userCreated.id,
+                regNo: doctor.regNo,
+                speciality: doctor.speciality,
+                experience: doctor.experience,
+                description: doctor.description,
+                videoUrl: doctor.videoUrl,
+                appearUrl: doctor.appearUrl,
+                createdBy: doctor.createdBy,
+                updatedBy: doctor.updatedBy,
+                termsAccepted: doctor.termsAccepted
+            }
+            return doctorDao.insert(newDoctor, (doctorCreated) => {
+                callback(doctorCreated);
+            })
         });
     }
 

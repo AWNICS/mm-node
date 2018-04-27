@@ -5,19 +5,19 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true,
             autoIncrement: true
         },
-        socketId: {
-            type: DataTypes.STRING
-        },
-        firstname: {
-            type: DataTypes.STRING
-        },
-        lastname: {
-            type: DataTypes.STRING
-        },
-        picUrl: {
-            type: DataTypes.STRING
+        userId: {
+            type: DataTypes.INTEGER
         },
         regNo: {
+            type: DataTypes.STRING
+        },
+        sex: {
+            type: DataTypes.STRING
+        },
+        location: {
+            type: DataTypes.STRING
+        },
+        address: {
             type: DataTypes.STRING
         },
         speciality: {
@@ -29,34 +29,10 @@ module.exports = (sequelize, DataTypes) => {
         description: {
             type: DataTypes.STRING
         },
-        email: {
-            type: DataTypes.STRING
-        },
-        phoneNo: {
-            type: DataTypes.STRING
-        },
-        status: {
-            type: DataTypes.STRING
-        },
-        waitingTime: {
-            type: DataTypes.DOUBLE
-        },
-        rating: {
-            type: DataTypes.DOUBLE
-        },
         videoUrl: {
             type: DataTypes.STRING
         },
         appearUrl: {
-            type: DataTypes.STRING
-        },
-        token: {
-            type: DataTypes.STRING
-        },
-        activate: {
-            type: DataTypes.DOUBLE
-        },
-        role: {
             type: DataTypes.STRING
         },
         createdBy: {
