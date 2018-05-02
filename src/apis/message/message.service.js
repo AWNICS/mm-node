@@ -113,13 +113,16 @@ class MessageService {
     /**
      * for getting all media files
      */
-    allMediaFiles(callback) {
-        Message.find({ "type": { $in: ['image', 'video', 'doc'] } }, (err, files) => {
-            if (err) {
-                log.error('err is: ', JSON.stringify(err));
-            }
-            callback(files);
-        });
+    async mediaMessages(groupId, callback) {
+        var promises = [];
+        var groupMessageMaps = await GroupMessageMap.find({ groupId: groupId.toString() });
+        groupMessageMaps
+            .map((groupMessageMap) => {
+                var message = Message.findOne({ $and: [{ _id: groupMessageMap.messageId }, { 'type': { $in: ['image', 'video', 'doc'] } }] });
+                promises.push(message);
+            });
+        var messages = await Promise.all(promises);
+        callback(messages);
     }
 }
 

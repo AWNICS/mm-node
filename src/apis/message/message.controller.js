@@ -169,8 +169,9 @@ router.delete('/messages/:id', (req, res) => {
  *         description: An message return from Mongo db
  */
 router.get('/messages/:id', (req, res) => {
-    messageService.readById(req.params.id, (result) => { log.info(JSON.stringify(result)); });
-    res.send('Read message by ID successful');
+    messageService.readById(req.params.id, (result) => {
+        res.send(result);
+    });
 });
 
 /**
@@ -212,17 +213,9 @@ router.delete('/groupMessageMap/:id', (req, res) => {
 /**
  * for getting all media files
  */
-router.get('/allMediaFiles', (req, res) => {
-    messageService.allMediaFiles((files) => {
-        res.send(files);
-    });
-});
-
-router.get('/downloadMediaFile', (req, res) => {
-    messageService.allMediaFiles((files) => {
-        console.log('data: ' + files[0].contentData.data);
-        res.download("1524632854339data-scientist.jpeg", 'me.jpg');
-        //res.send(files);
+router.get('/messages/media/groups/:groupId', (req, res) => {
+    messageService.mediaMessages(req.params.groupId, (messages) => {
+        res.send(messages);
     });
 });
 

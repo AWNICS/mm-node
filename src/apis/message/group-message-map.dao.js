@@ -37,15 +37,21 @@ exports.update = (groupMessageMap, callback) => {
 
     GroupMessageMap.update(condition, groupMessageMap, options,
         (err, numAffected) => {
-            if (err) throw err;
-            callback(groupMessageMap);
+            if (err) {
+                callback({ 'error': err });
+            } else {
+                callback(groupMessageMap);
+            }
         });
 }
 
 exports.delete = (id, callback) => {
     var condition = { messageId: id };
     GroupMessageMap.remove(condition, (err, groupMessageMap) => {
-        if (err) throw err;
-        callback(groupMessageMap);
+        if (err) {
+            callback({ 'error': err });
+        } else {
+            callback(groupMessageMap);
+        }
     });
 }
