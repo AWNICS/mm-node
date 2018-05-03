@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    var Specialities = sequelize.define('specialities', {
+    var Locations = sequelize.define('locations', {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
@@ -7,6 +7,18 @@ module.exports = (sequelize, DataTypes) => {
         },
         name: {
             type: DataTypes.STRING
+        },
+        latMin: {
+            type: DataTypes.DOUBLE
+        },
+        lngMin: {
+            type: DataTypes.DOUBLE
+        },
+        latMax: {
+            type: DataTypes.DOUBLE
+        },
+        lngMax: {
+            type: DataTypes.DOUBLE
         },
         createdBy: {
             type: DataTypes.STRING
@@ -17,5 +29,5 @@ module.exports = (sequelize, DataTypes) => {
     }, {
         freezeTableName: true
     });
-    return Specialities;
+    return Locations;
 };

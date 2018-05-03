@@ -1,21 +1,21 @@
-import specialitiesModel from './index';
+import locationsModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
 /*
-DAO for Specialities api
+DAO for Locations api
 */
-class SpecialitiesDao {
+class LocationsDao {
     constructor() {}
 
     /**
      * insert method
      */
-    insert(specialities, callback) {
+    insert(locations, callback) {
         sequelize.sync({ force: false }).then(() => {
             sequelize.transaction().then(function(t) {
-                specialitiesModel.specialities.create(specialities, { transaction: t }).then(function(specialitiesInserted) {
-                    callback(specialitiesInserted);
+                locationsModel.locations.create(locations, { transaction: t }).then(function(locationsInserted) {
+                    callback(locationsInserted);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
@@ -29,8 +29,8 @@ class SpecialitiesDao {
      * read all method
      */
     readAll(callback) {
-        specialitiesModel.specialities.findAll().then((specialities) => {
-            callback(specialities);
+        locationsModel.locations.findAll().then((locations) => {
+            callback(locations);
         });
     }
 
@@ -38,26 +38,26 @@ class SpecialitiesDao {
      * read method based on id
      */
     readById(id, callback) {
-        specialitiesModel.specialities.find({ where: { id: id } }).then((specialities) => {
-            callback(specialities);
+        locationsModel.locations.find({ where: { id: id } }).then((locations) => {
+            callback(locations);
         });
     }
 
     /**
      * Update method
      */
-    update(specialities, callback) {
+    update(locations, callback) {
         sequelize.transaction().then(function(t) {
-            specialitiesModel.specialities.update(specialities, {
+            locationsModel.locations.update(locations, {
                 where: {
-                    id: specialities.id
+                    id: locations.id
                 }
-            }, { transaction: t }).then(function(specialitiesUpdated) {
-                callback(specialitiesUpdated);
+            }, { transaction: t }).then(function(locationsUpdated) {
+                callback(locationsUpdated);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
-                log.error('Error in specialities dao update ', error);
+                log.error('Error in locations dao update ', error);
                 t.rollback();
             });
         });
@@ -68,12 +68,12 @@ class SpecialitiesDao {
      */
     delete(id, callback) {
         sequelize.transaction().then(function(t) {
-            specialitiesModel.specialities.destroy({
+            locationsModel.locations.destroy({
                 where: {
                     id: id
                 }
-            }).then(function(specialitiesDeleted) {
-                callback(specialitiesDeleted);
+            }).then(function(locationsDeleted) {
+                callback(locationsDeleted);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
@@ -83,4 +83,4 @@ class SpecialitiesDao {
     }
 }
 
-export default SpecialitiesDao;
+export default LocationsDao;

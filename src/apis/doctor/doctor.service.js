@@ -1,11 +1,15 @@
 import DoctorDao from './doctor.dao';
+import doctorModel from './index';
+import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 import ConsultationDao from './consultation-schedule.dao';
+import DoctorSchedule from './doctor-schedule.dao';
 import UserService from '../user/user.service';
 
 var doctorDao = new DoctorDao();
 var consultationDao = new ConsultationDao();
 var userService = new UserService();
+var doctorScheduleDao = new DoctorSchedule();
 
 class DoctorService {
     constructor() {}
@@ -88,6 +92,68 @@ class DoctorService {
         return consultationDao.delete(id, (consultationDeleted) => {
             callback(consultationDeleted);
         });
+    }
+
+    createDoctorSchedule(doctorSchedule, callback) {
+        return doctorScheduleDao.insert(doctorSchedule, (doctorScheduleCreated) => {
+            callback(doctorScheduleCreated);
+        });
+    }
+
+    getDoctorsLists(location, speciality, gps, time, page, size, callback) {
+        var offset = ((size * page) - size);
+        var condition = '';
+        if (location) {
+            condition = condition + `AND d.location = '${location}'`;
+        }
+        if (speciality) {
+            condition = condition + ` AND d.speciality = '${speciality}'`;
+        }
+        if (time) {
+            condition = condition + ` AND ( '${time}' BETWEEN ds.startTime AND ds.endTime )`;
+        }
+        return sequelize
+            .query(`
+            SELECT
+                u.firstName,
+                u.lastName,
+                u.picUrl,
+                u.rating,
+                d.regNo,
+                d.location,
+                d.speciality,
+                d.experience,
+                d.description,
+                d.videoUrl,
+                ds.status,
+                ds.waitTime
+            FROM
+                doctor AS d
+            LEFT JOIN
+                user AS u
+            ON
+                u.id = d.userId
+            LEFT JOIN
+                doctor_schedule AS ds
+            ON
+                d.userId = ds.doctorId
+            WHERE
+                ds.status = 'online'
+            ${condition}
+            ORDER BY
+                ds.waitTime
+            LIMIT
+                ${offset},
+                ${size};
+                `, { type: sequelize.QueryTypes.SELECT })
+            .then((result, err) => {
+                if (err) {
+                    log.error('Error while fetching doctors list ', err);
+                    callback(err);
+                } else {
+                    callback(result);
+                }
+            });
     }
 }
 
