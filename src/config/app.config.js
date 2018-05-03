@@ -87,15 +87,12 @@ class Config {
             res.send(swaggerSpec);
         });
         this.app.use('/', register);
-        this.app.use('/', message);
-        this.app.use('/', user);
-
-        this.app.use('/', doctor);
-        this.app.use('/', file);
-        //this.app.use('/', passport.authenticate('jwt', { session: false }), file);
-
-        this.app.use('/', group);
         this.app.use('/', authenticate);
+        this.app.use('/', passport.authenticate('jwt', { session: false }), user);
+        this.app.use('/', passport.authenticate('jwt', { session: false }), doctor);
+        this.app.use('/', passport.authenticate('jwt', { session: false }), file);
+        this.app.use('/', passport.authenticate('jwt', { session: false }), message);
+        this.app.use('/', passport.authenticate('jwt', { session: false }), group);
         //this.app.use('/role', role);
         //this.app.use('/contact', passport.authenticate('jwt', { session: false }), contactUs);
         //this.app.use('/', specialities);

@@ -1,5 +1,5 @@
 {
-    "activation": "http://35.226.156.161:3000/activates",
+    "activation": "http://localhost:3000/activates",
     "resetPassword": "http://localhost:5555/resetPassword",
     "redirectToClient": "http://localhost:5555/resetPassword"
 }
