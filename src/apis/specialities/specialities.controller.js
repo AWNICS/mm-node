@@ -18,7 +18,7 @@ var router = express.Router();
  */
 /**
  * @swagger
- * /specialities/controllers/createSpeciality:
+ * /specialities:
  *   post:
  *     tags:
  *       - Specialities
@@ -44,7 +44,7 @@ router.post('/specialities', (req, res) => {
 
 /**
  * @swagger
- * /specialities/controllers/readAllSpecialities:
+ * /specialities:
  *   get:
  *     tags:
  *       - Specialities
@@ -65,7 +65,7 @@ router.get('/specialities', (req, res) => {
 
 /**
  * @swagger
- * /specialities/controllers/readSpecialityById/{id}:
+ * /specialities/{id}:
  *   get:
  *     tags:
  *       - Specialities
@@ -92,7 +92,7 @@ router.get('/specialities/:id', (req, res) => {
 
 /**
  * @swagger
- * /specialities/controllers/updateSpeciality:
+ * /specialities:
  *   put:
  *     tags:
  *       - Specialities
@@ -118,7 +118,7 @@ router.put('/specialities', (req, res) => {
 
 /**
  * @swagger
- * /specialities/controllers/removeSpeciality/{id}:
+ * /specialities/{id}:
  *   delete:
  *     tags:
  *       - Specialities

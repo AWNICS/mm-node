@@ -10,8 +10,8 @@ var Schema = mongoose.Schema;
 
 var UserMessageMapSchema = new Schema({
     messageId: String,
-    userRId: String,
-    userSId: String,
+    userRId: Number,
+    userSId: Number,
     createdBy: String,
     updatedBy: String,
     createdTime: { type: Date, default: Date.now },

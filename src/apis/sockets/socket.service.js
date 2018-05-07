@@ -106,6 +106,26 @@ exports.connectSocket = (io) => {
                 });
             });
 
+            /**
+             * delete message
+             */
+            socket.on('delete-message', (data, index) => {
+                messageService.removeGroupMessageMap(data._id, (result) => {
+                    groupService.getAllUsersByGroupId(data.receiverId, (user) => {
+                        io.in(user.socketId).emit('deleted-message', { result, data, index }); //emit one-by-one for all users
+                    });
+                });
+            });
+
+            /**
+             * notifying online users for deleted message
+             */
+            socket.on('notify-users', (data) => {
+                groupService.getAllUsersByGroupId(data.receiverId, (user) => {
+                    io.in(user.socketId).emit('receive-notification', { 'message': 'One message deleted from this group' }); //emit one-by-one for all users
+                });
+            });
+
             socket.on('user-disconnect', (userId) => {
                 socket.disconnect();
                 userService.getById(userId, (user) => {
