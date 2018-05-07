@@ -15,44 +15,36 @@ const userService = new UserService();
  *     properties:
  *       id:
  *         type: integer
- *       name:
- *         type: string
- *       picUrl:
- *         type: string
+ *       userId:
+ *         type: integer
  *       regNo:
+ *         type: string
+ *       sex: 
+ *         type: string
+ *       location:
+ *         type: string
+ *       address: 
  *         type: string
  *       speciality:
  *         type: string
  *       experience:
+ *         type: number
+ *       description:
  *         type: string
- *       Description:
- *         type: string
- *       email:
- *         type: string
- *       phoneNo:
- *         type: string
- *       status:
- *         type: string
- *       waitingTime:
- *         type: integer
- *       rating:
- *         type: integer
  *       videoUrl:
  *         type: string
  *       appearUrl:
  *         type: string
- *       thumbnailUrl:
+ *       createdBy:
  *         type: string
- *       lastUpdatedTime:
+ *       updatedBy:
  *         type: string
- *         format: date
  *       termsAccepted:
  *         type: boolean
  */
-
 /**
  * @swagger
- * /doctor/controllers/createDoctor:
+ * /doctors:
  *   post:
  *     tags:
  *       - Doctor
@@ -60,7 +52,7 @@ const userService = new UserService();
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: doctor
+ *       - name: body
  *         description: Doctor object
  *         in: body
  *         required: true
@@ -84,11 +76,17 @@ router.post('/doctors', function(req, res) {
  *     properties:
  *       id:
  *         type: integer
- *       name:
+ *       firstname:
+ *         type: string
+ *       lastname:
  *         type: string
  *       email:
  *         type: string
+ *       password: 
+ *         type: string
  *       phoneNo:
+ *         type: integer
+ *       aadhaarNo:
  *         type: integer
  *       picUrl:
  *         type: string
@@ -104,7 +102,9 @@ router.post('/doctors', function(req, res) {
  *         type: string
  *       activate:
  *         type: integer
- *       privilege:
+ *       role:
+ *         type: string
+ *       socketId:
  *         type: string
  *       createdBy:
  *         type: string
@@ -113,15 +113,15 @@ router.post('/doctors', function(req, res) {
  */
 /**
  * @swagger
- * /user/controllers/createUser:
+ * /users:
  *   post:
  *     tags:
- *       - Users
+ *       - User
  *     description: Creates a new user in MySql db
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: user
+ *       - name: body
  *         description: user object
  *         in: body
  *         required: true
@@ -139,7 +139,25 @@ router.post('/users', function(req, res) {
 });
 
 /**
- * updateActivate 
+ * @swagger
+ * /activates/{token}:
+ *   get:
+ *     tags:
+ *       - User
+ *     description: update activate column
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: token
+ *         in: path
+ *         description: token for user to return
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/User'
+ *     responses:
+ *       200:
+ *         description: An user activated in MySql db
  */
 router.get('/activates/:token', function(req, res) {
     userService.activateUser(req.params.token, (result) => {
@@ -148,7 +166,24 @@ router.get('/activates/:token', function(req, res) {
 });
 
 /**
- * forget password link
+ * @swagger
+ * /resetPassword:
+ *   post:
+ *     tags:
+ *       - User
+ *     description: Forget password link 
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: body
+ *         description: user object
+ *         in: body
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/User'
+ *     responses:
+ *       200:
+ *         description: Successfully updated in MySql db
  */
 router.post('/resetPassword', function(req, res) {
     var email = req.body.email;
@@ -158,7 +193,25 @@ router.post('/resetPassword', function(req, res) {
 });
 
 /**
- * token verification to redirect to angular reset password page
+ * @swagger
+ * /resetPassword/{token}:
+ *   get:
+ *     tags:
+ *       - User
+ *     description: Token verification to redirect to angular reset password page
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: token
+ *         in: path
+ *         description: token for user 
+ *         required: true
+ *         type: string
+ *         schema:
+ *           $ref: '#/definitions/User'
+ *     responses:
+ *       200:
+ *         description: Token verified 
  */
 router.get('/resetPassword/:token', function(req, res) {
     userService.verifyToken(req.params.token, (result) => {
@@ -172,6 +225,33 @@ router.get('/resetPassword/:token', function(req, res) {
 
 /**
  * reset password 
+ */
+/**
+ * @swagger
+ * /resetPassword/{token}:
+ *   put:
+ *     tags:
+ *       - User
+ *     description: Password reset
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - in: body
+ *         name: password
+ *         description: User data that needs to be update
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/User'
+ *       - name: token
+ *         in: path
+ *         description: token for user 
+ *         required: true
+ *         type: string
+ *         schema:
+ *           $ref: '#/definitions/User'
+ *     responses:
+ *       200:
+ *         description: Successfully updated in MySql db
  */
 router.put('/resetPassword/:token', function(req, res) {
     var password = req.body.password;

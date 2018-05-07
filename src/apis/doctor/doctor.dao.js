@@ -50,7 +50,7 @@ class DoctorDao {
         sequelize.transaction().then(function(t) {
             doctorModel.doctor.update(doctor, {
                 where: {
-                    userId: doctor.id
+                    userId: doctor.userId
                 }
             }, { transaction: t }).then(function(doctorUpdated) {
                 callback(doctorUpdated);

@@ -15,11 +15,17 @@ var userService = new UserService();
  *     properties:
  *       id:
  *         type: integer
- *       name:
+ *       firstname:
+ *         type: string
+ *       lastname:
  *         type: string
  *       email:
  *         type: string
+ *       password: 
+ *         type: string
  *       phoneNo:
+ *         type: string
+ *       aadhaarNo:
  *         type: integer
  *       picUrl:
  *         type: string
@@ -35,17 +41,18 @@ var userService = new UserService();
  *         type: string
  *       activate:
  *         type: integer
- *       privilege:
+ *       role:
+ *         type: string
+ *       socketId:
  *         type: string
  *       createdBy:
  *         type: string
  *       updatedBy:
  *         type: string
  */
-
 /**
  * @swagger
- * /user/controllers/getUser:
+ * /users:
  *   get:
  *     tags:
  *       - Users
@@ -66,7 +73,7 @@ router.get('/users', function(req, res) {
 
 /**
  * @swagger
- * /user/controllers/getUserById/{id}:
+ * /users/{id}:
  *   get:
  *     tags:
  *       - Users
@@ -94,7 +101,7 @@ router.get('/users/:id', function(req, res) {
 
 /**
  * @swagger
- * /user/controllers/putUser:
+ * /users:
  *   put:
  *     tags:
  *       - Users
@@ -121,7 +128,7 @@ router.put('/users', function(req, res) {
 
 /**
  * @swagger
- * /user/controllers/deleteUser/{id}:
+ * /users/{id}:
  *   delete:
  *     tags:
  *       - Users
@@ -146,36 +153,157 @@ router.delete('/users/:id', function(req, res) {
 });
 
 /**
- * find user by name
+ * @swagger
+ * definitions:
+ *   Staff:
+ *     properties:
+ *       id:
+ *         type: integer
+ *       userId:
+ *         type: integer
+ *       sex:
+ *         type: string
+ *       location:
+ *         type: string
+ *       department: 
+ *         type: string
+ *       staffId:
+ *         type: integer
+ *       address:
+ *         type: string
+ *       createdBy:
+ *         type: string
+ *       updatedBy:
+ *         type: string
  */
-router.get('/users/:email', (req, res) => {
-    userService.findUserByEmail(req.params.email, (result) => {
-        if (result) {
-            res.send(result);
-        } else {
-            res.status(401).send({ success: false, message: 'authentication failed' });
-        }
-    });
-});
-
+/**
+ * @swagger
+ * /staffs/{id}:
+ *   get:
+ *     tags:
+ *       - Staff
+ *     description: Returns staff by id from MySql db
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: id for staff to return
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Staff'
+ *     responses:
+ *       200:
+ *         description: An staff return from MySql db
+ */
 router.get('/staffs/:id', (req, res) => {
     userService.getStaffInfoById(req.params.id, (staffInfo) => {
         res.send(staffInfo);
     });
 });
 
+/**
+ * @swagger
+ * /staffs:
+ *   put:
+ *     tags:
+ *       - Staff
+ *     description: Updates a single staff in MySql db
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - in: body
+ *         name: body
+ *         description: staff data that needs to be update
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/Staff'
+ *     responses:
+ *       200:
+ *         description: Successfully updated in MySql db
+ */
 router.put('/staffs', (req, res) => {
     userService.updateStaffInfo(req.body, (updatedStaffInfo) => {
         res.send(updatedStaffInfo);
     });
 });
 
+/**
+ * @swagger
+ * definitions:
+ *   Patient:
+ *     properties:
+ *       id:
+ *         type: integer
+ *       userId:
+ *         type: integer
+ *       sex:
+ *         type: string
+ *       weight:
+ *         type: integer
+ *       height:
+ *         type: integer
+ *       bloodGroup:
+ *         type: string
+ *       allergies:
+ *         type: string
+ *       location:
+ *         type: string
+ *       address:
+ *         type: string
+ *       createdBy:
+ *         type: string
+ *       updatedBy:
+ *         type: string
+ */
+/**
+ * @swagger
+ * /patients/{id}:
+ *   get:
+ *     tags:
+ *       - Patient
+ *     description: Returns patient by id from MySql db
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: id for patient to return
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Patient'
+ *     responses:
+ *       200:
+ *         description: An patient return from MySql db
+ */
 router.get('/patients/:id', (req, res) => {
     userService.getPatientInfoById(req.params.id, (patientInfo) => {
         res.send(patientInfo);
     });
 });
 
+/**
+ * @swagger
+ * /patients:
+ *   put:
+ *     tags:
+ *       - Patient
+ *     description: Updates a single patient in MySql db
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - in: body
+ *         name: body
+ *         description: patient data that needs to be update
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/Patient'
+ *     responses:
+ *       200:
+ *         description: Successfully updated in MySql db
+ */
 router.put('/patients', (req, res) => {
     userService.updatePatientInfo(req.body, (updatedPatientInfo) => {
         res.send(updatedPatientInfo);

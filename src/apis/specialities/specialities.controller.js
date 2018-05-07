@@ -18,7 +18,7 @@ var router = express.Router();
  */
 /**
  * @swagger
- * /specialities/controllers/createSpeciality:
+ * /specialities:
  *   post:
  *     tags:
  *       - Specialities
@@ -36,7 +36,7 @@ var router = express.Router();
  *       200:
  *         description: Successfully created in MySql db
  */
-router.post('/controllers/createSpeciality', (req, res) => {
+router.post('/specialities', (req, res) => {
     specialitiesService.create(req.body, (result) => {
         log.info('Speciality created : ' + JSON.stringify(result));
     });
@@ -45,7 +45,7 @@ router.post('/controllers/createSpeciality', (req, res) => {
 
 /**
  * @swagger
- * /specialities/controllers/readAllSpecialities:
+ * /specialities:
  *   get:
  *     tags:
  *       - Specialities
@@ -58,13 +58,13 @@ router.post('/controllers/createSpeciality', (req, res) => {
  *         schema:
  *           $ref: '#/definitions/Specialities'
  */
-router.get('/controllers/readAllSpecialities', (req, res) => {
+router.get('/specialities', (req, res) => {
     specialitiesService.readAll((results) => { res.json(results) });
 });
 
 /**
  * @swagger
- * /specialities/controllers/readSpecialityById/{id}:
+ * /specialities/{id}:
  *   get:
  *     tags:
  *       - Specialities
@@ -83,14 +83,14 @@ router.get('/controllers/readAllSpecialities', (req, res) => {
  *       200:
  *         description: An Speciality return from MySql db
  */
-router.get('/controllers/readSpecialityById/:id', (req, res) => {
+router.get('/specialities/:id', (req, res) => {
     specialitiesService.readById(req.params.id, (result) => { log.info(JSON.stringify(result)); });
     res.send('Read Speciality by ID successful');
 });
 
 /**
  * @swagger
- * /specialities/controllers/updateSpeciality:
+ * /specialities:
  *   put:
  *     tags:
  *       - Specialities
@@ -108,14 +108,14 @@ router.get('/controllers/readSpecialityById/:id', (req, res) => {
  *       200:
  *         description: Successfully updated in MySql db
  */
-router.put('/controllers/updateSpeciality', (req, res) => {
+router.put('/specialities', (req, res) => {
     specialitiesService.update(req.body, (result) => { log.info('Speciality updated') });
     res.send('Speciality updated successfully');
 });
 
 /**
  * @swagger
- * /specialities/controllers/removeSpeciality/{id}:
+ * /specialities/{id}:
  *   delete:
  *     tags:
  *       - Specialities
@@ -132,7 +132,7 @@ router.put('/controllers/updateSpeciality', (req, res) => {
  *       200:
  *         description: Successfully deleted from MySql
  */
-router.delete('/controllers/removeSpeciality/:id', (req, res) => {
+router.delete('/specialities/:id', (req, res) => {
     specialitiesService.remove(req.params.id, (result) => { log.info(JSON.stringify(result)); });
     res.send('Speciality deleted');
 });

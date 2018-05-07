@@ -17,7 +17,7 @@ var groupService = new GroupService();
  *       url:
  *         type: string
  *       userId:
- *         type: string
+ *         type: integer
  *       description:
  *         type: string
  *       picture:
@@ -30,7 +30,7 @@ var groupService = new GroupService();
  */
 /**
  * @swagger
- * /group/controllers/createGroup:
+ * /groups:
  *   post:
  *     tags:
  *       - Group
@@ -38,7 +38,7 @@ var groupService = new GroupService();
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: group
+ *       - name: body
  *         description: Group object 
  *         in: body
  *         required: true
@@ -57,7 +57,7 @@ router.post('/groups', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/getGroups:
+ * /groups:
  *   get:
  *     tags:
  *       - Group
@@ -78,11 +78,11 @@ router.get('/groups', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/getGroupById/{id}:
+ * /groups/{id}:
  *   get:
  *     tags:
  *       - Group
- *     description: Returns Group by id from MySql
+ *     description: Returns group by id from MySql
  *     produces:
  *       - application/json
  *     parameters:
@@ -95,7 +95,7 @@ router.get('/groups', function(req, res) {
  *           $ref: '#/definitions/Group'
  *     responses:
  *       200:
- *         description: An Group return from MySql
+ *         description: A group return from MySql
  */
 router.get('/groups/:id', function(req, res) {
     var id = req.params.id;
@@ -106,7 +106,7 @@ router.get('/groups/:id', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/putGroup:
+ * /groups:
  *   put:
  *     tags:
  *       - Group
@@ -133,7 +133,7 @@ router.put('/groups', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/deleteGroup/{id}:
+ * /groups/{id}:
  *   delete:
  *     tags:
  *       - Group
@@ -165,9 +165,9 @@ router.delete('/groups/:id', function(req, res) {
  *       id:
  *         type: integer
  *       groupId:
- *         type: string
+ *         type: integer
  *       userId:
- *         type: string
+ *         type: integer
  *       createdBy:
  *         type: string
  *       updatedBy:
@@ -175,7 +175,7 @@ router.delete('/groups/:id', function(req, res) {
  */
 /**
  * @swagger
- * /group/controllers/createGroupUserMap:
+ * /groupUserMaps:
  *   post:
  *     tags:
  *       - GroupUserMap
@@ -183,7 +183,7 @@ router.delete('/groups/:id', function(req, res) {
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: groupUserMap
+ *       - name: body
  *         description: GroupUserMap object
  *         in: body
  *         required: true
@@ -202,7 +202,7 @@ router.post('/groupUserMaps', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/getGroupUserMaps:
+ * /groupUserMaps:
  *   get:
  *     tags:
  *       - GroupUserMap
@@ -223,7 +223,7 @@ router.get('/groupUserMaps', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/getGroupUserMapById/{id}:
+ * /groupUserMaps/{id}:
  *   get:
  *     tags:
  *       - GroupUserMap
@@ -251,7 +251,7 @@ router.get('/groupUserMaps/:id', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/putGroupUserMap:
+ * /groupUserMaps:
  *   put:
  *     tags:
  *       - GroupUserMap
@@ -278,7 +278,7 @@ router.put('/groupUserMaps', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/deleteGroupUserMap/{id}:
+ * /groupUserMaps/{id}:
  *   delete:
  *     tags:
  *       - GroupUserMap
@@ -303,7 +303,25 @@ router.delete('/groupUserMaps/:id', function(req, res) {
 });
 
 /**
- * for fetching all the groups for given user
+ * @swagger
+ * /groups/users/{userId}:
+ *   get:
+ *     tags:
+ *       - Group
+ *     description: For fetching all the groups for given user
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: userId
+ *         in: path
+ *         description: userId for group to return 
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *     responses:
+ *       200:
+ *         description: Returns all the groups for the userId
  */
 router.get('/groups/users/:userId', (req, res) => {
     groupService.getAllGroupsByUserId((req.params.userId))
@@ -311,7 +329,31 @@ router.get('/groups/users/:userId', (req, res) => {
 });
 
 /**
- * creating new group by doctor/bot
+ * @swagger
+ * /groups/{receiverId}:
+ *   post:
+ *     tags:
+ *       - Group
+ *     description: Creating new group by doctor/bot
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: body
+ *         description: Group object
+ *         in: body
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *       - name: receiverId
+ *         in: path
+ *         description: receiverId for group to return 
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *     responses:
+ *       200:
+ *         description: Successfully created in MySql db
  */
 router.post('/groups/:receiverId', function(req, res) {
     var group = req.body;
@@ -322,7 +364,38 @@ router.post('/groups/:receiverId', function(req, res) {
 });
 
 /**
- * creating new group manually by doctor/bot
+ * @swagger
+ * /groups/{receiverId}/{doctorId}:
+ *   post:
+ *     tags:
+ *       - Group
+ *     description: Creating new group manually by doctor/bot
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: body
+ *         description: Group object
+ *         in: body
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *       - name: receiverId
+ *         in: path
+ *         description: receiverId for group  
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *       - name: doctorId
+ *         in: path
+ *         description: doctorId for group  
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *     responses:
+ *       200:
+ *         description: Successfully created in MySql db
  */
 router.post('/groups/:receiverId/:doctorId', function(req, res) {
     var group = req.body;

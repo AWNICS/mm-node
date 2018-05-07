@@ -14,7 +14,7 @@ class ContactService {
         });
     }
 
-    getAll(callback) {
+    get(callback) {
         return contactDao.readAll((allContacts) => {
             callback(allContacts);
         });

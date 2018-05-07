@@ -113,14 +113,16 @@ class MessageService {
     /**
      * for getting all media files
      */
-    async mediaMessages(groupId, callback) {
+    async media(receiverId, page, size, callback) {
         var promises = [];
-        var groupMessageMaps = await GroupMessageMap.find({ groupId: groupId.toString() });
-        groupMessageMaps
-            .map((groupMessageMap) => {
-                var message = Message.findOne({ $and: [{ _id: groupMessageMap.messageId }, { 'type': { $in: ['image', 'video', 'doc'] } }] });
-                promises.push(message);
-            });
+        var groupMessageMaps = await GroupMessageMap.find({ groupId: receiverId.toString() })
+            .skip(parseInt(((size * page) - size)))
+            .limit(parseInt(size))
+            .sort({ $natural: -1 });
+        groupMessageMaps.map((groupMessageMap) => {
+            var message = Message.findOne({ $and: [{ _id: groupMessageMap.messageId }, { 'type': { $in: ['image', 'video', 'doc'] } }] });
+            promises.push(message);
+        });
         var messages = await Promise.all(promises);
         callback(messages);
     }

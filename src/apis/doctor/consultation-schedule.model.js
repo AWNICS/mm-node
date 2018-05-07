@@ -6,10 +6,10 @@ module.exports = (sequelize, DataTypes) => {
             autoIncrement: true
         },
         patientId: {
-            type: DataTypes.STRING
+            type: DataTypes.INTEGER
         },
         doctorId: {
-            type: DataTypes.STRING
+            type: DataTypes.INTEGER
         },
         description: {
             type: DataTypes.STRING

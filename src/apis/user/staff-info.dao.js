@@ -49,7 +49,7 @@ class StaffInfoDao {
         sequelize.transaction().then(function(t) {
             staffInfoModel.staff_info.update(staffInfo, {
                 where: {
-                    userId: staffInfo.id
+                    userId: staffInfo.userId
                 }
             }, { transaction: t }).then(function(staffInfoUpdated) {
                 callback(staffInfoUpdated);
