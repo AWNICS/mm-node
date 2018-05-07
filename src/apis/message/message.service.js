@@ -115,16 +115,33 @@ class MessageService {
      */
     async media(receiverId, page, size, callback) {
         var promises = [];
-        var groupMessageMaps = await GroupMessageMap.find({ groupId: receiverId.toString() })
-            .skip(parseInt(((size * page) - size)))
-            .limit(parseInt(size))
-            .sort({ $natural: -1 });
+        var groupMessageMaps = await GroupMessageMap.find({ groupId: receiverId.toString() });
         groupMessageMaps.map((groupMessageMap) => {
             var message = Message.findOne({ $and: [{ _id: groupMessageMap.messageId }, { 'type': { $in: ['image', 'video', 'doc'] } }] });
             promises.push(message);
         });
         var messages = await Promise.all(promises);
-        callback(messages);
+        messages = this.filterMessage(messages).reverse(); //removes all the null messages
+        if (messages.length < size) {
+            callback(messages);
+        } else {
+            messages = messages.splice(messages.length - size);
+            callback(messages);
+        }
+    }
+
+    filterMessage(messages) {
+        var index = -1;
+        var arr_length = messages ? messages.length : 0;
+        var resIndex = -1;
+        var result = [];
+        while (++index < arr_length) {
+            var message = messages[index];
+            if (message) {
+                result[++resIndex] = message;
+            }
+        }
+        return result;
     }
 }
 
