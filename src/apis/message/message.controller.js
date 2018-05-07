@@ -344,7 +344,7 @@ router.delete('/groupMessageMap/:id', (req, res) => {
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: groupId
+ *       - name: id
  *         in: path
  *         description: groupId for message to return
  *         required: true
@@ -355,8 +355,8 @@ router.delete('/groupMessageMap/:id', (req, res) => {
  *       200:
  *         description: Return all media messages for this groupId
  */
-router.get('/messages/media/groups/:groupId', (req, res) => {
-    messageService.media((req.params.groupId), (req.query.page), (req.query.size), (messages) => {
+router.get('/messages/media/groups/:id', (req, res) => {
+    messageService.media((req.params.id), (req.query.page), (req.query.size), (messages) => {
         res.send(messages);
     });
 });
