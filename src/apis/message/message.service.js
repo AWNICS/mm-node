@@ -1,8 +1,3 @@
-/**
- * 1. create
- * 2. 
- */
-
 import messageDao from './message.dao';
 import userMapDao from './user-message-map.dao';
 import groupMapDao from './group-message-map.dao';

@@ -134,7 +134,7 @@ router.delete('/doctors/:id', function(req, res) {
  *       200:
  *         description: An doctor return from MySql db
  */
-router.get('/doctors/:id', function(req, res) {
+router.get('/doctors/:id(\\d+)', function(req, res) {
     var id = req.params.id;
     doctorService.getById(id, (result) => {
         res.send(result);
@@ -186,7 +186,7 @@ router.post('/consultations', function(req, res) {
     doctorService.createConsultation(consultation, (result) => {
         res.send(result);
     });
-})
+});
 
 /**
  * @swagger
@@ -287,6 +287,24 @@ router.delete('/consultations/:id', function(req, res) {
     var id = req.params.id;
     doctorService.deleteConsultation(id, (result) => {
         res.send('Number of consultation deleted: ' + result);
+    });
+});
+
+router.post('/doctors/schedules', function(req, res) {
+    doctorService.createDoctorSchedule(req.body, (result) => {
+        res.send(result);
+    });
+});
+
+router.get('/doctors/schedules', function(req, res) {
+    var location = req.query.location;
+    var speciality = req.query.speciality;
+    var gps = req.query.gps;
+    var currentTime = req.query.current_time;
+    var page = parseInt(req.query.page);
+    var size = parseInt(req.query.size);
+    doctorService.getDoctorsLists(location, speciality, gps, currentTime, page, size, (result) => {
+        res.send(result);
     });
 });
 

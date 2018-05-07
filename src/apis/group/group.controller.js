@@ -406,4 +406,12 @@ router.post('/groups/:receiverId/:doctorId', function(req, res) {
     });
 });
 
+router.get('/groups/doctors/:doctorId/patients/:patientId', function(req, res) {
+    var doctorId = req.params.doctorId;
+    var patientId = req.params.patientId;
+    groupService.consultNow(doctorId, patientId, (result) => {
+        res.send(result);
+    });
+});
+
 module.exports = router;

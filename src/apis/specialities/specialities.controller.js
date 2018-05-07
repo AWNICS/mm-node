@@ -38,9 +38,8 @@ var router = express.Router();
  */
 router.post('/specialities', (req, res) => {
     specialitiesService.create(req.body, (result) => {
-        log.info('Speciality created : ' + JSON.stringify(result));
+        res.send(result);
     });
-    res.send('Speciality created successfully');
 });
 
 /**
@@ -59,7 +58,9 @@ router.post('/specialities', (req, res) => {
  *           $ref: '#/definitions/Specialities'
  */
 router.get('/specialities', (req, res) => {
-    specialitiesService.readAll((results) => { res.json(results) });
+    specialitiesService.readAll((results) => {
+        res.send(results);
+    });
 });
 
 /**
@@ -84,8 +85,9 @@ router.get('/specialities', (req, res) => {
  *         description: An Speciality return from MySql db
  */
 router.get('/specialities/:id', (req, res) => {
-    specialitiesService.readById(req.params.id, (result) => { log.info(JSON.stringify(result)); });
-    res.send('Read Speciality by ID successful');
+    specialitiesService.readById(req.params.id, (result) => {
+        res.send(result);
+    });
 });
 
 /**
@@ -109,8 +111,9 @@ router.get('/specialities/:id', (req, res) => {
  *         description: Successfully updated in MySql db
  */
 router.put('/specialities', (req, res) => {
-    specialitiesService.update(req.body, (result) => { log.info('Speciality updated') });
-    res.send('Speciality updated successfully');
+    specialitiesService.update(req.body, (result) => {
+        res.send(result);
+    });
 });
 
 /**
@@ -133,8 +136,9 @@ router.put('/specialities', (req, res) => {
  *         description: Successfully deleted from MySql
  */
 router.delete('/specialities/:id', (req, res) => {
-    specialitiesService.remove(req.params.id, (result) => { log.info(JSON.stringify(result)); });
-    res.send('Speciality deleted');
+    specialitiesService.remove(req.params.id, (result) => {
+        res.send(result);
+    });
 });
 
 module.exports = router;

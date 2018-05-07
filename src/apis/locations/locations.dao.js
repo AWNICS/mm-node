@@ -1,25 +1,24 @@
-import groupModel from './index';
+import locationsModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
 /*
-DAO for Doctor api
+DAO for Locations api
 */
-class GroupDao {
+class LocationsDao {
     constructor() {}
 
     /**
      * insert method
      */
-    insert(group, callback) {
+    insert(locations, callback) {
         sequelize.sync({ force: false }).then(() => {
             sequelize.transaction().then(function(t) {
-                groupModel.group.create(group, { transaction: t }).then(function(groupInserted) {
-                    callback(groupInserted);
+                locationsModel.locations.create(locations, { transaction: t }).then(function(locationsInserted) {
+                    callback(locationsInserted);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
-                    log.error('Error while creating a new group: ', error);
                     t.rollback();
                 });
             });
@@ -30,8 +29,8 @@ class GroupDao {
      * read all method
      */
     readAll(callback) {
-        groupModel.group.findAll().then((allGroup) => {
-            callback(allGroup);
+        locationsModel.locations.findAll().then((locations) => {
+            callback(locations);
         });
     }
 
@@ -39,25 +38,26 @@ class GroupDao {
      * read method based on id
      */
     readById(id, callback) {
-        groupModel.group.find({ where: { id: id } }).then((group) => {
-            callback(group);
+        locationsModel.locations.find({ where: { id: id } }).then((locations) => {
+            callback(locations);
         });
     }
 
     /**
      * Update method
      */
-    update(group, callback) {
+    update(locations, callback) {
         sequelize.transaction().then(function(t) {
-            groupModel.group.update(group, {
+            locationsModel.locations.update(locations, {
                 where: {
-                    id: group.id
+                    id: locations.id
                 }
-            }, { transaction: t }).then(function(groupUpdated) {
-                callback(groupUpdated);
+            }, { transaction: t }).then(function(locationsUpdated) {
+                callback(locationsUpdated);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
+                log.error('Error in locations dao update ', error);
                 t.rollback();
             });
         });
@@ -68,12 +68,12 @@ class GroupDao {
      */
     delete(id, callback) {
         sequelize.transaction().then(function(t) {
-            groupModel.group.destroy({
+            locationsModel.locations.destroy({
                 where: {
                     id: id
                 }
-            }).then(function(groupDeleted) {
-                callback(groupDeleted);
+            }).then(function(locationsDeleted) {
+                callback(locationsDeleted);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
@@ -83,4 +83,4 @@ class GroupDao {
     }
 }
 
-export default GroupDao;
+export default LocationsDao;
