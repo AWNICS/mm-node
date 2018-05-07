@@ -39,7 +39,7 @@ class GroupDao {
      * read method based on id
      */
     readById(id, callback) {
-        groupModel.group.findById(id).then((group) => {
+        groupModel.group.find({ where: { id: id } }).then((group) => {
             callback(group);
         });
     }

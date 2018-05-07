@@ -141,7 +141,7 @@ router.delete('/doctors/:id', function(req, res) {
  *       200:
  *         description: An doctor return from MySql db
  */
-router.get('/doctors/:id', function(req, res) {
+router.get('/doctors/:id(\\d+)', function(req, res) {
     var id = req.params.id;
     doctorService.getById(id, (result) => {
         res.send(result);
@@ -156,7 +156,7 @@ router.post('/consultations', function(req, res) {
     doctorService.createConsultation(consultation, (result) => {
         res.send(result);
     });
-})
+});
 
 router.get('/consultations', function(req, res) {
     doctorService.getAllConsultation((result) => {

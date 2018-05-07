@@ -119,6 +119,7 @@ class DoctorService {
                 u.lastName,
                 u.picUrl,
                 u.rating,
+                d.userId,
                 d.regNo,
                 d.location,
                 d.speciality,
