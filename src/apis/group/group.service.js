@@ -270,7 +270,7 @@ class GroupService {
                         });
                     } else {
                         var group = {
-                            name: 'Consultaion',
+                            name: 'Consultation',
                             url: `consultation/${patientId}`,
                             userId: patientId,
                             description: 'Consultation for registered patients',
