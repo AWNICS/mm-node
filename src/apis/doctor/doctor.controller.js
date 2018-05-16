@@ -290,12 +290,75 @@ router.delete('/consultations/:id', function(req, res) {
     });
 });
 
+/**
+ * @swagger
+ * definitions:
+ *   DoctorSchedule:
+ *     properties:
+ *       id:
+ *         type: integer
+ *       doctorId:
+ *         type: integer
+ *       status:
+ *         type: string
+ *       activity: 
+ *         type: string
+ *       waitTime:
+ *         type: integer
+ *       slotId: 
+ *         type: integer
+ *       startTime:
+ *         type: string
+ *         format: date
+ *       endTime:
+ *         type: string
+ *         format: date
+ *       duration:
+ *         type: integer
+ *       createdBy:
+ *         type: string
+ *       updatedBy:
+ *         type: string
+ */
+/**
+ * @swagger
+ * /doctors/schedules:
+ *   post:
+ *     tags:
+ *       - DoctorSchedule
+ *     description: Creates a new doctor schedule in MySql db
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: body
+ *         description: doctor schedule object
+ *         in: body
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/DoctorSchedule'
+ *     responses:
+ *       200:
+ *         description: Successfully created doctor schedule in MySql db
+ */
 router.post('/doctors/schedules', function(req, res) {
     doctorService.createDoctorSchedule(req.body, (result) => {
         res.send(result);
     });
 });
 
+/**
+ * @swagger
+ * /doctors/schedules:
+ *   get:
+ *     tags:
+ *       - DoctorSchedule
+ *     description: Returns lists of doctors based on location, speciality, gps, currentTime, page, size
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: Lists of doctors return from MySql db
+ */
 router.get('/doctors/schedules', function(req, res) {
     var location = req.query.location;
     var speciality = req.query.speciality;
