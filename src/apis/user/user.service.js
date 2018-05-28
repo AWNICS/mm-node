@@ -50,7 +50,19 @@ class UserService {
         bcrypt.hash(user.password, 10, (err, hash) => {
             user.password = hash;
             return userDao.insert(user, (userInserted) => {
-                callback(userInserted);
+                //update createdBy and updatedBy
+                userInserted.createdBy = userInserted.id;
+                userInserted.updatedBy = userInserted.id;
+                userModel.user.update({ "createdBy": userInserted.id, "updatedBy": userInserted.id }, {
+                    where: {
+                        id: userInserted.id
+                    }
+                }).then(() => {
+                    callback(userInserted);
+                }).catch((err) => {
+                    log.error('Error while updating the user ', err);
+                });
+
                 RoleModel.role.findOne({ where: { name: userInserted.role } }).then((role) => {
                     var userRole = {
                         userId: userInserted.id,
@@ -65,15 +77,15 @@ class UserService {
                         url: `/medhelp/${userInserted.id}`,
                         userId: userInserted.id,
                         description: 'Med help',
-                        createdBy: 'docbot',
-                        updatedBy: 'docbot'
+                        createdBy: userInserted.id,
+                        updatedBy: userInserted.id
                     };
                     return groupDao.insert(group, (createdGroup) => {
                         var groupUserMap = {
                             userId: createdGroup.userId,
                             groupId: createdGroup.id,
-                            createdBy: 'user',
-                            updatedBy: 'user'
+                            createdBy: createdGroup.userId,
+                            updatedBy: createdGroup.userId
                         };
                         groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
                         sequelize
@@ -91,8 +103,8 @@ class UserService {
                                 var groupUserMapBot = {
                                     groupId: createdGroup.id,
                                     userId: uId,
-                                    createdBy: 'bot',
-                                    updatedBy: 'bot'
+                                    createdBy: uId,
+                                    updatedBy: uId
                                 }
                                 groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
                                 var msg = {
@@ -114,15 +126,15 @@ class UserService {
                         url: `/medhelp/${userInserted.id}`,
                         userId: userInserted.id,
                         description: 'Med help',
-                        createdBy: 'docbot',
-                        updatedBy: 'docbot'
+                        createdBy: userInserted.id,
+                        updatedBy: userInserted.id
                     };
                     return groupDao.insert(group, (createdGroup) => {
                         var groupUserMap = {
                             userId: createdGroup.userId,
                             groupId: createdGroup.id,
-                            createdBy: 'user',
-                            updatedBy: 'user'
+                            createdBy: createdGroup.userId,
+                            updatedBy: createdGroup.userId
                         };
                         groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
                         sequelize
@@ -140,8 +152,8 @@ class UserService {
                                 var groupUserMapBot = {
                                     groupId: createdGroup.id,
                                     userId: uId,
-                                    createdBy: 'bot',
-                                    updatedBy: 'bot'
+                                    createdBy: uId,
+                                    updatedBy: uId
                                 }
                                 groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
                                 var msg = {

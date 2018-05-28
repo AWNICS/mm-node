@@ -14,9 +14,6 @@ module.exports = (sequelize, DataTypes) => {
         sex: {
             type: DataTypes.STRING
         },
-        location: {
-            type: DataTypes.STRING
-        },
         address: {
             type: DataTypes.STRING
         },
@@ -35,11 +32,28 @@ module.exports = (sequelize, DataTypes) => {
         appearUrl: {
             type: DataTypes.STRING
         },
-        createdBy: {
+        waitingTime: {
+            type: DataTypes.NUMERIC
+        },
+        ratingValue: {
+            type: DataTypes.NUMERIC
+        },
+        ratingCount: {
+            type: DataTypes.NUMERIC
+        },
+        shortBio: {
             type: DataTypes.STRING
         },
-        updatedBy: {
+        longBio: {
             type: DataTypes.STRING
+        },
+        createdBy: {
+            type: DataTypes.INTEGER,
+            defaultValue: null
+        },
+        updatedBy: {
+            type: DataTypes.INTEGER,
+            defaultValue: null
         },
         termsAccepted: {
             type: DataTypes.BOOLEAN

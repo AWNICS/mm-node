@@ -32,12 +32,6 @@ module.exports = (sequelize, DataTypes) => {
         status: {
             type: DataTypes.STRING
         },
-        waitingTime: {
-            type: DataTypes.NUMERIC
-        },
-        rating: {
-            type: DataTypes.NUMERIC
-        },
         token: {
             type: DataTypes.STRING
         },
@@ -54,10 +48,12 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: null
         },
         createdBy: {
-            type: DataTypes.STRING
+            type: DataTypes.INTEGER,
+            defaultValue: null
         },
         updatedBy: {
-            type: DataTypes.STRING
+            type: DataTypes.INTEGER,
+            defaultValue: null
         }
     }, {
         freezeTableName: true

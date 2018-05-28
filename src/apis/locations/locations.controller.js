@@ -23,9 +23,9 @@ var router = express.Router();
  *       lngMax:
  *         type: integer
  *       createdBy:
- *         type: string
+ *         type: integer
  *       updatedBy:
- *         type: string   
+ *         type: integer   
  */
 /**
  * @swagger

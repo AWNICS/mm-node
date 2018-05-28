@@ -21,10 +21,12 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DOUBLE
         },
         createdBy: {
-            type: DataTypes.STRING
+            type: DataTypes.INTEGER,
+            defaultValue: null
         },
         updatedBy: {
-            type: DataTypes.STRING
+            type: DataTypes.INTEGER,
+            defaultValue: null
         }
     }, {
         freezeTableName: true

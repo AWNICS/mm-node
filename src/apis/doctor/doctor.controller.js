@@ -33,9 +33,9 @@ var doctorService = new DoctorService();
  *       appearUrl:
  *         type: string
  *       createdBy:
- *         type: string
+ *         type: integer
  *       updatedBy:
- *         type: string
+ *         type: integer
  *       termsAccepted:
  *         type: boolean
  */
@@ -155,9 +155,9 @@ router.get('/doctors/:id(\\d+)', function(req, res) {
  *       description:
  *         type: string
  *       createdBy:
- *         type: string
+ *         type: integer
  *       updatedBy:
- *         type: string
+ *         type: integer
  *       lastActive:
  *         type: string
  */
@@ -316,9 +316,9 @@ router.delete('/consultations/:id', function(req, res) {
  *       duration:
  *         type: integer
  *       createdBy:
- *         type: string
+ *         type: integer
  *       updatedBy:
- *         type: string
+ *         type: integer
  */
 /**
  * @swagger
@@ -368,6 +368,100 @@ router.get('/doctors/schedules', function(req, res) {
     var size = parseInt(req.query.size);
     doctorService.getDoctorsLists(location, speciality, gps, currentTime, page, size, (result) => {
         res.send(result);
+    });
+});
+
+/**doctorMedia */
+router.post('/doctors/bio', function(req, res) {
+    var doctorMedia = req.body;
+    doctorService.createDoctorMedia(doctorMedia, (result) => {
+        res.send(result);
+    });
+});
+
+router.get('/doctors/bio', function(req, res) {
+    doctorService.getAllDoctorMedias((result) => {
+        res.json(result);
+    });
+});
+
+router.get('/doctors/:doctorId/bio', function(req, res) {
+    var doctorId = req.params.doctorId;
+    doctorService.getMediaByDoctorId(doctorId, (result) => {
+        res.send(result);
+    });
+});
+
+/*router.get('/doctors/:id/bio', function(req, res) {
+    var id = req.params.id;
+    doctorService.getByIdDoctorMedia(id, (result) => {
+        res.send(result);
+    });
+});*/
+
+router.put('/doctors/:id/bio', function(req, res) {
+    var doctorMedia = req.body;
+    var id = req.params.id;
+    doctorService.updateDoctorMedia(doctorMedia, id, (result) => {
+        res.send(result);
+    });
+});
+
+router.delete('/doctors/:id/bio', function(req, res) {
+    var id = req.params.id;
+    doctorService.deleteDoctorMedia(id, (result) => {
+        res.send('Number of doctor media deleted: ' + result);
+    });
+});
+
+/**doctorStore */
+router.post('/doctors/bio/extra', function(req, res) {
+    var doctorStore = req.body;
+    doctorService.createDoctorStore(doctorStore, (result) => {
+        res.send(result);
+    });
+});
+
+router.get('/doctors/bio/extra', function(req, res) {
+    doctorService.getAllDoctorStores((result) => {
+        res.json(result);
+    });
+});
+
+/*router.get('/doctors/:id/bio/extra', function(req, res) {
+    var id = req.params.id;
+    doctorService.getByIdDoctorStore(id, (result) => {
+        res.send(result);
+    });
+});*/
+
+router.get('/doctors/:doctorId/bio/extra', function(req, res) {
+    var doctorId = req.params.doctorId;
+    doctorService.getByIdDoctorStore(doctorId, (result) => {
+        res.send(result);
+    });
+});
+
+router.get('/doctors/:doctorId/bio', function(req, res) {
+    var doctorId = req.params.doctorId;
+    doctorService.getByIdDoctorStore(doctorId, (result) => {
+        res.send(result);
+    });
+});
+
+router.put('/doctors/:id/bio/extra/:type', function(req, res) {
+    var doctorStore = req.body;
+    var id = req.params.id;
+    var type = req.params.type;
+    doctorService.updateDoctorStore(doctorStore, id, type, (result) => {
+        res.send(result);
+    });
+});
+
+router.delete('/doctors/:id/bio/extra', function(req, res) {
+    var id = req.params.id;
+    doctorService.deleteDoctorStore(id, (result) => {
+        res.send('Number of doctor store deleted: ' + result);
     });
 });
 

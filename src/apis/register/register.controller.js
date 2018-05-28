@@ -36,9 +36,9 @@ const userService = new UserService();
  *       appearUrl:
  *         type: string
  *       createdBy:
- *         type: string
+ *         type: integer
  *       updatedBy:
- *         type: string
+ *         type: integer
  *       termsAccepted:
  *         type: boolean
  */
@@ -107,9 +107,9 @@ router.post('/doctors', function(req, res) {
  *       socketId:
  *         type: string
  *       createdBy:
- *         type: string
+ *         type: integer
  *       updatedBy:
- *         type: string
+ *         type: integer
  */
 /**
  * @swagger

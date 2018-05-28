@@ -23,9 +23,9 @@ var groupService = new GroupService();
  *       picture:
  *         type: string
  *       createdBy:
- *         type: string
+ *         type: integer
  *       updatedBy:
- *         type: string
+ *         type: integer
  *       
  */
 /**
@@ -169,9 +169,9 @@ router.delete('/groups/:id', function(req, res) {
  *       userId:
  *         type: integer
  *       createdBy:
- *         type: string
+ *         type: integer
  *       updatedBy:
- *         type: string
+ *         type: integer
  */
 /**
  * @swagger
