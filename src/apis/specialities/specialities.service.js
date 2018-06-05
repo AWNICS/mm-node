@@ -1,25 +1,19 @@
-/**
- * 1. create
- * 2. 
- */
+import SpecialitiesDao from './specialities.dao';
 
-import specialitiesDao from './specialities.dao';
-import Speciality from './specialities.model';
+const specialitiesDao = new SpecialitiesDao();
 
 class SpecialitiesService {
-    constructor() {}
 
     create(speciality, callback) {
-        var spec = new Speciality(speciality);
-        specialitiesDao.create(spec, callback);
+        specialitiesDao.insert(speciality, callback);
     }
 
     readAll(callback) {
-        specialitiesDao.getAll(callback);
+        specialitiesDao.readAll(callback);
     }
 
     readById(id, callback) {
-        specialitiesDao.getById(id, callback);
+        specialitiesDao.readById(id, callback);
     }
 
     remove(id, callback) {

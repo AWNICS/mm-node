@@ -30,7 +30,7 @@ exports.connectSocket = (io) => {
 
                 userService.getById(userId, (user) => {
                     if (user.id === userId) {
-                        userService.updateRegisteredUser({ 'id': userId, 'socketId': socket.id }, (user) => {});
+                        userService.updateRegisteredUser({ 'id': userId, 'socketId': socket.id, 'status': 'online' }, (user) => {});
                     }
                 });
             });
@@ -42,8 +42,8 @@ exports.connectSocket = (io) => {
                 // if it is a group message
                 if (msg.receiverType === "group") {
                     userService.getById(msg.senderId, (result) => {
-                        msg.createdBy = result.name;
-                        msg.updatedBy = result.name;
+                        msg.createdBy = `${result.firstname} ${result.lastname}`;
+                        msg.updatedBy = `${result.firstname} ${result.lastname}`;
                         msg.picUrl = result.picUrl;
                         messageService.sendMessage(msg, (result) => {
                             groupService.getAllUsersByGroupId(msg.receiverId, (user) => {
@@ -55,8 +55,8 @@ exports.connectSocket = (io) => {
                 // if it is a private message 
                 else if (msg.receiverType === "private") {
                     userService.getById(msg.senderId, (result) => {
-                        msg.createdBy = result.name;
-                        msg.updatedBy = result.name;
+                        msg.createdBy = `${result.firstname} ${result.lastname}`;
+                        msg.updatedBy = `${result.firstname} ${result.lastname}`;
                         msg.picUrl = result.picUrl;
                         messageService.sendMessage(msg, (result) => {
                             userService.getById(msg.receiverId, (user) => {
@@ -106,9 +106,35 @@ exports.connectSocket = (io) => {
                 });
             });
 
-            socket.on('user-logout', (userId) => {
+            /**
+             * delete message
+             */
+            socket.on('delete-message', (data, index) => {
+                messageService.removeGroupMessageMap(data._id, (result) => {
+                    groupService.getAllUsersByGroupId(data.receiverId, (user) => {
+                        io.in(user.socketId).emit('deleted-message', { result, data, index }); //emit one-by-one for all users
+                    });
+                });
+            });
+
+            /**
+             * notifying online users for deleted message
+             */
+            socket.on('notify-users', (data) => {
+                groupService.getAllUsersByGroupId(data.receiverId, (user) => {
+                    io.in(user.socketId).emit('receive-notification', { 'message': 'One message deleted from this group' }); //emit one-by-one for all users
+                });
+            });
+
+            socket.on('user-disconnect', (userId) => {
                 socket.disconnect();
-                log.info('User logged out: ', userId);
+                userService.getById(userId, (user) => {
+                    if (user.id === userId) {
+                        userService.updateRegisteredUser({ 'id': userId, 'status': 'offline' }, (user) => {
+                            log.info('User logged out: ', userId);
+                        });
+                    }
+                });
             });
         });
 }

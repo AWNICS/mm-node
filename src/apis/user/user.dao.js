@@ -19,6 +19,7 @@ class UserDao {
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
+                    log.error('error in userDao ', error);
                     t.rollback();
                 });
             });

@@ -9,13 +9,15 @@ import userModel from '../user/index';
 import UserService from '../user/user.service';
 import DoctorService from '../doctor/doctor.service';
 import consultationScheduleModel from '../doctor/index';
+import MessageService from '../message/message.service';
 
-var Promise = require('bluebird');
+const Promise = require('bluebird');
 
-var groupDao = new GroupDao();
-var groupUserMapDao = new GroupUserMapDao();
-var userService = new UserService();
-var doctorService = new DoctorService();
+const groupDao = new GroupDao();
+const groupUserMapDao = new GroupUserMapDao();
+const userService = new UserService();
+const doctorService = new DoctorService();
+const messageService = new MessageService();
 
 class GroupService {
     constructor() {}
@@ -151,7 +153,7 @@ class GroupService {
                 }
             });
             sequelize
-                .query("select d.id, d.name from doctor d LEFT JOIN consultation_schedule cs on d.id=cs.doctorId where cs.doctorId is NULL", { type: sequelize.QueryTypes.SELECT })
+                .query("select d.id, d.firstname from doctor d LEFT JOIN consultation_schedule cs on d.id=cs.doctorId where cs.doctorId is NULL", { type: sequelize.QueryTypes.SELECT })
                 .then((allDoctors) => {
                     if (allDoctors.length > 0) { //for new group
                         var doctorMap = { //mapping doctor to consultation
@@ -243,6 +245,107 @@ class GroupService {
         });
     }
 
+    consultNow(doctorId, patientId, callback) {
+        return sequelize
+            .query(`
+            SELECT
+                ga.groupId
+            FROM
+                group_user_map AS ga, group_user_map AS gb
+            WHERE
+                ga.userId=${doctorId}
+            AND
+                gb.userId=${patientId}
+            AND
+                ga.groupId=gb.groupId;
+                `, { type: sequelize.QueryTypes.SELECT })
+            .then((result, err) => {
+                if (err) {
+                    log.error('Error while fetching doctors list ', err);
+                    callback(err);
+                } else {
+                    if (result.length >= 1) {
+                        this.getById(result[0].groupId, (existingGroup) => {
+                            callback(existingGroup);
+                        });
+                    } else {
+                        var group = {
+                            name: 'Consultation',
+                            url: `consultation/${patientId}`,
+                            userId: patientId,
+                            description: 'Consultation for registered patients',
+                            picture: null,
+                            createdBy: 'admin',
+                            updatedBy: 'admin'
+                        };
+                        this.createGroupForConsultation(group, doctorId, patientId, (newGroup) => {
+                            callback(newGroup);
+                        });
+                    }
+                }
+            });
+    }
+
+    createGroupForConsultation(group, doctorId, patientId, callback) {
+        this.create(group, (createdGroup) => {
+            callback(createdGroup);
+            // mapping patient to the group
+            var groupUserMap = {
+                groupId: createdGroup.id,
+                userId: patientId,
+                createdBy: createdGroup.createdBy,
+                updatedBy: createdGroup.updatedBy
+            }
+            this.createGroupUserMap(groupUserMap, (userMapped) => {});
+            //mapping doctor to the group
+            var groupDoctorMap = {
+                groupId: createdGroup.id,
+                userId: doctorId,
+                createdBy: createdGroup.createdBy,
+                updatedBy: createdGroup.updatedBy
+            }
+            this.createGroupUserMap(groupDoctorMap, (doctorMapped) => {});
+            //mapping bot to the group and creating a new message
+            sequelize
+                .query("select u.id, u.firstname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
+                .then((groupUserMaps) => {
+                    var uId;
+                    for (var i = 0; i < groupUserMaps.length; i++) {
+                        if (groupUserMaps[i].role.toLowerCase() == 'bot') {
+                            uId = groupUserMaps[i].id;
+                            break;
+                        } else {
+                            continue;
+                        }
+                    }
+                    var groupUserMapBot = {
+                        groupId: createdGroup.id,
+                        userId: uId,
+                        createdBy: createdGroup.createdBy,
+                        updatedBy: createdGroup.updatedBy
+                    };
+                    groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
+                    var msg = {
+                        receiverId: createdGroup.id,
+                        receiverType: 'group', // group or individual
+                        senderId: uId,
+                        text: 'Welcome to Mesomeds!! How can we help you?',
+                        createdTime: Date.now(),
+                        updatedTime: Date.now()
+                    };
+                    messageService.sendMessage(msg, (result) => {});
+                });
+            //mapping doctor into consultation
+            var doctorMap = {
+                patientId: patientId,
+                doctorId: doctorId,
+                createdBy: createdGroup.createdBy,
+                updatedBy: createdGroup.updatedBy,
+                lastActive: Date.now()
+            }
+            doctorService.createConsultation(doctorMap, (consultationCreated) => {});
+        });
+    }
 }
 
 export default GroupService;

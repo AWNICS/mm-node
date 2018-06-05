@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    var Doctor = sequelize.define('doctor', {
+    var PatientInfo = sequelize.define('patient_info', {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
@@ -8,10 +8,19 @@ module.exports = (sequelize, DataTypes) => {
         userId: {
             type: DataTypes.INTEGER
         },
-        regNo: {
+        sex: {
             type: DataTypes.STRING
         },
-        sex: {
+        weight: {
+            type: DataTypes.INTEGER
+        },
+        height: {
+            type: DataTypes.INTEGER
+        },
+        bloodGroup: {
+            type: DataTypes.STRING
+        },
+        allergies: {
             type: DataTypes.STRING
         },
         location: {
@@ -20,32 +29,14 @@ module.exports = (sequelize, DataTypes) => {
         address: {
             type: DataTypes.STRING
         },
-        speciality: {
-            type: DataTypes.STRING
-        },
-        experience: {
-            type: DataTypes.DOUBLE
-        },
-        description: {
-            type: DataTypes.STRING
-        },
-        videoUrl: {
-            type: DataTypes.STRING
-        },
-        appearUrl: {
-            type: DataTypes.STRING
-        },
         createdBy: {
             type: DataTypes.STRING
         },
         updatedBy: {
             type: DataTypes.STRING
-        },
-        termsAccepted: {
-            type: DataTypes.BOOLEAN
         }
     }, {
         freezeTableName: true
     });
-    return Doctor;
+    return PatientInfo;
 };

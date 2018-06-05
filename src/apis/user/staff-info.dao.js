@@ -1,25 +1,23 @@
-import groupModel from './index';
+import staffInfoModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
-/*
-DAO for Doctor api
-*/
-class GroupDao {
-    constructor() {}
-
+/**
+ * DAO for staff-info api
+ */
+class StaffInfoDao {
     /**
      * insert method
      */
-    insert(group, callback) {
+    insert(staffInfo, callback) {
         sequelize.sync({ force: false }).then(() => {
             sequelize.transaction().then(function(t) {
-                groupModel.group.create(group, { transaction: t }).then(function(groupInserted) {
-                    callback(groupInserted);
+                staffInfoModel.staff_info.create(staffInfo, { transaction: t }).then(function(insertedStaffInfo) {
+                    callback(insertedStaffInfo);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
-                    log.error('Error while creating a new group: ', error);
+                    log.error('error in staffInfoDao ', error);
                     t.rollback();
                 });
             });
@@ -30,8 +28,8 @@ class GroupDao {
      * read all method
      */
     readAll(callback) {
-        groupModel.group.findAll().then((allGroup) => {
-            callback(allGroup);
+        staffInfoModel.staff_info.findAll().then((staffInfo) => {
+            callback(staffInfo);
         });
     }
 
@@ -39,22 +37,22 @@ class GroupDao {
      * read method based on id
      */
     readById(id, callback) {
-        groupModel.group.find({ where: { id: id } }).then((group) => {
-            callback(group);
+        staffInfoModel.staff_info.find({ where: { userId: id } }).then((staffInfo) => {
+            callback(staffInfo);
         });
     }
 
     /**
      * Update method
      */
-    update(group, callback) {
+    update(staffInfo, callback) {
         sequelize.transaction().then(function(t) {
-            groupModel.group.update(group, {
+            staffInfoModel.staff_info.update(staffInfo, {
                 where: {
-                    id: group.id
+                    userId: staffInfo.userId
                 }
-            }, { transaction: t }).then(function(groupUpdated) {
-                callback(groupUpdated);
+            }, { transaction: t }).then(function(staffInfoUpdated) {
+                callback(staffInfoUpdated);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
@@ -68,12 +66,12 @@ class GroupDao {
      */
     delete(id, callback) {
         sequelize.transaction().then(function(t) {
-            groupModel.group.destroy({
+            staffInfoModel.staff_info.destroy({
                 where: {
                     id: id
                 }
-            }).then(function(groupDeleted) {
-                callback(groupDeleted);
+            }).then(function(staffInfo) {
+                callback(staffInfo);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
@@ -83,4 +81,4 @@ class GroupDao {
     }
 }
 
-export default GroupDao;
+module.exports = StaffInfoDao;

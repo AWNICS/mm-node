@@ -29,6 +29,8 @@ import specialities from '../apis/specialities/specialities.controller';
 import passport from '../auth/authorization';
 import authenticate from '../auth/authenticate';
 import role from '../apis/role/role.controller';
+import register from '../apis/register/register.controller';
+import locations from '../apis/locations/locations.controller';
 
 class Config {
     constructor() {
@@ -81,20 +83,23 @@ class Config {
 
     configureRoutes() {
         // configuring routes
-        this.app.use('/', authenticate);
-        this.app.use('/', passport.authenticate('jwt', { session: false }), doctor);
-        this.app.use('/', passport.authenticate('jwt', { session: false }), file);
-        this.app.use('/', passport.authenticate('jwt', { session: false }), message);
-        this.app.use('/', passport.authenticate('jwt', { session: false }), user);
-        this.app.use('/contact', passport.authenticate('jwt', { session: false }), contactUs);
-        this.app.use('/', passport.authenticate('jwt', { session: false }), group);
-        this.app.use('/', specialities);
-        this.app.use('/orderRequest', passport.authenticate('jwt', { session: false }), orderRequest);
-        this.app.use('/role', role);
         this.app.get('/swagger.json', (req, res) => {
             res.setHeader('Content-Type', 'application/json');
             res.send(swaggerSpec);
         });
+        this.app.use('/', locations);
+        this.app.use('/', specialities);
+        this.app.use('/', register);
+        this.app.use('/', doctor);
+        this.app.use('/', authenticate);
+        this.app.use('/', passport.authenticate('jwt', { session: false }), user);
+        //this.app.use('/', passport.authenticate('jwt', { session: false }), doctor);
+        this.app.use('/', passport.authenticate('jwt', { session: false }), file);
+        this.app.use('/', passport.authenticate('jwt', { session: false }), message);
+        this.app.use('/', passport.authenticate('jwt', { session: false }), group);
+        //this.app.use('/role', role);
+        //this.app.use('/contact', passport.authenticate('jwt', { session: false }), contactUs);
+        //this.app.use('/orderRequest', passport.authenticate('jwt', { session: false }), orderRequest);
     }
 
     listen(port) {

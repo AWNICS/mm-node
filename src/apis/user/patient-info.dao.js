@@ -1,25 +1,24 @@
-import groupModel from './index';
+import patientInfoModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
-/*
-DAO for Doctor api
-*/
-class GroupDao {
-    constructor() {}
+/**
+ * DAO for patient-info api
+ */
+class PatientInfoDao {
 
     /**
      * insert method
      */
-    insert(group, callback) {
+    insert(patientInfo, callback) {
         sequelize.sync({ force: false }).then(() => {
             sequelize.transaction().then(function(t) {
-                groupModel.group.create(group, { transaction: t }).then(function(groupInserted) {
-                    callback(groupInserted);
+                patientInfoModel.patient_info.create(patientInfo, { transaction: t }).then(function(insertedPatientInfo) {
+                    callback(insertedPatientInfo);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
-                    log.error('Error while creating a new group: ', error);
+                    log.error('error in patientInfoDao ', error);
                     t.rollback();
                 });
             });
@@ -30,8 +29,8 @@ class GroupDao {
      * read all method
      */
     readAll(callback) {
-        groupModel.group.findAll().then((allGroup) => {
-            callback(allGroup);
+        patientInfoModel.patient_info.findAll().then((patientInfo) => {
+            callback(patientInfo);
         });
     }
 
@@ -39,22 +38,22 @@ class GroupDao {
      * read method based on id
      */
     readById(id, callback) {
-        groupModel.group.find({ where: { id: id } }).then((group) => {
-            callback(group);
+        patientInfoModel.patient_info.find({ where: { userId: id } }).then((patientInfo) => {
+            callback(patientInfo);
         });
     }
 
     /**
      * Update method
      */
-    update(group, callback) {
+    update(patientInfo, callback) {
         sequelize.transaction().then(function(t) {
-            groupModel.group.update(group, {
+            patientInfoModel.patient_info.update(patientInfo, {
                 where: {
-                    id: group.id
+                    userId: patientInfo.userId
                 }
-            }, { transaction: t }).then(function(groupUpdated) {
-                callback(groupUpdated);
+            }, { transaction: t }).then(function(patientInfoUpdated) {
+                callback(patientInfoUpdated);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
@@ -68,12 +67,12 @@ class GroupDao {
      */
     delete(id, callback) {
         sequelize.transaction().then(function(t) {
-            groupModel.group.destroy({
+            patientInfoModel.patient_info.destroy({
                 where: {
                     id: id
                 }
-            }).then(function(groupDeleted) {
-                callback(groupDeleted);
+            }).then(function(patientInfo) {
+                callback(patientInfo);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
@@ -83,4 +82,4 @@ class GroupDao {
     }
 }
 
-export default GroupDao;
+module.exports = PatientInfoDao;
