@@ -31,10 +31,12 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER // total time doctor is available per day
         },
         createdBy: {
-            type: DataTypes.STRING
+            type: DataTypes.INTEGER,
+            defaultValue: null
         },
         updatedBy: {
-            type: DataTypes.STRING
+            type: DataTypes.INTEGER,
+            defaultValue: null
         }
     }, {
         freezeTableName: true

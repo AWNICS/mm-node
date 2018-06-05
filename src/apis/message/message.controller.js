@@ -44,9 +44,9 @@ var router = express.Router();
  *         type: string
  *         format: date
  *       createdBy: 
- *         type: string
+ *         type: integer
  *       updatedBy: 
- *         type: string
+ *         type: integer
  *       createdTime: 
  *         type: string
  *         format: date
@@ -225,9 +225,9 @@ router.get('/messages/users/:userId/groups/:groupId', (req, res) => {
  *       userSId:
  *         type: integer
  *       createdBy: 
- *         type: string
+ *         type: integer
  *       updatedBy: 
- *         type: string
+ *         type: integer
  *       createdTime: 
  *         type: string
  *         format: date
