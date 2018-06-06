@@ -1,23 +1,26 @@
 module.exports = (sequelize, DataTypes) => {
-    var Group = sequelize.define('group', {
+    var DoctorMedia = sequelize.define('doctor_media', {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
-        name: {
+        userId: {
+            type: DataTypes.INTEGER
+        },
+        title: {
+            type: DataTypes.STRING
+        },
+        description: {
             type: DataTypes.STRING
         },
         url: {
             type: DataTypes.STRING
         },
-        userId: {
-            type: DataTypes.INTEGER
-        },
-        description: {
+        thumbUrl: {
             type: DataTypes.STRING
         },
-        picture: {
+        type: {
             type: DataTypes.STRING
         },
         createdBy: {
@@ -31,5 +34,5 @@ module.exports = (sequelize, DataTypes) => {
     }, {
         freezeTableName: true
     });
-    return Group;
+    return DoctorMedia;
 };

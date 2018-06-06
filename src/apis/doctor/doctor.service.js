@@ -1,15 +1,20 @@
 import DoctorDao from './doctor.dao';
-import doctorModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 import ConsultationDao from './consultation-schedule.dao';
 import DoctorSchedule from './doctor-schedule.dao';
 import UserService from '../user/user.service';
+import DoctorMediaDao from './doctor-media.dao';
+import DoctorStoreDao from './doctor-store.dao';
+import doctorMediaModel from './index';
+import doctorStoreModel from './index';
 
 var doctorDao = new DoctorDao();
 var consultationDao = new ConsultationDao();
 var userService = new UserService();
 var doctorScheduleDao = new DoctorSchedule();
+var doctorMediaDao = new DoctorMediaDao();
+var doctorStoreDao = new DoctorStoreDao();
 
 class DoctorService {
     constructor() {}
@@ -27,13 +32,13 @@ class DoctorService {
                 description: doctor.description,
                 videoUrl: doctor.videoUrl,
                 appearUrl: doctor.appearUrl,
-                createdBy: doctor.createdBy,
-                updatedBy: doctor.updatedBy,
+                createdBy: userCreated.id,
+                updatedBy: userCreated.id,
                 termsAccepted: doctor.termsAccepted
             }
             return doctorDao.insert(newDoctor, (doctorCreated) => {
                 callback(doctorCreated);
-            })
+            });
         });
     }
 
@@ -51,6 +56,57 @@ class DoctorService {
 
     update(doctor, callback) {
         return doctorDao.update(doctor, (doctorUpdated) => {
+            //create doctor_content and doctor_content_store
+            userService.getById(doctor.userId, (userDetail) => {
+                var doctorMedia = {
+                    userId: doctor.userId,
+                    title: 'Media types',
+                    description: doctor.shortBio,
+                    url: userDetail.picUrl,
+                    thumbUrl: null,
+                    type: 'image',
+                    createdBy: doctor.userId,
+                    updatedBy: doctor.userId
+                }
+                this.createDoctorMedia(doctorMedia, () => {});
+
+                //iterate for languages
+                doctor.language.map((language) => {
+                    var doctorStore = {
+                        userId: doctor.userId,
+                        type: 'Language',
+                        value: language
+                    }
+                    this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
+                });
+                //iterate for location
+                doctor.location.map((location) => {
+                    var doctorStore = {
+                        userId: doctor.userId,
+                        type: 'Location',
+                        value: location
+                    }
+                    this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
+                });
+                //iterate for qualification
+                doctor.qualification.map((qualification) => {
+                    var doctorStore = {
+                        userId: doctor.userId,
+                        type: 'Qualification',
+                        value: qualification
+                    }
+                    this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
+                });
+                //iterate for consultationMode
+                doctor.consultationMode.map((consultationMode) => {
+                    var doctorStore = {
+                        userId: doctor.userId,
+                        type: 'Consultation mode',
+                        value: consultationMode
+                    }
+                    this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
+                });
+            });
             callback(doctorUpdated);
         });
     }
@@ -104,7 +160,7 @@ class DoctorService {
         var offset = ((size * page) - size);
         var condition = '';
         if (location) {
-            condition = condition + `AND d.location = '${location}'`;
+            condition = condition + `AND dst.value = '${location}'`;
         }
         if (speciality) {
             condition = condition + ` AND d.speciality = '${speciality}'`;
@@ -118,16 +174,16 @@ class DoctorService {
                 u.firstName,
                 u.lastName,
                 u.picUrl,
-                u.rating,
                 d.userId,
                 d.regNo,
-                d.location,
                 d.speciality,
                 d.experience,
                 d.description,
+                d.longBio,
                 d.videoUrl,
                 ds.status,
-                ds.waitTime
+                ds.waitTime,
+                dst.value
             FROM
                 doctor AS d
             LEFT JOIN
@@ -138,6 +194,10 @@ class DoctorService {
                 doctor_schedule AS ds
             ON
                 d.userId = ds.doctorId
+            LEFT JOIN
+                doctor_store AS dst
+            ON
+                d.userId = dst.userId
             WHERE
                 ds.status = 'online'
             ${condition}
@@ -152,9 +212,95 @@ class DoctorService {
                     log.error('Error while fetching doctors list ', err);
                     callback(err);
                 } else {
+                    console.log('doctor schedules: ' + JSON.stringify(result));
                     callback(result);
                 }
             });
+    }
+
+    /* for doctor content */
+    createDoctorMedia(doctorMedia, callback) {
+        return doctorMediaDao.insert(doctorMedia, (doctorMediaCreated) => {
+            callback(doctorMediaCreated);
+        });
+    }
+
+    getAllDoctorMedias(callback) {
+        return doctorMediaDao.readAll((allDoctorMedia) => {
+            callback(allDoctorMedia);
+        });
+    }
+
+    getByIdDoctorMedia(id, callback) {
+        return doctorMediaDao.readById(id, (doctorMedia) => {
+            callback(doctorMedia);
+        });
+    }
+
+    updateDoctorMedia(doctorMedia, id, callback) {
+        return doctorMediaDao.update(doctorMedia, id, (doctorMediaUpdated) => {
+            callback(doctorMediaUpdated);
+        });
+    }
+
+    deleteDoctorMedia(id, callback) {
+        return doctorMediaDao.delete(id, (doctorMediaDeleted) => {
+            callback(doctorMediaDeleted);
+        });
+    }
+
+    getMediaByDoctorId(doctorId, callback) {
+        doctorMediaModel.doctor_media
+            .findAll({ where: { userId: doctorId } }) //fetch all records for this doctorId
+            .then((doctorMedias) => {
+                console.log('all medias: ' + JSON.stringify(doctorMedias));
+                callback(doctorMedias);
+            }).catch(err => {
+                log.error('Error while fetching doctor medias in doctor service: ', err);
+                callback({ message: 'Doctor ID you have entered does not exist' });
+            });
+    }
+
+    /* for doctor content map*/
+    createDoctorStore(doctorStore, callback) {
+        return doctorStoreDao.insert(doctorStore, (doctorStoreCreated) => {
+            callback(doctorStoreCreated);
+        });
+    }
+
+    getAllDoctorStores(callback) {
+        return doctorStoreDao.readAll((allDoctorStore) => {
+            callback(allDoctorStore);
+        });
+    }
+
+    /*getByIdDoctorStore(id, callback) {
+        return doctorStoreDao.readById(id, (doctorStore) => {
+            callback(doctorStore);
+        });
+    }*/
+
+    getByIdDoctorStore(doctorId, callback) {
+        doctorStoreModel.doctor_store
+            .findAll({ where: { userId: doctorId } }) //fetch all records for this doctorId
+            .then((doctorStores) => {
+                callback(doctorStores);
+            }).catch(err => {
+                log.error('Error while fetching doctor stores in doctor service: ', err);
+                callback({ message: 'Doctor ID you have entered does not exist' });
+            });
+    }
+
+    updateDoctorStore(doctorStore, id, type, callback) {
+        return doctorStoreDao.update(doctorStore, id, type, (doctorStoreUpdated) => {
+            callback(doctorStoreUpdated);
+        });
+    }
+
+    deleteDoctorStore(id, callback) {
+        return doctorStoreDao.delete(id, (doctorStoreDeleted) => {
+            callback(doctorStoreDeleted);
+        });
     }
 }
 

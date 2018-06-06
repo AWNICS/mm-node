@@ -15,10 +15,12 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING
         },
         createdBy: {
-            type: DataTypes.STRING
+            type: DataTypes.INTEGER,
+            defaultValue: null
         },
         updatedBy: {
-            type: DataTypes.STRING
+            type: DataTypes.INTEGER,
+            defaultValue: null
         },
         lastActive: {
             type: DataTypes.STRING

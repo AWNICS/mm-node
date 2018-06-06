@@ -23,9 +23,9 @@ var groupService = new GroupService();
  *       picture:
  *         type: string
  *       createdBy:
- *         type: string
+ *         type: integer
  *       updatedBy:
- *         type: string
+ *         type: integer
  *       
  */
 /**
@@ -169,9 +169,9 @@ router.delete('/groups/:id', function(req, res) {
  *       userId:
  *         type: integer
  *       createdBy:
- *         type: string
+ *         type: integer
  *       updatedBy:
- *         type: string
+ *         type: integer
  */
 /**
  * @swagger
@@ -406,6 +406,34 @@ router.post('/groups/:receiverId/:doctorId', function(req, res) {
     });
 });
 
+/**
+ * @swagger
+ * /groups/doctors/:doctorId/patients/:patientId:
+ *   get:
+ *     tags:
+ *       - Group
+ *     description: For fetching consultation for the specified doctorId and patientId
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: doctorId
+ *         in: path
+ *         description: doctorId for group to return 
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *       - name: patientId
+ *         in: path
+ *         description: patientId for group to return 
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *     responses:
+ *       200:
+ *         description: consultation for the specified doctorId and patientId
+ */
 router.get('/groups/doctors/:doctorId/patients/:patientId', function(req, res) {
     var doctorId = req.params.doctorId;
     var patientId = req.params.patientId;

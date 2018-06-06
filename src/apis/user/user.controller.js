@@ -46,9 +46,9 @@ var userService = new UserService();
  *       socketId:
  *         type: string
  *       createdBy:
- *         type: string
+ *         type: integer
  *       updatedBy:
- *         type: string
+ *         type: integer
  */
 /**
  * @swagger
@@ -121,7 +121,9 @@ router.get('/users/:id', function(req, res) {
  */
 router.put('/users', function(req, res) {
     var user = req.body;
+    console.log('user details from controller:' + JSON.stringify(user));
     userService.updateRegisteredUser(user, (result) => {
+        console.log('after update from controller: ' + JSON.stringify(result));
         res.send(result);
     });
 });
@@ -172,9 +174,9 @@ router.delete('/users/:id', function(req, res) {
  *       address:
  *         type: string
  *       createdBy:
- *         type: string
+ *         type: integer
  *       updatedBy:
- *         type: string
+ *         type: integer
  */
 /**
  * @swagger
@@ -253,9 +255,9 @@ router.put('/staffs', (req, res) => {
  *       address:
  *         type: string
  *       createdBy:
- *         type: string
+ *         type: integer
  *       updatedBy:
- *         type: string
+ *         type: integer
  */
 /**
  * @swagger
