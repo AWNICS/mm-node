@@ -371,6 +371,21 @@ router.get('/doctors/schedules', function(req, res) {
     });
 });
 
+//update status for doctor schedule 
+router.put('/doctors/:doctorId/schedules/status', function(req, res) {
+    var status = req.body;
+    var doctorId = req.params.doctorId;
+    doctorService.updateDoctorSchedule(status, doctorId, (result) => {
+        res.send(result);
+    });
+});
+
+router.get('/doctors/:doctorId/schedules', function(req, res) {
+    var doctorId = req.params.doctorId;
+    doctorService.getDoctorScheduleByDoctorId(doctorId, (result) => {
+        res.send(result);
+    });
+});
 /**doctorMedia */
 router.post('/doctors/bio', function(req, res) {
     var doctorMedia = req.body;
@@ -462,6 +477,82 @@ router.delete('/doctors/:id/bio/extra', function(req, res) {
     var id = req.params.id;
     doctorService.deleteDoctorStore(id, (result) => {
         res.send('Number of doctor store deleted: ' + result);
+    });
+});
+
+/**doctor activity */
+router.post('/doctors/activities', function(req, res) {
+    var doctorActivity = req.body;
+    doctorService.createDoctorActivity(doctorActivity, (result) => {
+        res.send(result);
+    });
+});
+
+router.get('/doctors/activities', function(req, res) {
+    doctorService.getAllDoctorActivities((result) => {
+        res.send(result);
+    });
+});
+
+router.get('/doctors/:doctorId/activities', function(req, res) {
+    var doctorId = req.params.doctorId;
+    doctorService.getByIdDoctorActivity(doctorId, (result) => {
+        res.send(result);
+    });
+});
+
+router.put('/doctors/:doctorId/activities/:id', function(req, res) {
+    var doctorActivity = req.body;
+    var id = req.params.id;
+    var doctorId = req.params.doctorId;
+    doctorService.updateDoctorActivity(doctorActivity, id, doctorId, (result) => {
+        res.send(result);
+    });
+});
+
+router.delete('/doctors/:doctorId/activities/:id', function(req, res) {
+    var id = req.params.id;
+    var doctorId = req.params.doctorId;
+    doctorService.deleteDoctorActivity(id, (result) => {
+        res.send('Number of doctor activity deleted: ' + result);
+    });
+});
+
+/**doctor review */
+router.post('/doctors/reviews', function(req, res) {
+    var doctorReview = req.body;
+    doctorService.createDoctorReview(doctorReview, (result) => {
+        res.send(result);
+    });
+});
+
+router.get('/doctors/reviews', function(req, res) {
+    doctorService.getAllDoctorReviews((result) => {
+        res.send(result);
+    });
+});
+
+router.get('/doctors/:doctorId/reviews', function(req, res) {
+    var doctorId = req.params.doctorId;
+    doctorService.getByIdDoctorReview(doctorId, (result) => {
+        res.send(result);
+    });
+});
+
+router.put('/doctors/:doctorId/reviews/:id', function(req, res) {
+    var doctorReview = req.body;
+    var id = req.params.id;
+    var doctorId = req.params.doctorId;
+    doctorService.updateDoctorReview(doctorReview, id, doctorId, (result) => {
+        res.send(result);
+    });
+});
+
+router.delete('/doctors/:doctorId/reviews/:id', function(req, res) {
+    var id = req.params.id;
+    var doctorId = req.params.doctorId;
+    doctorService.deleteDoctorReview(id, (result) => {
+        res.send('Number of doctor review deleted: ' + result);
     });
 });
 

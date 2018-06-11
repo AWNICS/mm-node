@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER
         },
         type: {
-            type: DataTypes.STRING //here type will be either qualifications, languages, consultationMode, location/zone
+            type: DataTypes.STRING //here type will be either qualifications, languages, consultationMode, location/zone, professinal_society
         },
         value: {
             type: DataTypes.STRING //here the value for the corresponding type fields
