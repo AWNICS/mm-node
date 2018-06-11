@@ -121,9 +121,7 @@ router.get('/users/:id', function(req, res) {
  */
 router.put('/users', function(req, res) {
     var user = req.body;
-    console.log('user details from controller:' + JSON.stringify(user));
     userService.updateRegisteredUser(user, (result) => {
-        console.log('after update from controller: ' + JSON.stringify(result));
         res.send(result);
     });
 });
