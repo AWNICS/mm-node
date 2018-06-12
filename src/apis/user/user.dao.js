@@ -40,10 +40,9 @@ class UserDao {
      */
     readById(id, callback) {
         userModel.user.findById(id, {
-            attributes: ['id', 'firstname', 'lastname', 'email', 'phoneNo',
-                'picUrl', 'description', 'status', 'activate', 'role', 'socketId', 'createdBy', 'updatedBy',
-                'createdAt', 'updatedAt'
-            ]
+            attributes: {
+                exclude: ['password', 'token']
+            }
         }).then((user) => {
             callback(user);
         });
