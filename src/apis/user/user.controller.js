@@ -279,8 +279,8 @@ router.put('/staffs', (req, res) => {
  *         description: An patient return from MySql db
  */
 router.get('/patients/:id', (req, res) => {
-    userService.getPatientInfoById(req.params.id, (patientInfo) => {
-        res.send(patientInfo);
+    userService.getVisitorById(req.params.id, (visitor) => {
+        res.send(visitor);
     });
 });
 
@@ -305,8 +305,8 @@ router.get('/patients/:id', (req, res) => {
  *         description: Successfully updated in MySql db
  */
 router.put('/patients', (req, res) => {
-    userService.updatePatientInfo(req.body, (updatedPatientInfo) => {
-        res.send(updatedPatientInfo);
+    userService.updateVisitor(req.body, (updatedVisitor) => {
+        res.send(updatedVisitor);
     });
 });
 

@@ -31,6 +31,7 @@ import authenticate from '../auth/authenticate';
 import role from '../apis/role/role.controller';
 import register from '../apis/register/register.controller';
 import locations from '../apis/locations/locations.controller';
+import visitors from '../apis/visitor/visitor.controller';
 
 class Config {
     constructor() {
