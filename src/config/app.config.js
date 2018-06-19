@@ -31,6 +31,7 @@ import authenticate from '../auth/authenticate';
 import role from '../apis/role/role.controller';
 import register from '../apis/register/register.controller';
 import locations from '../apis/locations/locations.controller';
+import visitors from '../apis/visitor/visitor.controller';
 
 class Config {
     constructor() {
@@ -90,13 +91,12 @@ class Config {
         this.app.use('/', locations);
         this.app.use('/', specialities);
         this.app.use('/', register);
-        this.app.use('/', doctor);
         this.app.use('/', authenticate);
         this.app.use('/', passport.authenticate('jwt', { session: false }), user);
-        //this.app.use('/', passport.authenticate('jwt', { session: false }), doctor);
+        this.app.use('/', passport.authenticate('jwt', { session: false }), group);
+        this.app.use('/', passport.authenticate('jwt', { session: false }), doctor);
         this.app.use('/', passport.authenticate('jwt', { session: false }), file);
         this.app.use('/', passport.authenticate('jwt', { session: false }), message);
-        this.app.use('/', passport.authenticate('jwt', { session: false }), group);
         //this.app.use('/role', role);
         //this.app.use('/contact', passport.authenticate('jwt', { session: false }), contactUs);
         //this.app.use('/orderRequest', passport.authenticate('jwt', { session: false }), orderRequest);

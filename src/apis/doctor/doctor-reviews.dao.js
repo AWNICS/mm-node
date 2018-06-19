@@ -1,25 +1,24 @@
-import userModel from './index';
+import doctorReviewModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
-/**
- * DAO for user api
- */
-class UserDao {
+/*
+DAO for Doctor api
+*/
+class DoctorReviewDao {
     constructor() {}
 
     /**
      * insert method
      */
-    insert(user, callback) {
+    insert(doctorReview, callback) {
         sequelize.sync({ force: false }).then(() => {
             sequelize.transaction().then(function(t) {
-                userModel.user.create(user, { transaction: t }).then(function(userInserted) {
-                    callback(userInserted);
+                doctorReviewModel.doctor_reviews.create(doctorReview, { transaction: t }).then(function(doctorReviewInserted) {
+                    callback(doctorReviewInserted);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
-                    log.error('error in userDao ', error);
                     t.rollback();
                 });
             });
@@ -30,39 +29,35 @@ class UserDao {
      * read all method
      */
     readAll(callback) {
-        userModel.user.findAll().then((user) => {
-            callback(user);
+        doctorReviewModel.doctor_reviews.findAll().then((allDoctorReview) => {
+            callback(allDoctorReview);
         });
     }
 
     /**
      * read method based on id
      */
-    readById(id, callback) {
-        userModel.user.findById(id, {
-            attributes: {
-                exclude: ['password', 'token']
-            }
-        }).then((user) => {
-            callback(user);
+    readById(doctorId, callback) {
+        doctorReviewModel.doctor_reviews.findAll({ where: { doctorId: doctorId } }).then((doctorReview) => {
+            callback(doctorReview);
         });
     }
 
     /**
      * Update method
      */
-    update(user, callback) {
+    update(doctorReview, callback) {
         sequelize.transaction().then(function(t) {
-            userModel.user.update(user, {
+            doctorReviewModel.doctor_reviews.update(doctorReview, {
                 where: {
-                    id: user.id
+                    userId: doctorReview.userId
                 }
-            }, { transaction: t }).then(function(userUpdated) {
-                callback(userUpdated);
+            }, { transaction: t }).then(function(doctorReviewUpdated) {
+                callback(doctorReviewUpdated);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
-                console.log('Error while updating the user: ' + error);
+                log.error('Error in doctor review dao update ', error);
                 t.rollback();
             });
         });
@@ -73,12 +68,12 @@ class UserDao {
      */
     delete(id, callback) {
         sequelize.transaction().then(function(t) {
-            userModel.user.destroy({
+            doctorReviewModel.doctor_reviews.destroy({
                 where: {
                     id: id
                 }
-            }).then(function(user) {
-                callback(user);
+            }).then(function(doctorReviewDeleted) {
+                callback(doctorReviewDeleted);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
@@ -88,4 +83,4 @@ class UserDao {
     }
 }
 
-module.exports = UserDao;
+export default DoctorReviewDao;

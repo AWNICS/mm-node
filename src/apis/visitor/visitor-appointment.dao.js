@@ -1,25 +1,24 @@
-import userModel from './index';
+import visitorAppointmentModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
 /**
- * DAO for user api
+ * DAO for visitor-appointment api
  */
-class UserDao {
-    constructor() {}
+class VisitorAppointmentDao {
 
     /**
      * insert method
      */
-    insert(user, callback) {
+    insert(visitorAppointment, callback) {
         sequelize.sync({ force: false }).then(() => {
             sequelize.transaction().then(function(t) {
-                userModel.user.create(user, { transaction: t }).then(function(userInserted) {
-                    callback(userInserted);
+                visitorAppointmentModel.visitor_appointment.create(visitorAppointment, { transaction: t }).then(function(insertedVisitorAppointment) {
+                    callback(insertedVisitorAppointment);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
-                    log.error('error in userDao ', error);
+                    log.error('error in visitorAppointmentDao ', error);
                     t.rollback();
                 });
             });
@@ -30,8 +29,8 @@ class UserDao {
      * read all method
      */
     readAll(callback) {
-        userModel.user.findAll().then((user) => {
-            callback(user);
+        visitorAppointmentModel.visitor_appointment.findAll().then((visitorAppointments) => {
+            callback(visitorAppointments);
         });
     }
 
@@ -39,30 +38,25 @@ class UserDao {
      * read method based on id
      */
     readById(id, callback) {
-        userModel.user.findById(id, {
-            attributes: {
-                exclude: ['password', 'token']
-            }
-        }).then((user) => {
-            callback(user);
+        visitorAppointmentModel.visitor_appointment.find({ where: { visitorId: id } }).then((visitorAppointment) => {
+            callback(visitorAppointment);
         });
     }
 
     /**
      * Update method
      */
-    update(user, callback) {
+    update(visitorAppointment, callback) {
         sequelize.transaction().then(function(t) {
-            userModel.user.update(user, {
+            visitorAppointmentModel.visitor_appointment.update(visitorAppointment, {
                 where: {
-                    id: user.id
+                    visitorId: visitorAppointment.visitorId
                 }
-            }, { transaction: t }).then(function(userUpdated) {
-                callback(userUpdated);
+            }, { transaction: t }).then(function(visitorAppointmentUpdated) {
+                callback(visitorAppointmentUpdated);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
-                console.log('Error while updating the user: ' + error);
                 t.rollback();
             });
         });
@@ -73,12 +67,12 @@ class UserDao {
      */
     delete(id, callback) {
         sequelize.transaction().then(function(t) {
-            userModel.user.destroy({
+            visitorAppointmentModel.visitor_appointment.destroy({
                 where: {
                     id: id
                 }
-            }).then(function(user) {
-                callback(user);
+            }).then(function(visitorAppointment) {
+                callback(visitorAppointment);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
@@ -88,4 +82,4 @@ class UserDao {
     }
 }
 
-module.exports = UserDao;
+module.exports = VisitorAppointmentDao;

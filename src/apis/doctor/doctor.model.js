@@ -11,8 +11,14 @@ module.exports = (sequelize, DataTypes) => {
         regNo: {
             type: DataTypes.STRING
         },
+        validity: {
+            type: DataTypes.DATE //validity of MCI number
+        },
         sex: {
             type: DataTypes.STRING
+        },
+        age: {
+            type: DataTypes.INTEGER
         },
         address: {
             type: DataTypes.STRING
@@ -45,6 +51,21 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING
         },
         longBio: {
+            type: DataTypes.STRING
+        },
+        education: {
+            type: DataTypes.STRING //educational degree
+        },
+        educationYear: {
+            type: DataTypes.INTEGER
+        },
+        institution: {
+            type: DataTypes.STRING //training institution
+        },
+        institutionYear: {
+            type: DataTypes.INTEGER
+        },
+        workHistory: {
             type: DataTypes.STRING
         },
         createdBy: {

@@ -8,6 +8,9 @@ import DoctorMediaDao from './doctor-media.dao';
 import DoctorStoreDao from './doctor-store.dao';
 import doctorMediaModel from './index';
 import doctorStoreModel from './index';
+import doctorScheduleModel from './index';
+import DoctorActivityDao from './doctor-activities.dao';
+import DoctorReviewDao from './doctor-reviews.dao';
 
 var doctorDao = new DoctorDao();
 var consultationDao = new ConsultationDao();
@@ -15,6 +18,8 @@ var userService = new UserService();
 var doctorScheduleDao = new DoctorSchedule();
 var doctorMediaDao = new DoctorMediaDao();
 var doctorStoreDao = new DoctorStoreDao();
+var doctorActivityDao = new DoctorActivityDao();
+var doctorReviewDao = new DoctorReviewDao();
 
 class DoctorService {
     constructor() {}
@@ -39,6 +44,20 @@ class DoctorService {
             return doctorDao.insert(newDoctor, (doctorCreated) => {
                 callback(doctorCreated);
             });
+            //create entry into doctor_schedule
+            var doctorSchedule = {
+                doctorId: userCreated.id,
+                status: userCreated.status,
+                activity: 'Assisting as a doctor',
+                waitTime: 5,
+                slotId: 2,
+                startTime: '2018-05-20 10:39:08',
+                endTime: '2018-06-20 10:39:08',
+                duration: 15,
+                createdBy: userCreated.id,
+                updatedBy: userCreated.id
+            }
+            this.createDoctorSchedule(doctorSchedule, (doctorScheduleCreated) => {});
         });
     }
 
@@ -181,6 +200,8 @@ class DoctorService {
                 d.description,
                 d.longBio,
                 d.videoUrl,
+                d.ratingValue,
+                d.updatedAt,
                 ds.status,
                 ds.waitTime,
                 dst.value
@@ -190,8 +211,10 @@ class DoctorService {
                 user AS u
             ON
                 u.id = d.userId
-            LEFT JOIN
-                doctor_schedule AS ds
+            LEFT JOIN 
+              (
+                select * from doctor_schedule group by doctorId ORDER BY endtime DESC 
+              ) ds
             ON
                 d.userId = ds.doctorId
             LEFT JOIN
@@ -212,9 +235,35 @@ class DoctorService {
                     log.error('Error while fetching doctors list ', err);
                     callback(err);
                 } else {
-                    console.log('doctor schedules: ' + JSON.stringify(result));
                     callback(result);
                 }
+            });
+    }
+
+    getDoctorScheduleByDoctorId(doctorId, callback) {
+        doctorScheduleModel.doctor_schedule
+            .findAll({ where: { doctorId: doctorId } })
+            .then((doctorSchedule) => {
+                callback(doctorSchedule);
+            }).catch(err => {
+                log.error('Error while fetching doctor schedule in doctor service: ', err);
+                callback({ message: 'Doctor ID you have entered does not exist' });
+            });
+    }
+
+    //update status for doctor schedule by doctor id  
+    updateDoctorSchedule(status, doctorId, callback) {
+        doctorScheduleModel.doctor_schedule
+            .update(status, {
+                where: {
+                    doctorId: doctorId
+                }
+            })
+            .then((updatedSchedule) => {
+                callback(updatedSchedule);
+            }).catch(err => {
+                log.error('Error while updating a doctor schedule in doctor service: ', err);
+                callback({ message: 'Doctor ID you have entered does not exist' });
             });
     }
 
@@ -253,7 +302,6 @@ class DoctorService {
         doctorMediaModel.doctor_media
             .findAll({ where: { userId: doctorId } }) //fetch all records for this doctorId
             .then((doctorMedias) => {
-                console.log('all medias: ' + JSON.stringify(doctorMedias));
                 callback(doctorMedias);
             }).catch(err => {
                 log.error('Error while fetching doctor medias in doctor service: ', err);
@@ -300,6 +348,70 @@ class DoctorService {
     deleteDoctorStore(id, callback) {
         return doctorStoreDao.delete(id, (doctorStoreDeleted) => {
             callback(doctorStoreDeleted);
+        });
+    }
+
+    /* for doctor activity */
+    createDoctorActivity(doctorActivity, callback) {
+        return doctorActivityDao.insert(doctorActivity, (doctorActivityCreated) => {
+            callback(doctorActivityCreated);
+        });
+    }
+
+    getAllDoctorActivities(callback) {
+        return doctorActivityDao.readAll((allDoctorActivity) => {
+            callback(allDoctorActivity);
+        });
+    }
+
+    getByIdDoctorActivity(doctorId, callback) {
+        return doctorActivityDao.readById(doctorId, (doctorActivity) => {
+            //console.log('all activity: ' + JSON.stringify(doctorActivity));
+            callback(doctorActivity);
+        });
+    }
+
+    updateDoctorActivity(doctorActivity, id, doctorId, callback) {
+        return doctorActivityDao.update(doctorActivity, id, (doctorActivityUpdated) => {
+            callback(doctorActivityUpdated);
+        });
+    }
+
+    deleteDoctorActivity(id, callback) {
+        return doctorActivityDao.delete(id, (doctorActivityDeleted) => {
+            callback(doctorActivityDeleted);
+        });
+    }
+
+    /* for doctor activity */
+    createDoctorReview(doctorReview, callback) {
+        return doctorReviewDao.insert(doctorReview, (doctorReviewCreated) => {
+            callback(doctorReviewCreated);
+        });
+    }
+
+    getAllDoctorReviews(callback) {
+        return doctorReviewDao.readAll((allDoctorReview) => {
+            callback(allDoctorReview);
+        });
+    }
+
+    getByIdDoctorReview(doctorId, callback) {
+        return doctorReviewDao.readById(doctorId, (doctorReview) => {
+            //console.log('all review: ' + JSON.stringify(doctorReview));
+            callback(doctorReview);
+        });
+    }
+
+    updateDoctorReview(doctorReview, id, callback) {
+        return doctorReviewDao.update(doctorReview, id, (doctorReviewUpdated) => {
+            callback(doctorReviewUpdated);
+        });
+    }
+
+    deleteDoctorReview(id, callback) {
+        return doctorReviewDao.delete(id, (doctorReviewDeleted) => {
+            callback(doctorReviewDeleted);
         });
     }
 }
