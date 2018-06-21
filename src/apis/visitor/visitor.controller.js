@@ -116,9 +116,9 @@ router.get('/visitors/appointment', (req, res) => {
     });
 });
 
-router.get('/visitors/:visitorId/appointment', (req, res) => {
+router.get('/visitors/:visitorId/appointments/history', (req, res) => {
     var visitorId = req.params.visitorId;
-    visitorService.readByVisitorIdAppointment(visitorId, (results) => {
+    visitorService.readAppointmentHistory(visitorId, (results) => {
         res.send(results);
     });
 });

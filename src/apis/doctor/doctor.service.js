@@ -1,7 +1,7 @@
 import DoctorDao from './doctor.dao';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
-import ConsultationDao from './consultation-schedule.dao';
+import VisitorAppointmentDao from '../visitor/visitor-appointment.dao';
 import DoctorSchedule from './doctor-schedule.dao';
 import UserService from '../user/user.service';
 import DoctorMediaDao from './doctor-media.dao';
@@ -13,7 +13,7 @@ import DoctorActivityDao from './doctor-activities.dao';
 import DoctorReviewDao from './doctor-reviews.dao';
 
 var doctorDao = new DoctorDao();
-var consultationDao = new ConsultationDao();
+var visitorAppoinmentDao = new VisitorAppointmentDao();
 var userService = new UserService();
 var doctorScheduleDao = new DoctorSchedule();
 var doctorMediaDao = new DoctorMediaDao();
@@ -40,7 +40,7 @@ class DoctorService {
                 createdBy: userCreated.id,
                 updatedBy: userCreated.id,
                 termsAccepted: doctor.termsAccepted
-            }
+            };
             return doctorDao.insert(newDoctor, (doctorCreated) => {
                 callback(doctorCreated);
             });
@@ -56,7 +56,7 @@ class DoctorService {
                 duration: 15,
                 createdBy: userCreated.id,
                 updatedBy: userCreated.id
-            }
+            };
             this.createDoctorSchedule(doctorSchedule, (doctorScheduleCreated) => {});
         });
     }
@@ -140,31 +140,31 @@ class DoctorService {
      * for consultation schedule
      */
     createConsultation(consultation, callback) {
-        return consultationDao.insert(consultation, (consultationCreated) => {
+        return visitorAppoinmentDao.insert(consultation, (consultationCreated) => {
             callback(consultationCreated);
         });
     }
 
     getAllConsultation(callback) {
-        return consultationDao.readAll((allConsultations) => {
+        return visitorAppoinmentDao.readAll((allConsultations) => {
             callback(allConsultations);
         });
     }
 
     getByIdConsultation(id, callback) {
-        return consultationDao.readById(id, (consultation) => {
+        return visitorAppoinmentDao.readById(id, (consultation) => {
             callback(consultation);
         });
     }
 
     updateConsultation(consultation, callback) {
-        return consultationDao.update(consultation, (consultationUpdated) => {
+        return visitorAppoinmentDao.update(consultation, (consultationUpdated) => {
             callback(consultationUpdated);
         });
     }
 
     deleteConsultation(id, callback) {
-        return consultationDao.delete(id, (consultationDeleted) => {
+        return visitorAppoinmentDao.delete(id, (consultationDeleted) => {
             callback(consultationDeleted);
         });
     }
