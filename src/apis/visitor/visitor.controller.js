@@ -123,6 +123,14 @@ router.get('/visitors/:visitorId/appointments/history', (req, res) => {
     });
 });
 
+router.get('/visitors/:visitorId/appointments/timeline', (req, res) => {
+    var visitorId = req.params.visitorId;
+    visitorService.getAppointmentTimeline(visitorId, (results) => {
+        console.log('all: ' + JSON.stringify(results));
+        res.send(results);
+    });
+});
+
 //visitor-store
 router.post('/visitors/store', (req, res) => {
     visitorService.createStore(req.body, (result) => {

@@ -145,6 +145,13 @@ class VisitorService {
         callback({ "consultations": { "monthly": consultations }, "reports": { "monthly": reports }, "vitals": { "monthly": vitals } });
     }
 
+    async getAppointmentTimeline(visitorId, callback) {
+        await visitorModel.visitor_prescription.findAll({ where: { visitorId: visitorId } }).then((visitorPrescription) => {
+            console.log('all: ' + JSON.stringify(visitorPrescription));
+        });
+        callback([{ "consultations": 3, "reminders": 4, "prescriptions": 2, "schedules": 1 }, { "consultations": 3, "reminders": 3, "prescriptions": 2, "schedules": 9 }]);
+    }
+
     //for visitor-store
     createStore(visitorStore, callback) {
         visitorStoreDao.insert(visitorStore, callback);
