@@ -8,7 +8,7 @@ import groupModel from './index';
 import userModel from '../user/index';
 import UserService from '../user/user.service';
 import DoctorService from '../doctor/doctor.service';
-import consultationScheduleModel from '../doctor/index';
+import visitorAppointmentModel from '../visitor/index';
 import MessageService from '../message/message.service';
 
 const Promise = require('bluebird');
@@ -153,7 +153,7 @@ class GroupService {
                 }
             });
             sequelize
-                .query("select d.id, d.firstname from doctor d LEFT JOIN consultation_schedule cs on d.id=cs.doctorId where cs.doctorId is NULL", { type: sequelize.QueryTypes.SELECT })
+                .query("select d.id, d.firstname from doctor d LEFT JOIN visitor_appointment va on d.id=va.doctorId where va.doctorId is NULL", { type: sequelize.QueryTypes.SELECT })
                 .then((allDoctors) => {
                     if (allDoctors.length > 0) { //for new group
                         var doctorMap = { //mapping doctor to consultation
@@ -173,7 +173,7 @@ class GroupService {
                         }
                         this.createGroupUserMap(groupDoctorMap, (doctorMapped) => {});
                     } else { //for existing doctors
-                        consultationScheduleModel.consultation_schedule.findAll({
+                        visitorAppointmentModel.visitor_appointment.findAll({
                                 order: [
                                     ['lastActive', 'ASC']
                                 ],
@@ -197,7 +197,7 @@ class GroupService {
                                 }
                                 this.createGroupUserMap(groupDoctorMap, (doctorMapped) => {});
                                 //update lastActive for this doctor
-                                consultationScheduleModel.consultation_schedule
+                                visitorAppointmentModel.visitor_appointment
                                     .update({ "lastActive": Date.now() }, { where: { doctorId: allMappedDoctors[0].doctorId } })
                                     .then((consultationUpdated) => {});
                             });

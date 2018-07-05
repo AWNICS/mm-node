@@ -38,7 +38,7 @@ class VisitorAppointmentDao {
      * read method based on id
      */
     readById(id, callback) {
-        visitorAppointmentModel.visitor_appointment.find({ where: { visitorId: id } }).then((visitorAppointment) => {
+        visitorAppointmentModel.visitor_appointment.findAll({ where: { visitorId: id } }).then((visitorAppointment) => {
             callback(visitorAppointment);
         });
     }

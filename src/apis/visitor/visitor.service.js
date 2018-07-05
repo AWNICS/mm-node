@@ -8,6 +8,7 @@ import VisitorAppointmentDao from './visitor-appointment.dao';
 import VisitorStoreDao from './visitor-store.dao';
 import visitorStoreModel from './index';
 import log from '../../config/log4js.config';
+import visitorModel from './index';
 
 const visitorHealthDao = new VisitorHealthDao();
 const visitorDiagnosticDao = new VisitorDiagnosticDao();
@@ -99,8 +100,56 @@ class VisitorService {
         visitorAppointmentDao.readAll(callback);
     }
 
-    readByVisitorIdAppointment(visitorId, callback) {
+    readByIdAppointment(visitorId, callback) {
         visitorAppointmentDao.readById(visitorId, callback);
+    }
+
+    async readAppointmentHistory(visitorId, callback) {
+        var consultations = new Array(12);
+        var reports = new Array(12);
+        var vitals = new Array(12);
+
+        await visitorModel.visitor_appointment.findAll({ where: { visitorId: visitorId } }).then((visitorAppointment) => {
+            consultations.fill(0); //initialize the array with the initial value
+            visitorAppointment.map((appointment) => {
+                var startMonth = appointment.startTime.getUTCMonth();
+                var endMonth = appointment.endTime.getUTCMonth();
+                for (var i = startMonth; i <= endMonth; i++) {
+                    consultations[i] = consultations[i] + 1;
+                }
+            });
+        });
+
+        await visitorModel.visitor_report.findAll({ where: { visitorId: visitorId } }).then((visitorReport) => {
+            reports.fill(0); //initialize the array with the initial value
+            visitorReport.map((report) => {
+                var createdAtMonth = report.createdAt.getUTCMonth();
+                var updatedAtMonth = report.updatedAt.getUTCMonth();
+                for (var i = createdAtMonth; i <= updatedAtMonth; i++) {
+                    reports[i] = reports[i] + 1;
+                }
+            });
+        });
+
+        await visitorModel.visitor_prescription.findAll({ where: { visitorId: visitorId } }).then((visitorVitals) => {
+            vitals.fill(0); //initialize the array with the initial value
+            visitorVitals.map((vital) => {
+                var createdAtMonth = vital.createdAt.getUTCMonth();
+                var updatedAtMonth = vital.updatedAt.getUTCMonth();
+                for (var i = createdAtMonth; i <= updatedAtMonth; i++) {
+                    vitals[i] = vitals[i] + 1;
+                }
+            });
+        });
+        //send the required history details to fill the graph
+        callback({ "consultations": { "monthly": consultations }, "reports": { "monthly": reports }, "vitals": { "monthly": vitals } });
+    }
+
+    async getAppointmentTimeline(visitorId, callback) {
+        await visitorModel.visitor_prescription.findAll({ where: { visitorId: visitorId } }).then((visitorPrescription) => {
+            console.log('all: ' + JSON.stringify(visitorPrescription));
+        });
+        callback([{ "consultations": 3, "reminders": 4, "prescriptions": 2, "schedules": 1 }, { "consultations": 3, "reminders": 3, "prescriptions": 2, "schedules": 9 }]);
     }
 
     //for visitor-store

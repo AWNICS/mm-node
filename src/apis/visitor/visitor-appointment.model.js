@@ -12,10 +12,25 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER
         },
         status: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING //missed, appear(appointments)
+        },
+        activity: {
+            type: DataTypes.STRING // it could be absent, available for consultation, etc.
+        },
+        slotId: {
+            type: DataTypes.INTEGER
         },
         type: {
             type: DataTypes.STRING //new consultations, reminders, follow ups consultaions
+        },
+        waitTime: {
+            type: DataTypes.INTEGER
+        },
+        startTime: {
+            type: DataTypes.DATE // start time is when the doctor is available
+        },
+        endTime: {
+            type: DataTypes.DATE // end time is when the doctor goes offline
         },
         duration: {
             type: DataTypes.INTEGER
