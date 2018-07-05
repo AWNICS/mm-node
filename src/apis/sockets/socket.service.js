@@ -41,14 +41,9 @@ exports.connectSocket = (io) => {
             socket.on('send-message', (msg) => {
                 // if it is a group message
                 if (msg.receiverType === "group") {
-                    userService.getById(msg.senderId, (result) => {
-                        msg.createdBy = `${result.firstname} ${result.lastname}`;
-                        msg.updatedBy = `${result.firstname} ${result.lastname}`;
-                        msg.picUrl = result.picUrl;
-                        messageService.sendMessage(msg, (result) => {
-                            groupService.getAllUsersByGroupId(msg.receiverId, (user) => {
-                                io.in(user.socketId).emit('receive-message', result); //emit one-by-one for all users
-                            });
+                    messageService.sendMessage(msg, (result) => {
+                        groupService.getAllUsersByGroupId(msg.receiverId, (user) => {
+                            io.in(user.socketId).emit('receive-message', result); //emit one-by-one for all users
                         });
                     });
                 }

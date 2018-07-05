@@ -9,7 +9,7 @@ import UserDao from './user.dao';
 import GroupDao from '../group/group.dao';
 import GroupUserMapDao from '../group/groupUserMap.dao';
 import StaffInfoDao from './staff-info.dao';
-import PatientInfoDao from './patient-info.dao';
+import VisitorDao from '../visitor/visitor.dao';
 import groupModel from '../group/index';
 import groupUserMapModel from '../group/index';
 import MessageService from '../message/message.service';
@@ -25,7 +25,7 @@ const messageService = new MessageService();
 const roleService = new RoleService();
 const emailService = new EmailService();
 const staffInfoDao = new StaffInfoDao();
-const patientInfoDao = new PatientInfoDao();
+const visitorDao = new VisitorDao();
 
 /**
  * UserService 
@@ -120,7 +120,7 @@ class UserService {
                     });
                 } else if (userInserted.role.toLowerCase() === 'patient') {
                     this.activationLink(userInserted);
-                    this.creatPatientInfo(userInserted);
+                    this.createVisitor(userInserted);
                     var group = {
                         name: 'MedHelp',
                         url: `/medhelp/${userInserted.id}`,
@@ -348,24 +348,24 @@ class UserService {
         });
     }
 
-    creatPatientInfo(userInserted) {
-        var patientInfo = {
+    createVisitor(userInserted) {
+        var visitor = {
             userId: userInserted.id,
             createdBy: userInserted.createdBy,
             updatedBy: userInserted.updatedBy
         };
-        patientInfoDao.insert(patientInfo, (patientInfoInserted) => {});
+        visitorDao.insert(visitor, (visitorInserted) => {});
     }
 
-    getPatientInfoById(id, callback) {
-        patientInfoDao.readById(id, (patientInfo) => {
-            callback(patientInfo);
+    getVisitorById(id, callback) {
+        visitorDao.readById(id, (visitor) => {
+            callback(visitor);
         });
     }
 
-    updatePatientInfo(patientInfo, callback) {
-        patientInfoDao.update(patientInfo, (updatedPatientInfo) => {
-            callback(updatedPatientInfo);
+    updateVisitor(visitor, callback) {
+        visitorDao.update(visitor, (updatedVisitor) => {
+            callback(updatedVisitor);
         });
     }
 }

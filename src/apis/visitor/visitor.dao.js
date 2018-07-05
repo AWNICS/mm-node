@@ -1,24 +1,24 @@
-import patientInfoModel from './index';
+import visitorModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
 /**
  * DAO for patient-info api
  */
-class PatientInfoDao {
+class VisitorDao {
 
     /**
      * insert method
      */
-    insert(patientInfo, callback) {
+    insert(visitor, callback) {
         sequelize.sync({ force: false }).then(() => {
             sequelize.transaction().then(function(t) {
-                patientInfoModel.patient_info.create(patientInfo, { transaction: t }).then(function(insertedPatientInfo) {
-                    callback(insertedPatientInfo);
+                visitorModel.visitor.create(visitor, { transaction: t }).then(function(insertedVisitor) {
+                    callback(insertedVisitor);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
-                    log.error('error in patientInfoDao ', error);
+                    log.error('error in visitorDao ', error);
                     t.rollback();
                 });
             });
@@ -29,8 +29,8 @@ class PatientInfoDao {
      * read all method
      */
     readAll(callback) {
-        patientInfoModel.patient_info.findAll().then((patientInfo) => {
-            callback(patientInfo);
+        visitorModel.visitor.findAll().then((visitor) => {
+            callback(visitor);
         });
     }
 
@@ -38,22 +38,22 @@ class PatientInfoDao {
      * read method based on id
      */
     readById(id, callback) {
-        patientInfoModel.patient_info.find({ where: { userId: id } }).then((patientInfo) => {
-            callback(patientInfo);
+        visitorModel.visitor.find({ where: { userId: id } }).then((visitor) => {
+            callback(visitor);
         });
     }
 
     /**
      * Update method
      */
-    update(patientInfo, callback) {
+    update(visitor, callback) {
         sequelize.transaction().then(function(t) {
-            patientInfoModel.patient_info.update(patientInfo, {
+            visitorModel.visitor.update(visitor, {
                 where: {
-                    userId: patientInfo.userId
+                    userId: visitor.userId
                 }
-            }, { transaction: t }).then(function(patientInfoUpdated) {
-                callback(patientInfoUpdated);
+            }, { transaction: t }).then(function(visitorUpdated) {
+                callback(visitorUpdated);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
@@ -67,12 +67,12 @@ class PatientInfoDao {
      */
     delete(id, callback) {
         sequelize.transaction().then(function(t) {
-            patientInfoModel.patient_info.destroy({
+            visitorModel.visitor.destroy({
                 where: {
                     id: id
                 }
-            }).then(function(patientInfo) {
-                callback(patientInfo);
+            }).then(function(visitor) {
+                callback(visitor);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
@@ -82,4 +82,4 @@ class PatientInfoDao {
     }
 }
 
-module.exports = PatientInfoDao;
+module.exports = VisitorDao;

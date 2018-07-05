@@ -1,15 +1,15 @@
 module.exports = (sequelize, DataTypes) => {
-    var DoctorStore = sequelize.define('doctor_store', {
+    var VisitorStore = sequelize.define('visitor_store', {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
-        userId: {
+        visitorId: {
             type: DataTypes.INTEGER
         },
         type: {
-            type: DataTypes.STRING //here type will be either qualifications, languages, consultationMode, location/zone, professinal_society
+            type: DataTypes.STRING //here type will be either languages, consultationMode, location/zone
         },
         value: {
             type: DataTypes.STRING //here the value for the corresponding type fields
@@ -17,5 +17,5 @@ module.exports = (sequelize, DataTypes) => {
     }, {
         freezeTableName: true
     });
-    return DoctorStore;
+    return VisitorStore;
 };

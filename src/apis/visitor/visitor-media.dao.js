@@ -1,25 +1,24 @@
-import userModel from './index';
+import visitorMediaModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
 /**
- * DAO for user api
+ * DAO for visitor-media api
  */
-class UserDao {
-    constructor() {}
+class VisitorMediaDao {
 
     /**
      * insert method
      */
-    insert(user, callback) {
+    insert(visitorMedia, callback) {
         sequelize.sync({ force: false }).then(() => {
             sequelize.transaction().then(function(t) {
-                userModel.user.create(user, { transaction: t }).then(function(userInserted) {
-                    callback(userInserted);
+                visitorMediaModel.visitor_media.create(visitorMedia, { transaction: t }).then(function(insertedVisitorMedia) {
+                    callback(insertedVisitorMedia);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
-                    log.error('error in userDao ', error);
+                    log.error('error in visitorMediaDao ', error);
                     t.rollback();
                 });
             });
@@ -30,8 +29,8 @@ class UserDao {
      * read all method
      */
     readAll(callback) {
-        userModel.user.findAll().then((user) => {
-            callback(user);
+        visitorMediaModel.visitor_media.findAll().then((visitorMedias) => {
+            callback(visitorMedias);
         });
     }
 
@@ -39,30 +38,25 @@ class UserDao {
      * read method based on id
      */
     readById(id, callback) {
-        userModel.user.findById(id, {
-            attributes: {
-                exclude: ['password', 'token']
-            }
-        }).then((user) => {
-            callback(user);
+        visitorMediaModel.visitor_media.find({ where: { visitorId: id } }).then((visitorMedia) => {
+            callback(visitorMedia);
         });
     }
 
     /**
      * Update method
      */
-    update(user, callback) {
+    update(visitorMedia, callback) {
         sequelize.transaction().then(function(t) {
-            userModel.user.update(user, {
+            visitorMediaModel.visitor_media.update(visitorMedia, {
                 where: {
-                    id: user.id
+                    visitorId: visitorMedia.visitorId
                 }
-            }, { transaction: t }).then(function(userUpdated) {
-                callback(userUpdated);
+            }, { transaction: t }).then(function(visitorMediaUpdated) {
+                callback(visitorMediaUpdated);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
-                console.log('Error while updating the user: ' + error);
                 t.rollback();
             });
         });
@@ -73,12 +67,12 @@ class UserDao {
      */
     delete(id, callback) {
         sequelize.transaction().then(function(t) {
-            userModel.user.destroy({
+            visitorMediaModel.visitor_media.destroy({
                 where: {
                     id: id
                 }
-            }).then(function(user) {
-                callback(user);
+            }).then(function(visitorMedia) {
+                callback(visitorMedia);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
@@ -88,4 +82,4 @@ class UserDao {
     }
 }
 
-module.exports = UserDao;
+module.exports = VisitorMediaDao;

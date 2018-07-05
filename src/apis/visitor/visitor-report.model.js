@@ -1,18 +1,30 @@
 module.exports = (sequelize, DataTypes) => {
-    var ConsultationSchedule = sequelize.define('consultation_schedule', {
+    var VisitorReport = sequelize.define('visitor_report', {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
-        patientId: {
+        visitorId: {
             type: DataTypes.INTEGER
         },
-        doctorId: {
+        reportId: {
             type: DataTypes.INTEGER
+        },
+        type: {
+            type: DataTypes.STRING
+        },
+        url: {
+            type: DataTypes.STRING
+        },
+        title: {
+            type: DataTypes.STRING
         },
         description: {
             type: DataTypes.STRING
+        },
+        status: {
+            type: DataTypes.STRING //seen, new, consulted, etc
         },
         createdBy: {
             type: DataTypes.INTEGER,
@@ -21,12 +33,9 @@ module.exports = (sequelize, DataTypes) => {
         updatedBy: {
             type: DataTypes.INTEGER,
             defaultValue: null
-        },
-        lastActive: {
-            type: DataTypes.STRING
         }
     }, {
         freezeTableName: true
     });
-    return ConsultationSchedule;
+    return VisitorReport;
 };
