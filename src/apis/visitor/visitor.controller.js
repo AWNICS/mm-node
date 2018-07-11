@@ -123,14 +123,6 @@ router.get('/visitors/:visitorId/appointments/history', (req, res) => {
     });
 });
 
-router.get('/visitors/:visitorId/appointments/timeline', (req, res) => {
-    var visitorId = req.params.visitorId;
-    visitorService.getAppointmentTimeline(visitorId, (results) => {
-        console.log('all: ' + JSON.stringify(results));
-        res.send(results);
-    });
-});
-
 //visitor-store
 router.post('/visitors/store', (req, res) => {
     visitorService.createStore(req.body, (result) => {
@@ -147,6 +139,20 @@ router.get('/visitors/store', (req, res) => {
 router.get('/visitors/:visitorId/store', (req, res) => {
     var visitorId = req.params.visitorId;
     visitorService.getVisitorById(visitorId, (results) => {
+        res.send(results);
+    });
+});
+
+//visitor-timeline apis
+router.post('/visitors/timeline', (req, res) => {
+    visitorService.createVisitorTimeline(req.body, (result) => {
+        res.send(result);
+    });
+});
+
+router.get('/visitors/:visitorId/timeline', (req, res) => {
+    var visitorId = req.params.visitorId;
+    visitorService.readTimelineByVisitorId(visitorId, (results) => {
         res.send(results);
     });
 });
