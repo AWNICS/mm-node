@@ -407,12 +407,14 @@ router.get('/doctors/:doctorId/bio', function(req, res) {
     });
 });
 
-/*router.get('/doctors/:id/bio', function(req, res) {
-    var id = req.params.id;
-    doctorService.getByIdDoctorMedia(id, (result) => {
+router.get('/doctors/:doctorId/bio', function(req, res) {
+    var doctorId = req.params.doctorId;
+    var page = parseInt(req.query.page);
+    var size = parseInt(req.query.size);
+    doctorService.getLimitedMediaByDoctorId(doctorId, page, size, (result) => {
         res.send(result);
     });
-});*/
+});
 
 router.put('/doctors/:id/bio', function(req, res) {
     var doctorMedia = req.body;
@@ -425,7 +427,7 @@ router.put('/doctors/:id/bio', function(req, res) {
 router.delete('/doctors/:id/bio', function(req, res) {
     var id = req.params.id;
     doctorService.deleteDoctorMedia(id, (result) => {
-        res.send('Number of doctor media deleted: ' + result);
+        res.sendStatus(200).send(result);
     });
 });
 
@@ -442,13 +444,6 @@ router.get('/doctors/bio/extra', function(req, res) {
         res.json(result);
     });
 });
-
-/*router.get('/doctors/:id/bio/extra', function(req, res) {
-    var id = req.params.id;
-    doctorService.getByIdDoctorStore(id, (result) => {
-        res.send(result);
-    });
-});*/
 
 router.get('/doctors/:doctorId/bio/extra', function(req, res) {
     var doctorId = req.params.doctorId;

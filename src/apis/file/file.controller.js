@@ -23,4 +23,14 @@ router.get('/file/:fileName', function(req, res) {
     fileService.download(bucket, fileName, res);
 });
 
+router.post('/file/thumbnail', multer.single('file'), function(req, res, next) {
+    fileService.createThumb(req.file, (result) => {
+        req.file.buffer = result;
+        req.file.originalname = 'thumbnail_' + req.file.originalname;
+        fileService.upload(req, bucket, next, (response) => {
+            res.send(response);
+        });
+    });
+});
+
 module.exports = router;
