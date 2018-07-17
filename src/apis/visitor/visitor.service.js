@@ -9,6 +9,7 @@ import VisitorStoreDao from './visitor-store.dao';
 import visitorStoreModel from './index';
 import log from '../../config/log4js.config';
 import visitorModel from './index';
+import VisitorTimelineDao from './visitor-timeline.dao';
 
 const visitorHealthDao = new VisitorHealthDao();
 const visitorDiagnosticDao = new VisitorDiagnosticDao();
@@ -18,6 +19,7 @@ const visitorHistoryDao = new VisitorHistoryDao();
 const visitorMediaDao = new VisitorMediaDao();
 const visitorAppointmentDao = new VisitorAppointmentDao();
 const visitorStoreDao = new VisitorStoreDao();
+const visitorTimelineDao = new VisitorTimelineDao();
 
 /**
  * VisitorService 
@@ -145,11 +147,19 @@ class VisitorService {
         callback({ "consultations": { "monthly": consultations }, "reports": { "monthly": reports }, "vitals": { "monthly": vitals } });
     }
 
-    async getAppointmentTimeline(visitorId, callback) {
-        await visitorModel.visitor_prescription.findAll({ where: { visitorId: visitorId } }).then((visitorPrescription) => {
-            console.log('all: ' + JSON.stringify(visitorPrescription));
-        });
-        callback([{ "consultations": 3, "reminders": 4, "prescriptions": 2, "schedules": 1 }, { "consultations": 3, "reminders": 3, "prescriptions": 2, "schedules": 9 }]);
+    getSchedules(startTime, endTime) {
+        var startTime = new Date(startTime).getUTCHours();
+        var ampm = startTime >= 12 ? 'pm' : 'am';
+        startTime = startTime % 12;
+        startTime = startTime ? startTime : 12; // the hour '0' should be '12'
+        var initial = startTime + ampm;
+
+        var endTime = new Date(endTime).getUTCHours();
+        ampm = endTime >= 12 ? 'pm' : 'am';
+        endTime = endTime % 12;
+        endTime = endTime ? endTime : 12; // the hour '0' should be '12'
+        var end = endTime + ampm;
+        return (initial + ' - ' + end);
     }
 
     //for visitor-store
@@ -168,6 +178,27 @@ class VisitorService {
                 callback(visitorStores);
             }).catch(err => {
                 log.error('Error while fetching visitor stores in visitor service: ', err);
+                callback({ message: 'Visitor ID you have entered does not exist' });
+            });
+    }
+
+    //for visitor-timeline
+    createVisitorTimeline(visitorTimeline, callback) {
+        visitorTimelineDao.insert(visitorTimeline, callback);
+    }
+
+    readTimelineByVisitorId(visitorId, callback) {
+        visitorModel.visitor_timeline
+            .findAll({
+                where: { visitorId: visitorId },
+                limit: 3,
+                order: [
+                    [visitorModel, 'timestamp', 'ASC']
+                ]
+            }).then((visitorTimelines) => {
+                callback(visitorTimelines);
+            }).catch(err => {
+                log.error('Error while fetching visitor timeline in visitor service: ', err);
                 callback({ message: 'Visitor ID you have entered does not exist' });
             });
     }
