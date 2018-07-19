@@ -91,15 +91,12 @@ class Config {
         this.app.use('/', locations);
         this.app.use('/', specialities);
         this.app.use('/', register);
-        //this.app.use('/', visitor);
         this.app.use('/', authenticate);
         this.app.use('/', passport.authenticate('jwt', { session: false }), visitor);
         this.app.use('/', passport.authenticate('jwt', { session: false }), doctor);
         this.app.use('/', passport.authenticate('jwt', { session: false }), user);
         this.app.use('/', passport.authenticate('jwt', { session: false }), group);
-        //this.app.use('/', passport.authenticate('jwt', { session: false }), visitor);
-
-        //this.app.use('/', passport.authenticate('jwt', { session: false }), doctor);
+        this.app.use('/', passport.authenticate('jwt', { session: false }), visitor);
         this.app.use('/', passport.authenticate('jwt', { session: false }), file);
         this.app.use('/', passport.authenticate('jwt', { session: false }), message);
         //this.app.use('/role', role);
