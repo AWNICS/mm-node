@@ -20,6 +20,9 @@ module.exports = (sequelize, DataTypes) => {
         picture: {
             type: DataTypes.STRING
         },
+        status: {
+            type: DataTypes.STRING
+        },
         createdBy: {
             type: DataTypes.INTEGER,
             defaultValue: null

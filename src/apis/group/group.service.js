@@ -104,6 +104,89 @@ class GroupService {
     }
 
     /**
+     * fetching all the group's status for particular userId
+     */
+    async getGroupStatus(userId, callback) {
+        var groupUserMaps = await groupUserMapModel.group_user_map.findAll({
+            where: {
+                userId: userId
+            }
+        });
+        var gUMaps = await this.findUsers(groupUserMaps);
+        var groupStatus = await this.findUserStatus(gUMaps, userId);
+        var status = [];
+        await groupStatus.map((grpStatus) => {
+            status.push(this.filterGroups(grpStatus));
+        });
+        callback(status);
+    }
+
+    async findUsers(groupUserMaps) {
+        var array = [];
+        await groupUserMaps.map((groupUserMap) => {
+            array.push(groupUserMapModel.group_user_map.findAll({
+                where: {
+                    groupId: groupUserMap.groupId
+                }
+            }));
+        });
+        return Promise.all(array);
+    }
+
+    findUserStatus(gUMaps, userId) {
+        return Promise.all(
+            gUMaps.map((gUMap) => {
+                return Promise.all(gUMap.map((gum => {
+                    if (gum.userId !== parseInt(userId)) {
+                        return userModel.user.find({
+                                where: { id: gum.userId }
+                            })
+                            .then((user) => {
+                                if (user.status === 'online') {
+                                    return groupModel.group.find({
+                                            where: { id: gum.groupId }
+                                        })
+                                        .then((group) => {
+                                            return groupModel.group.update({ status: 'online' }, {
+                                                    where: {
+                                                        id: group.id
+                                                    }
+                                                })
+                                                .then(() => {
+                                                    return groupModel.group.find({
+                                                        where: {
+                                                            id: group.id
+                                                        }
+                                                    });
+                                                });
+                                        });
+                                } else {
+                                    return;
+                                }
+                            });
+                    } else {
+                        return;
+                    }
+                })));
+            })
+        );
+    }
+
+    filterGroups(groups) {
+        var index = -1;
+        var arr_length = groups ? groups.length : 0;
+        var resIndex = -1;
+        var result = [];
+        while (++index < arr_length) {
+            var group = groups[index];
+            if (group) {
+                result[++resIndex] = group;
+            }
+        }
+        return result;
+    }
+
+    /**
      * getting all users based on groupId 
      */
     getAllUsersByGroupId(groupId, callback) {
@@ -346,6 +429,37 @@ class GroupService {
             doctorService.createConsultation(doctorMap, (consultationCreated) => {});
         });
     }
+
+    //we will need this code to update the group status on logout of the user
+    /*async groupStatusUpdate(userId, callback) {
+        var groups = await this.getAllGroupsByUserId(userId);
+        var count = await this.getStatusCount(groups);
+        console.log('count ', count);
+    }
+
+    getStatusCount(groups) {
+        return Promise.all(groups.map((group) => {
+            return groupUserMapModel.group_user_map.findAll({ where: { groupId: group.id } })
+                .then((gUMaps) => {
+                    var count = 0;
+                    return Promise.all(gUMaps.map((gUMap) => {
+                        return userService.getById(gUMap.userId, (user) => {
+                            if (user.status === 'online') {
+                                return ++count;
+                            } else {
+                                return;
+                            }
+                        });
+                    }));
+                    // console.log('count: ' + JSON.stringify(count[0]));
+                    // if (count[0] < 2) {
+                    //     groupService.update({ id: group.id, status: 'offline' }, () => {});
+                    // } else {
+                    //     return;
+                    // }
+                });
+        }));
+    }*/
 }
 
 export default GroupService;
