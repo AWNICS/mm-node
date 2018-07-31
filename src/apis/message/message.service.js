@@ -20,7 +20,6 @@ class MessageService {
     }
 
     sendGroupMessage(message, callback) {
-
         //createMessage and createGroupMap using DAO object
         var msg = new Message(message);
         messageDao.create(msg, (result) => {
