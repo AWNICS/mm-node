@@ -1,4 +1,3 @@
-import fs from 'fs';
 import sharp from 'sharp';
 import log from '../../config/log4js.config';
 
