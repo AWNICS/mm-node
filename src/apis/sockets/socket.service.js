@@ -3,14 +3,14 @@ import MessageService from '../message/message.service';
 import GroupService from '../group/group.service';
 import log from '../../config/log4js.config';
 import UserService from '../user/user.service';
-import UserModel from '../user/index';
 import groupUserMapModel from '../group/index';
-
+import DialogFlowService from '../dialogFlow/dialogFlow.service';
 const jwt = require('jsonwebtoken');
-const dotenv = Dotenv.config({ path: '.env.dev' });
+
 const messageService = new MessageService();
 const groupService = new GroupService();
 const userService = new UserService();
+const dialogFlowService = new DialogFlowService();
 
 exports.connectSocket = (io) => {
     io.use(function(socket, next) {
@@ -62,6 +62,21 @@ exports.connectSocket = (io) => {
                     messageService.sendMessage(msg, (result) => {
                         groupService.getAllUsersByGroupId(msg.receiverId, (user) => {
                             io.in(user.socketId).emit('receive-message', result); //emit one-by-one for all users
+                        });
+                    });
+                    dialogFlowService.callDialogFlowApi(msg.text, res => {
+                        res.map(result => {
+                            msg.text = result.text.text[0];
+                            msg.senderId = 3;
+                            msg.receiverId = 18;
+                            msg.updatedBy = 3;
+                            msg.createdBy = 3;
+                            msg.senderName = 'Bot rgv';
+                            messageService.sendMessage(msg, (result) => {
+                                groupService.getAllUsersByGroupId(msg.receiverId, (user) => {
+                                    io.in(user.socketId).emit('receive-message', result); //emit one-by-one for all users
+                                });
+                            });
                         });
                     });
                 }
