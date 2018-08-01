@@ -274,13 +274,13 @@ class DoctorService {
         });
     }
 
-    getAllDoctorMedias(callback) {
+    getAllDoctorMedia(callback) {
         return doctorMediaDao.readAll((allDoctorMedia) => {
             callback(allDoctorMedia);
         });
     }
 
-    getByIdDoctorMedia(id, callback) {
+    getDoctorMediaById(id, callback) {
         return doctorMediaDao.readById(id, (doctorMedia) => {
             callback(doctorMedia);
         });
@@ -301,8 +301,20 @@ class DoctorService {
     getMediaByDoctorId(doctorId, callback) {
         doctorMediaModel.doctor_media
             .findAll({ where: { userId: doctorId } }) //fetch all records for this doctorId
-            .then((doctorMedias) => {
-                callback(doctorMedias);
+            .then((doctorMedia) => {
+                callback(doctorMedia);
+            }).catch(err => {
+                log.error('Error while fetching doctor medias in doctor service: ', err);
+                callback({ message: 'Doctor ID you have entered does not exist' });
+            });
+    }
+
+    getLimitedMediaByDoctorId(doctorId, page, size, callback) {
+        var offset = ((size * page) - size);
+        doctorMediaModel.doctor_media
+            .findAll({ where: [{ userId: doctorId }, { type: ['image', 'video'] }], offset: offset, limit: size })
+            .then((doctorMedia) => {
+                callback(doctorMedia);
             }).catch(err => {
                 log.error('Error while fetching doctor medias in doctor service: ', err);
                 callback({ message: 'Doctor ID you have entered does not exist' });

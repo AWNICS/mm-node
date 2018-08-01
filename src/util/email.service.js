@@ -11,7 +11,7 @@ class EmailService {
             secure: false,
             auth: {
                 user: 'test.arung@gmail.com',
-                pass: 'changedPassword'
+                pass: 'alphabet0711'
             },
             tls: {
                 rejectUnauthorized: false
