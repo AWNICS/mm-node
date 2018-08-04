@@ -295,9 +295,9 @@ router.put('/groupUserMaps', function(req, res) {
  *       200:
  *         description: Successfully deleted from MySql db
  */
-router.delete('/groupUserMaps/:id', function(req, res) {
+router.delete('/groupUserMaps/:userId/:groupId', function(req, res) {
     var id = req.params.id;
-    groupService.deleteGroupUserMap(id, (result) => {
+    groupService.deleteGroupUserMap(req.params.userId, req.params.groupId, (result) => {
         res.send('Number of groupUserMap deleted: ' + result);
     });
 });

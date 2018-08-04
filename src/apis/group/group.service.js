@@ -10,6 +10,8 @@ import UserService from '../user/user.service';
 import DoctorService from '../doctor/doctor.service';
 import visitorAppointmentModel from '../visitor/index';
 import MessageService from '../message/message.service';
+import AuditModel from '../audit/audit.model';
+import AuditService from '../audit/audit.service';
 
 const Promise = require('bluebird');
 
@@ -18,6 +20,7 @@ const groupUserMapDao = new GroupUserMapDao();
 const userService = new UserService();
 const doctorService = new DoctorService();
 const messageService = new MessageService();
+const auditService = new AuditService();
 
 class GroupService {
     constructor() {}
@@ -82,8 +85,8 @@ class GroupService {
         });
     }
 
-    deleteGroupUserMap(id, callback) {
-        return groupUserMapDao.delete(id, (groupUserMapDeleted) => {
+    deleteGroupUserMap(userId, groupId, callback) {
+        return groupUserMapDao.delete(userId, groupId, (groupUserMapDeleted) => {
             callback(groupUserMapDeleted);
         });
     }
@@ -233,10 +236,29 @@ class GroupService {
                         updatedBy: createdGroup.updatedBy
                     }
                     this.createGroupUserMap(groupUserMap, (userMapped) => {});
+                    userService.getById(allGroupUser[i].userId, (user) => {
+                        if (user.role.toLowerCase() == 'bot') {
+                            //create audit for this created group
+                            var audit = new AuditModel({
+                                senderId: user.id,
+                                receiverId: createdGroup.id,
+                                receiverType: 'group',
+                                mode: 'Guided mode',
+                                entityName: 'group',
+                                entityEvent: 'added',
+                                groupId: createdGroup.id,
+                                createdBy: user.id,
+                                updatedBy: user.id,
+                                createdTime: Date.now(),
+                                updatedTime: ''
+                            });
+                            auditService.create(audit, () => {});
+                        }
+                    });
                 }
             });
             sequelize
-                .query("select d.id, d.firstname from doctor d LEFT JOIN visitor_appointment va on d.id=va.doctorId where va.doctorId is NULL", { type: sequelize.QueryTypes.SELECT })
+                .query("select d.id from doctor d LEFT JOIN visitor_appointment va on d.id=va.doctorId where va.doctorId is NULL", { type: sequelize.QueryTypes.SELECT })
                 .then((allDoctors) => {
                     if (allDoctors.length > 0) { //for new group
                         var doctorMap = { //mapping doctor to consultation
@@ -306,6 +328,25 @@ class GroupService {
                         updatedBy: createdGroup.updatedBy
                     }
                     this.createGroupUserMap(groupUserMap, (userMapped) => {});
+                    userService.getById(allGroupUser[i].userId, (user) => {
+                        if (user.role.toLowerCase() == 'bot') {
+                            //create audit for this created group
+                            var audit = new AuditModel({
+                                senderId: user.id,
+                                receiverId: createdGroup.id,
+                                receiverType: 'group',
+                                mode: 'Guided mode',
+                                entityName: 'group',
+                                entityEvent: 'added',
+                                groupId: createdGroup.id,
+                                createdBy: user.id,
+                                updatedBy: user.id,
+                                createdTime: Date.now(),
+                                updatedTime: ''
+                            });
+                            auditService.create(audit, () => {});
+                        }
+                    });
                 }
             });
             //mapping doctor into consultation
@@ -380,14 +421,6 @@ class GroupService {
                 updatedBy: createdGroup.updatedBy
             }
             this.createGroupUserMap(groupUserMap, (userMapped) => {});
-            //mapping doctor to the group
-            var groupDoctorMap = {
-                groupId: createdGroup.id,
-                userId: doctorId,
-                createdBy: createdGroup.createdBy,
-                updatedBy: createdGroup.updatedBy
-            }
-            this.createGroupUserMap(groupDoctorMap, (doctorMapped) => {});
             //mapping bot to the group and creating a new message
             sequelize
                 .query("select u.id, u.firstname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
@@ -412,7 +445,7 @@ class GroupService {
                         receiverId: createdGroup.id,
                         receiverType: 'group', // group or individual
                         senderId: uId,
-                        text: 'Welcome to Mesomeds!! How can we help you?',
+                        text: 'Welcome to Mesomeds! I am Medroid, your medical assistant. How may I assist you?',
                         createdTime: Date.now(),
                         updatedTime: Date.now()
                     };
@@ -424,8 +457,8 @@ class GroupService {
                 doctorId: doctorId,
                 createdBy: createdGroup.createdBy,
                 updatedBy: createdGroup.updatedBy,
-                lastActive: Date.now()
-            }
+                //lastActive: Date.now()
+            };
             doctorService.createConsultation(doctorMap, (consultationCreated) => {});
         });
     }

@@ -17,6 +17,8 @@ import RoleService from '../role/role.service';
 import RoleModel from '../role/index';
 import EmailService from '../../util/email.service';
 import Properties from '../../util/properties';
+import AuditService from '../audit/audit.service';
+import AuditModel from '../audit/audit.model';
 
 const userDao = new UserDao();
 const groupDao = new GroupDao();
@@ -26,6 +28,7 @@ const roleService = new RoleService();
 const emailService = new EmailService();
 const staffInfoDao = new StaffInfoDao();
 const visitorDao = new VisitorDao();
+const auditService = new AuditService();
 
 /**
  * UserService 
@@ -165,6 +168,22 @@ class UserService {
                                     updatedTime: Date.now()
                                 }
                                 messageService.sendMessage(msg, (result) => {});
+
+                                //create audit entry for default group 
+                                var audit = new AuditModel({
+                                    senderId: uId,
+                                    receiverId: createdGroup.id,
+                                    receiverType: 'group',
+                                    mode: 'Guided mode',
+                                    entityName: 'group',
+                                    entityEvent: 'added',
+                                    groupId: createdGroup.id,
+                                    createdBy: uId,
+                                    updatedBy: uId,
+                                    createdTime: Date.now(),
+                                    updatedTime: ''
+                                });
+                                auditService.create(audit, (auditCreated) => {});
                             });
                     });
                 } else if (userInserted.role.toLowerCase() === 'bot') {
@@ -204,7 +223,7 @@ class UserService {
             <h3>Message</h3>
             <p>Message: User confirmed.</p>
             `
-        emailService.sendEmail(userOutput, adminOutput, user.email, subject);
+        emailService.sendEmail(userOutput, adminOutput, user.email, subject, () => {});
     }
 
     /**
