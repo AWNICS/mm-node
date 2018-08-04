@@ -56,7 +56,7 @@ exports.connectSocket = (io) => {
             /**
              * for sending message to group/user which is emitted from client(msg with an groupId/userId)
              */
-            socket.on('send-message', (msg) => {
+            socket.on('send-message', (msg, group) => {
                 // if it is a group message
                 if (msg.receiverType === "group") {
                     messageService.sendMessage(msg, (result) => {
@@ -64,20 +64,37 @@ exports.connectSocket = (io) => {
                             io.in(user.socketId).emit('receive-message', result); //emit one-by-one for all users
                         });
                     });
-                    dialogFlowService.callDialogFlowApi(msg.text, res => {
-                        res.map(result => {
-                            msg.text = result.text.text[0];
-                            msg.senderId = 3;
-                            msg.receiverId = 18;
-                            msg.updatedBy = 3;
-                            msg.createdBy = 3;
-                            msg.senderName = 'Bot rgv';
-                            messageService.sendMessage(msg, (result) => {
-                                groupService.getAllUsersByGroupId(msg.receiverId, (user) => {
-                                    io.in(user.socketId).emit('receive-message', result); //emit one-by-one for all users
+                    groupService.getById(group.id, (group) => {
+                        if (group.phase === 'active') {
+                            groupUserMapModel.group_user_map.findAll({
+                                where: {
+                                    groupId: group.id
+                                }
+                            }).then((groupUserMaps) => {
+                                groupUserMaps.map((groupUserMap) => {
+                                    userService.getById(groupUserMap.userId, (user) => {
+                                        if (user.role === 'bot') {
+                                            dialogFlowService.callDialogFlowApi(msg.text, res => {
+                                                res.map(result => {
+                                                    msg.text = result.text.text[0];
+                                                    msg.senderId = user.id;
+                                                    msg.updatedBy = user.id;
+                                                    msg.createdBy = user.id;
+                                                    msg.senderName = user.firstname + ' ' + user.lastname;
+                                                    messageService.sendMessage(msg, (result) => {
+                                                        groupService.getAllUsersByGroupId(msg.receiverId, (user) => {
+                                                            io.in(user.socketId).emit('receive-message', result); //emit one-by-one for all users
+                                                        });
+                                                    });
+                                                });
+                                            });
+                                        }
+                                    });
                                 });
                             });
-                        });
+                        } else {
+                            return;
+                        }
                     });
                 }
                 // if it is a private message 
@@ -151,6 +168,43 @@ exports.connectSocket = (io) => {
             socket.on('notify-users', (data) => {
                 groupService.getAllUsersByGroupId(data.receiverId, (user) => {
                     io.in(user.socketId).emit('receive-notification', { 'message': 'One message deleted from this group' }); //emit one-by-one for all users
+                });
+            });
+
+            /**
+             * user or doctor added to consultation group
+             */
+            socket.on('user-added', (doctor, groupId) => {
+                var groupUserMap = {
+                    groupId: groupId,
+                    userId: doctor.id,
+                    createdBy: doctor.id,
+                    updatedBy: doctor.id
+                }
+                groupService.createGroupUserMap(groupUserMap, () => {
+                    var group = {
+                        id: groupId,
+                        phase: 'inactive'
+                    }
+                    groupService.update(group, () => {
+                        groupService.getAllUsersByGroupId(groupId, (user) => {
+                            io.in(user.socketId).emit('receive-user-added', { message: `${doctor.firstname} ${doctor.lastname} joined the group`, doctorId: doctor.id }); //emit one-by-one for all users
+                        });
+                    });
+                });
+            });
+
+            /**
+             * user or doctor added to consultation group
+             */
+            socket.on('user-deleted', (doctor, group) => {
+                groupService.deleteGroupUserMap(doctor.id, group.id, () => {
+                    group.phase = 'active';
+                    groupService.update(group, () => {
+                        groupService.getAllUsersByGroupId(group.id, (user) => {
+                            io.in(user.socketId).emit('receive-user-deleted', { message: `${doctor.firstname} ${doctor.lastname} left the group`, group: group }); //emit one-by-one for all users
+                        });
+                    });
                 });
             });
 

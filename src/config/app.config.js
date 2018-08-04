@@ -32,6 +32,7 @@ import role from '../apis/role/role.controller';
 import register from '../apis/register/register.controller';
 import locations from '../apis/locations/locations.controller';
 import visitor from '../apis/visitor/visitor.controller';
+import audit from '../apis/audit/audit.controller';
 
 class Config {
     constructor() {
@@ -93,6 +94,7 @@ class Config {
         this.app.use('/', register);
         this.app.use('/', authenticate);
         this.app.use('/', dialogFlow);
+        this.app.use('/', audit);
         this.app.use('/', passport.authenticate('jwt', { session: false }), visitor);
         this.app.use('/', passport.authenticate('jwt', { session: false }), doctor);
         this.app.use('/', passport.authenticate('jwt', { session: false }), user);

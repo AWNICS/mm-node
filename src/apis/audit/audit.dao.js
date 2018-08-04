@@ -6,7 +6,6 @@ import Audit from './audit.model';
 import log from '../../config/log4js.config';
 
 exports.create = (audit, callback) => {
-    console.log('audit details: ' + JSON.stringify(audit));
     var auditData = new Audit(audit);
     //create a new audit
     auditData.save((err, audit) => {

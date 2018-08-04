@@ -65,11 +65,12 @@ class GroupUserMapDao {
     /**
      * Delete method
      */
-    delete(id, callback) {
+    delete(userId, groupId, callback) {
         sequelize.transaction().then(function(t) {
             groupUserMapModel.group_user_map.destroy({
                 where: {
-                    id: id
+                    userId: userId,
+                    groupId: groupId
                 }
             }).then(function(groupUserDeleted) {
                 callback(groupUserDeleted);

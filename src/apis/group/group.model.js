@@ -23,6 +23,9 @@ module.exports = (sequelize, DataTypes) => {
         status: {
             type: DataTypes.STRING
         },
+        phase: {
+            type: DataTypes.STRING
+        },
         createdBy: {
             type: DataTypes.INTEGER,
             defaultValue: null
