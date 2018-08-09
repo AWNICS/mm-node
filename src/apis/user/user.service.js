@@ -53,6 +53,19 @@ class UserService {
         bcrypt.hash(user.password, 10, (err, hash) => {
             user.password = hash;
             return userDao.insert(user, (userInserted) => {
+                var audit = new AuditModel({
+                    senderId: userInserted.id,
+                    receiverId: '',
+                    receiverType: '',
+                    mode: '',
+                    entityName: 'visitor',
+                    entityEvent: 'registration',
+                    createdBy: userInserted.id,
+                    updatedBy: userInserted.id,
+                    createdTime: Date.now(),
+                    updatedTime: Date.now()
+                });
+                auditService.create(audit, (auditCreated) => {});
                 //update createdBy and updatedBy
                 userInserted.createdBy = userInserted.id;
                 userInserted.updatedBy = userInserted.id;
@@ -177,7 +190,6 @@ class UserService {
                                     mode: 'Guided mode',
                                     entityName: 'group',
                                     entityEvent: 'added',
-                                    groupId: createdGroup.id,
                                     createdBy: uId,
                                     updatedBy: uId,
                                     createdTime: Date.now(),

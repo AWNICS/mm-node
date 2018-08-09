@@ -6,11 +6,14 @@ import UserService from '../user/user.service';
 import groupUserMapModel from '../group/index';
 import DialogFlowService from '../dialogFlow/dialogFlow.service';
 const jwt = require('jsonwebtoken');
+import AuditService from '../audit/audit.service';
+import AuditModel from '../audit/audit.model';
 
 const messageService = new MessageService();
 const groupService = new GroupService();
 const userService = new UserService();
 const dialogFlowService = new DialogFlowService();
+const auditService = new AuditService();
 
 exports.connectSocket = (io) => {
     io.use(function(socket, next) {
@@ -51,6 +54,19 @@ exports.connectSocket = (io) => {
                         });
                     }
                 });
+                var audit = new AuditModel({
+                    senderId: userId,
+                    receiverId: '',
+                    receiverType: '',
+                    mode: 'bot',
+                    entityName: 'visitor',
+                    entityEvent: 'login',
+                    createdBy: userId,
+                    updatedBy: userId,
+                    createdTime: Date.now(),
+                    updatedTime: Date.now()
+                });
+                auditService.create(audit, (auditCreated) => {});
             });
 
             /**
@@ -191,6 +207,19 @@ exports.connectSocket = (io) => {
                             io.in(user.socketId).emit('receive-user-added', { message: `${doctor.firstname} ${doctor.lastname} joined the group`, doctorId: doctor.id }); //emit one-by-one for all users
                         });
                     });
+                    var audit = new AuditModel({
+                        senderId: doctor.id,
+                        receiverId: groupId,
+                        receiverType: 'group',
+                        mode: 'doctor',
+                        entityName: 'doctor',
+                        entityEvent: 'add',
+                        createdBy: doctor.id,
+                        updatedBy: doctor.id,
+                        createdTime: Date.now(),
+                        updatedTime: Date.now()
+                    });
+                    auditService.create(audit, (auditCreated) => {});
                 });
             });
 
@@ -205,6 +234,19 @@ exports.connectSocket = (io) => {
                             io.in(user.socketId).emit('receive-user-deleted', { message: `${doctor.firstname} ${doctor.lastname} left the group`, group: group }); //emit one-by-one for all users
                         });
                     });
+                    var audit = new AuditModel({
+                        senderId: doctor.id,
+                        receiverId: group.id,
+                        receiverType: 'group',
+                        mode: 'doctor',
+                        entityName: 'doctor',
+                        entityEvent: 'remove',
+                        createdBy: doctor.id,
+                        updatedBy: doctor.id,
+                        createdTime: Date.now(),
+                        updatedTime: Date.now()
+                    });
+                    auditService.create(audit, (auditCreated) => {});
                 });
             });
 
@@ -238,6 +280,19 @@ exports.connectSocket = (io) => {
                         });*/
                     }
                 });
+                var audit = new AuditModel({
+                    senderId: userId,
+                    receiverId: '',
+                    receiverType: '',
+                    mode: '',
+                    entityName: 'visitor',
+                    entityEvent: 'logout',
+                    createdBy: userId,
+                    updatedBy: userId,
+                    createdTime: Date.now(),
+                    updatedTime: Date.now()
+                });
+                auditService.create(audit, (auditCreated) => {});
             });
         });
 }

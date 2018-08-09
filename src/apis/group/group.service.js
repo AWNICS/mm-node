@@ -203,7 +203,6 @@ class GroupService {
                     callback(res);
                 });
             });
-            // callback(res);
         });
     }
 
@@ -246,11 +245,10 @@ class GroupService {
                                 mode: 'Guided mode',
                                 entityName: 'group',
                                 entityEvent: 'added',
-                                groupId: createdGroup.id,
                                 createdBy: user.id,
                                 updatedBy: user.id,
                                 createdTime: Date.now(),
-                                updatedTime: ''
+                                updatedTime: Date.now()
                             });
                             auditService.create(audit, () => {});
                         }
@@ -338,11 +336,10 @@ class GroupService {
                                 mode: 'Guided mode',
                                 entityName: 'group',
                                 entityEvent: 'added',
-                                groupId: createdGroup.id,
                                 createdBy: user.id,
                                 updatedBy: user.id,
                                 createdTime: Date.now(),
-                                updatedTime: ''
+                                updatedTime: Date.now()
                             });
                             auditService.create(audit, () => {});
                         }
@@ -421,43 +418,47 @@ class GroupService {
                 updatedBy: createdGroup.updatedBy
             }
             this.createGroupUserMap(groupUserMap, (userMapped) => {});
-            //mapping bot to the group and creating a new message
-            sequelize
-                .query("select u.id, u.firstname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
-                .then((groupUserMaps) => {
-                    var uId;
-                    for (var i = 0; i < groupUserMaps.length; i++) {
-                        if (groupUserMaps[i].role.toLowerCase() == 'bot') {
-                            uId = groupUserMaps[i].id;
-                            break;
-                        } else {
-                            continue;
-                        }
-                    }
-                    var groupUserMapBot = {
-                        groupId: createdGroup.id,
-                        userId: uId,
-                        createdBy: createdGroup.createdBy,
-                        updatedBy: createdGroup.updatedBy
-                    };
-                    groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
-                    var msg = {
-                        receiverId: createdGroup.id,
-                        receiverType: 'group', // group or individual
-                        senderId: uId,
-                        text: 'Welcome to Mesomeds! I am Medroid, your medical assistant. How may I assist you?',
-                        createdTime: Date.now(),
-                        updatedTime: Date.now()
-                    };
-                    messageService.sendMessage(msg, (result) => {});
+            //mapping bot(same bot which is in MedHelp) to the consutation group and create a new message
+            groupUserMapModel.group_user_map.findAll({
+                where: { userId: patientId },
+                order: [
+                    ['createdAt', 'ASC']
+                ],
+                limit: 1
+            }).then((groupUserMap) => {
+                this.getById(groupUserMap[0].groupId, (group) => {
+                    groupUserMapModel.group_user_map.findAll({ where: { groupId: group.id } }).then((groupUserMaps) => {
+                        groupUserMaps.map((groupUserMap) => {
+                            userService.getById(groupUserMap.userId, ((user) => {
+                                if (user.role.toLowerCase() == 'bot') {
+                                    var groupUserMapBot = {
+                                        groupId: createdGroup.id,
+                                        userId: user.id,
+                                        createdBy: user.id,
+                                        updatedBy: user.id
+                                    };
+                                    groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
+                                    var msg = {
+                                        receiverId: createdGroup.id,
+                                        receiverType: 'group',
+                                        senderId: user.id,
+                                        text: 'Welcome to Mesomeds! I am Medroid, your medical assistant. How may I assist you?',
+                                        createdTime: Date.now(),
+                                        updatedTime: Date.now()
+                                    };
+                                    messageService.sendMessage(msg, (result) => {});
+                                }
+                            }));
+                        })
+                    });
                 });
+            });
             //mapping doctor into consultation
             var doctorMap = {
                 patientId: patientId,
                 doctorId: doctorId,
                 createdBy: createdGroup.createdBy,
-                updatedBy: createdGroup.updatedBy,
-                //lastActive: Date.now()
+                updatedBy: createdGroup.updatedBy
             };
             doctorService.createConsultation(doctorMap, (consultationCreated) => {});
         });
