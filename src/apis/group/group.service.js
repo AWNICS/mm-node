@@ -207,6 +207,31 @@ class GroupService {
     }
 
     /**
+     * getting all users based on groupId 
+     */
+
+    getAllUsersByGroupId(groupId, callback) {
+        return groupUserMapModel.group_user_map.findAll({
+            where: {
+                groupId: groupId
+            }
+        }).then((allUserIdsByGroupId) => {
+            return Promise.map(allUserIdsByGroupId, groupUserMap => {
+                return new Promise((resolve, reject) => {
+                    userService.getById(groupUserMap.userId, (res, err) => {
+                        if (err) {
+                            reject(err);
+                        }
+                        resolve(res);
+                    });
+                })
+            }).then((groupUsers) => {
+                callback(groupUsers);
+            });
+        });
+    }
+
+    /**
      * get groups based on the group url
      */
     getGroupByUrl(url) {

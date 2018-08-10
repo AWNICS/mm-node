@@ -442,4 +442,34 @@ router.get('/groups/doctors/:doctorId/patients/:patientId', function(req, res) {
     });
 });
 
+
+/**
+ * @swagger
+ * /group/:groupId/groupUserNames:
+ *   get:
+ *     tags:
+ *       - Group
+ *     description: For fetching fullnames of users in group
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: groupId
+ *         in: path
+ *         description: id of the group
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *     responses:
+ *       200:
+ *         description: list of users in the group
+ */
+
+router.get('/groups/:groupId/users', function(req, res) {
+    var doctorId = req.params.groupId;
+    groupService.getAllUsersByGroupId(doctorId, (result) => {
+        res.send(result);
+    });
+});
+
 module.exports = router;
