@@ -211,7 +211,7 @@ class GroupService {
      * getting all users based on groupId 
      */
 
-    getAllUserNamesByGroupId(groupId, callback) {
+    getAllUsersByGroupId(groupId, callback) {
         return groupUserMapModel.group_user_map.findAll({
             where: {
                 groupId: groupId
@@ -226,10 +226,8 @@ class GroupService {
                         resolve(res);
                     });
                 })
-            }).then((allUserData) => {
-                var resp = [];
-                allUserData.forEach((user) => { resp.push(user.firstname + ' ' + user.lastname) });
-                callback(resp)
+            }).then((groupUsers) => {
+                callback(groupUsers);
             });
         });
     }
