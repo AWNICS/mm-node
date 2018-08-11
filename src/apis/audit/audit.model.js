@@ -10,12 +10,11 @@ var Schema = mongoose.Schema;
 
 var AuditSchema = new Schema({
     senderId: Number,
-    receiverId: Number, //visitor id
+    receiverId: Number,
     receiverType: String,
     mode: String, //for which phase this audit is 
     entityName: String, //{ visitor, doc, group },
     entityEvent: String, //{ add, remove },
-    groupId: Number, //group created info
     createdBy: { type: Number, default: null },
     updatedBy: { type: Number, default: null },
     createdTime: { type: Date, default: Date.now() },
