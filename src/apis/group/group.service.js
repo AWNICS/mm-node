@@ -218,15 +218,15 @@ class GroupService {
         }).then((allUserIdsByGroupId) => {
             return Promise.map(allUserIdsByGroupId, groupUserMap => {
                 return new Promise((resolve, reject) => {
-                    userService.getById(groupUserMap.userId, (res, err) => {
+                    userService.getById(groupUserMap.userId, (usersList, err) => {
                         if (err) {
                             reject(err);
                         }
-                        resolve(res);
+                        resolve(usersList);
                     });
                 })
-            }).then((groupUsers) => {
-                callback(groupUsers);
+            }).then((groupUsersList) => {
+                callback(groupUsersList);
             });
         });
     }
