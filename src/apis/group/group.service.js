@@ -210,23 +210,23 @@ class GroupService {
      * getting all users based on groupId 
      */
 
-    getAllUsersListByGroupId(groupId, callback) {
+    getAllUsersByGroupId(groupId, callback) {
         return groupUserMapModel.group_user_map.findAll({
             where: {
                 groupId: groupId
             }
-        }).then((allUserIdsByGroupId) => {
-            return Promise.map(allUserIdsByGroupId, groupUserMap => {
+        }).then((groupUserMaps) => {
+            return Promise.map(groupUserMaps, groupUserMap => {
                 return new Promise((resolve, reject) => {
-                    userService.getById(groupUserMap.userId, (usersList, err) => {
+                    userService.getById(groupUserMap.userId, (users, err) => {
                         if (err) {
                             reject(err);
                         }
-                        resolve(usersList);
+                        resolve(users);
                     });
                 })
-            }).then((groupUsersList) => {
-                callback(groupUsersList);
+            }).then((groupUsers) => {
+                callback(groupUsers);
             });
         });
     }
