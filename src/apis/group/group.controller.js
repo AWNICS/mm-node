@@ -445,7 +445,7 @@ router.get('/groups/doctors/:doctorId/patients/:patientId', function(req, res) {
 
 /**
  * @swagger
- * /group/:groupId/groupUserNames:
+ * /groups/:groupId/users:
  *   get:
  *     tags:
  *       - Group
@@ -467,7 +467,7 @@ router.get('/groups/doctors/:doctorId/patients/:patientId', function(req, res) {
 
 router.get('/groups/:groupId/users', function(req, res) {
     var doctorId = req.params.groupId;
-    groupService.getAllUsersListByGroupId(doctorId, (result) => {
+    groupService.getAllUsersByGroupId(doctorId, (result) => {
         res.send(result);
     });
 });
