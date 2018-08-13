@@ -467,7 +467,7 @@ router.get('/groups/doctors/:doctorId/patients/:patientId', function(req, res) {
 
 router.get('/groups/:groupId/users', function(req, res) {
     var doctorId = req.params.groupId;
-    groupService.getAllUsersByGroupId(doctorId, (result) => {
+    groupService.getAllUsersListByGroupId(doctorId, (result) => {
         res.send(result);
     });
 });

@@ -210,7 +210,7 @@ class GroupService {
      * getting all users based on groupId 
      */
 
-    getAllUsersByGroupId(groupId, callback) {
+    getAllUsersListByGroupId(groupId, callback) {
         return groupUserMapModel.group_user_map.findAll({
             where: {
                 groupId: groupId
