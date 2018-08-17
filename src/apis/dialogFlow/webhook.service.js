@@ -19,8 +19,7 @@ exports.dialogflowFirebaseFulfillment = (request, response) => {
     });
 
     function welcome(agent) {
-        var params = agent.request_.body.queryResult.parameters;
-        agent.add(`This is remote server. I see that you have ${params.symptoms}`);
+        agent.add(`Greetings from Mesomeds! I am MesoBot, your medical assistant. How may I assist you?`);
     }
 
     function fallback(agent) {
