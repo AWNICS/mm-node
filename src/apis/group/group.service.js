@@ -1,7 +1,6 @@
 import GroupDao from './group.dao';
 import log from '../../config/log4js.config';
 import GroupUserMapDao from '../../apis/group/groupUserMap.dao';
-import Message from '../message/message.model';
 import sequelize from '../../util/conn.mysql';
 import groupUserMapModel from './index';
 import groupModel from './index';
@@ -12,6 +11,7 @@ import visitorAppointmentModel from '../visitor/index';
 import MessageService from '../message/message.service';
 import AuditModel from '../audit/audit.model';
 import AuditService from '../audit/audit.service';
+import NotificationService from '../notification/notification.service';
 
 const Promise = require('bluebird');
 
@@ -21,6 +21,7 @@ const userService = new UserService();
 const doctorService = new DoctorService();
 const messageService = new MessageService();
 const auditService = new AuditService();
+const notificationService = new NotificationService();
 
 class GroupService {
     constructor() {}
@@ -447,13 +448,28 @@ class GroupService {
                                         updatedTime: Date.now()
                                     };
                                     messageService.sendMessage(msg, (result) => {});
+                                    //create notification for the doctor
+                                    var notification = {
+                                        userId: doctorId,
+                                        type: 'consultation',
+                                        title: 'Skin issue',
+                                        content: 'COnsultation for skin related issue',
+                                        status: 'created',
+                                        channel: 'web',
+                                        priority: 0,
+                                        template: '',
+                                        triggerTime: '2018-08-16 09:00:00',
+                                        createdBy: user.id,
+                                        updatedBy: user.id
+                                    };
+                                    notificationService.create(notification, (notificationCreated) => {});
                                 }
                             }));
                         })
                     });
                 });
             });
-            //mapping doctor into consultation
+            //mapping doctor into visitor appointment table
             var doctorMap = {
                 patientId: patientId,
                 doctorId: doctorId,
