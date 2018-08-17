@@ -191,9 +191,9 @@ class GroupService {
     }
 
     /**
-     * getting all users based on groupId 
+     * getting users one by one based on groupId 
      */
-    getAllUsersByGroupId(groupId, callback) {
+    getUsersByGroupId(groupId, callback) {
         return groupUserMapModel.group_user_map.findAll({
             where: {
                 groupId: groupId

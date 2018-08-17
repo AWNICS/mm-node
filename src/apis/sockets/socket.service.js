@@ -80,7 +80,7 @@ exports.connectSocket = (io) => {
                 // if it is a group message
                 if (msg.receiverType === "group") {
                     messageService.sendMessage(msg, (result) => {
-                        groupService.getAllUsersByGroupId(msg.receiverId, (user) => {
+                        groupService.getUsersByGroupId(msg.receiverId, (user) => {
                             io.in(user.socketId).emit('receive-message', result); //emit one-by-one for all users
                         });
                     });
@@ -102,7 +102,7 @@ exports.connectSocket = (io) => {
                                                     msg.createdBy = user.id;
                                                     msg.senderName = user.firstname + ' ' + user.lastname;
                                                     messageService.sendMessage(msg, (result) => {
-                                                        groupService.getAllUsersByGroupId(msg.receiverId, (user) => {
+                                                        groupService.getUsersByGroupId(msg.receiverId, (user) => {
                                                             io.in(user.socketId).emit('receive-message', result); //emit one-by-one for all users
                                                         });
                                                     });
@@ -141,7 +141,7 @@ exports.connectSocket = (io) => {
             socket.on('send-typing', (data) => {
                 // if it is a group message
                 if (data.receiverType === "group") {
-                    groupService.getAllUsersByGroupId(data.receiver.id)
+                    groupService.getUsersByGroupId(data.receiver.id)
                         .then((users) => {
                             users.map(user => {
                                 socket.to(user.socketId).emit('receive-typing', data); //emit one-by-one for all users
@@ -165,7 +165,7 @@ exports.connectSocket = (io) => {
              */
             socket.on('update-message', (data) => {
                 messageService.update(data, (res) => {
-                    groupService.getAllUsersByGroupId(data.receiverId, (user) => {
+                    groupService.getUsersByGroupId(data.receiverId, (user) => {
                         io.in(user.socketId).emit('updated-message', res); //emit one-by-one for all users
                     });
                 });
@@ -176,7 +176,7 @@ exports.connectSocket = (io) => {
              */
             socket.on('delete-message', (data, index) => {
                 messageService.removeGroupMessageMap(data._id, (result) => {
-                    groupService.getAllUsersByGroupId(data.receiverId, (user) => {
+                    groupService.getUsersByGroupId(data.receiverId, (user) => {
                         io.in(user.socketId).emit('deleted-message', { result, data, index }); //emit one-by-one for all users
                     });
                 });
@@ -186,7 +186,7 @@ exports.connectSocket = (io) => {
              * notifying online users for deleted message
              */
             socket.on('notify-users', (data) => {
-                groupService.getAllUsersByGroupId(data.receiverId, (user) => {
+                groupService.getUsersByGroupId(data.receiverId, (user) => {
                     io.in(user.socketId).emit('receive-notification', { 'message': 'One message deleted from this group' }); //emit one-by-one for all users
                 });
             });
@@ -207,7 +207,7 @@ exports.connectSocket = (io) => {
                         phase: 'inactive'
                     }
                     groupService.update(group, () => {
-                        groupService.getAllUsersByGroupId(groupId, (user) => {
+                        groupService.getUsersByGroupId(groupId, (user) => {
                             io.in(user.socketId).emit('receive-user-added', { message: `${doctor.firstname} ${doctor.lastname} joined the group`, doctorId: doctor.id }); //emit one-by-one for all users
                         });
                     });
@@ -234,7 +234,7 @@ exports.connectSocket = (io) => {
                 groupService.deleteGroupUserMap(doctor.id, group.id, () => {
                     group.phase = 'active';
                     groupService.update(group, () => {
-                        groupService.getAllUsersByGroupId(group.id, (user) => {
+                        groupService.getUsersByGroupId(group.id, (user) => {
                             io.in(user.socketId).emit('receive-user-deleted', { message: `${doctor.firstname} ${doctor.lastname} left the group`, group: group }); //emit one-by-one for all users
                         });
                     });
