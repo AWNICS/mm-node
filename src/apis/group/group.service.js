@@ -1,7 +1,6 @@
 import GroupDao from './group.dao';
 import log from '../../config/log4js.config';
 import GroupUserMapDao from '../../apis/group/groupUserMap.dao';
-import Message from '../message/message.model';
 import sequelize from '../../util/conn.mysql';
 import groupUserMapModel from './index';
 import groupModel from './index';
@@ -12,6 +11,7 @@ import visitorAppointmentModel from '../visitor/index';
 import MessageService from '../message/message.service';
 import AuditModel from '../audit/audit.model';
 import AuditService from '../audit/audit.service';
+import NotificationService from '../notification/notification.service';
 
 const Promise = require('bluebird');
 
@@ -21,6 +21,7 @@ const userService = new UserService();
 const doctorService = new DoctorService();
 const messageService = new MessageService();
 const auditService = new AuditService();
+const notificationService = new NotificationService();
 
 class GroupService {
     constructor() {}
@@ -203,7 +204,31 @@ class GroupService {
                     callback(res);
                 });
             });
-            // callback(res);
+        });
+    }
+
+    /**
+     * getting all users based on groupId 
+     */
+
+    getAllUsersByGroupId(groupId, callback) {
+        return groupUserMapModel.group_user_map.findAll({
+            where: {
+                groupId: groupId
+            }
+        }).then((groupUserMaps) => {
+            return Promise.map(groupUserMaps, groupUserMap => {
+                return new Promise((resolve, reject) => {
+                    userService.getById(groupUserMap.userId, (users, err) => {
+                        if (err) {
+                            reject(err);
+                        }
+                        resolve(users);
+                    });
+                })
+            }).then((groupUsers) => {
+                callback(groupUsers);
+            });
         });
     }
 
@@ -246,11 +271,10 @@ class GroupService {
                                 mode: 'Guided mode',
                                 entityName: 'group',
                                 entityEvent: 'added',
-                                groupId: createdGroup.id,
                                 createdBy: user.id,
                                 updatedBy: user.id,
                                 createdTime: Date.now(),
-                                updatedTime: ''
+                                updatedTime: Date.now()
                             });
                             auditService.create(audit, () => {});
                         }
@@ -338,11 +362,10 @@ class GroupService {
                                 mode: 'Guided mode',
                                 entityName: 'group',
                                 entityEvent: 'added',
-                                groupId: createdGroup.id,
                                 createdBy: user.id,
                                 updatedBy: user.id,
                                 createdTime: Date.now(),
-                                updatedTime: ''
+                                updatedTime: Date.now()
                             });
                             auditService.create(audit, () => {});
                         }
@@ -421,43 +444,62 @@ class GroupService {
                 updatedBy: createdGroup.updatedBy
             }
             this.createGroupUserMap(groupUserMap, (userMapped) => {});
-            //mapping bot to the group and creating a new message
-            sequelize
-                .query("select u.id, u.firstname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
-                .then((groupUserMaps) => {
-                    var uId;
-                    for (var i = 0; i < groupUserMaps.length; i++) {
-                        if (groupUserMaps[i].role.toLowerCase() == 'bot') {
-                            uId = groupUserMaps[i].id;
-                            break;
-                        } else {
-                            continue;
-                        }
-                    }
-                    var groupUserMapBot = {
-                        groupId: createdGroup.id,
-                        userId: uId,
-                        createdBy: createdGroup.createdBy,
-                        updatedBy: createdGroup.updatedBy
-                    };
-                    groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
-                    var msg = {
-                        receiverId: createdGroup.id,
-                        receiverType: 'group', // group or individual
-                        senderId: uId,
-                        text: 'Welcome to Mesomeds! I am Medroid, your medical assistant. How may I assist you?',
-                        createdTime: Date.now(),
-                        updatedTime: Date.now()
-                    };
-                    messageService.sendMessage(msg, (result) => {});
+            //mapping bot(same bot which is in MedHelp) to the consutation group and create a new message
+            groupUserMapModel.group_user_map.findAll({
+                where: { userId: patientId },
+                order: [
+                    ['createdAt', 'ASC']
+                ],
+                limit: 1
+            }).then((groupUserMap) => {
+                this.getById(groupUserMap[0].groupId, (group) => {
+                    groupUserMapModel.group_user_map.findAll({ where: { groupId: group.id } }).then((groupUserMaps) => {
+                        groupUserMaps.map((groupUserMap) => {
+                            userService.getById(groupUserMap.userId, ((user) => {
+                                if (user.role.toLowerCase() == 'bot') {
+                                    var groupUserMapBot = {
+                                        groupId: createdGroup.id,
+                                        userId: user.id,
+                                        createdBy: user.id,
+                                        updatedBy: user.id
+                                    };
+                                    groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
+                                    var msg = {
+                                        receiverId: createdGroup.id,
+                                        receiverType: 'group',
+                                        senderId: user.id,
+                                        text: 'Welcome to Mesomeds! I am Medroid, your medical assistant. How may I assist you?',
+                                        createdTime: Date.now(),
+                                        updatedTime: Date.now()
+                                    };
+                                    messageService.sendMessage(msg, (result) => {});
+                                    //create notification for the doctor
+                                    var notification = {
+                                        userId: doctorId,
+                                        type: 'consultation',
+                                        title: 'Skin issue',
+                                        content: 'COnsultation for skin related issue',
+                                        status: 'created',
+                                        channel: 'web',
+                                        priority: 0,
+                                        template: '',
+                                        triggerTime: '2018-08-16 09:00:00',
+                                        createdBy: user.id,
+                                        updatedBy: user.id
+                                    };
+                                    notificationService.create(notification, (notificationCreated) => {});
+                                }
+                            }));
+                        })
+                    });
                 });
-            //mapping doctor into consultation
+            });
+            //mapping doctor into visitor appointment table
             var doctorMap = {
                 patientId: patientId,
                 doctorId: doctorId,
                 createdBy: createdGroup.createdBy,
-                updatedBy: createdGroup.updatedBy,
-                //lastActive: Date.now()
+                updatedBy: createdGroup.updatedBy
             };
             doctorService.createConsultation(doctorMap, (consultationCreated) => {});
         });

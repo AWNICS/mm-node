@@ -36,9 +36,9 @@ class DoctorScheduleDao {
     /**
      * read method based on id
      */
-    readById(id, callback) {
+    readById(doctorId, callback) {
         return doctorScheduleModel.doctor_schedule
-            .findById(id)
+            .findAll({ where: { doctorId: doctorId } })
             .then((doctorSchedule) => {
                 callback(doctorSchedule);
             });
