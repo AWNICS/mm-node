@@ -8,12 +8,16 @@ import DialogFlowService from '../dialogFlow/dialogFlow.service';
 const jwt = require('jsonwebtoken');
 import AuditService from '../audit/audit.service';
 import AuditModel from '../audit/audit.model';
+import NotificationService from '../notification/notification.service';
+import visitorAppointmentModel from '../visitor/index';
 
+const Op = require('sequelize').Op;
 const messageService = new MessageService();
 const groupService = new GroupService();
 const userService = new UserService();
 const dialogFlowService = new DialogFlowService();
 const auditService = new AuditService();
+const notificationService = new NotificationService();
 
 exports.connectSocket = (io) => {
     io.use(function(socket, next) {
@@ -294,5 +298,28 @@ exports.connectSocket = (io) => {
                 });
                 auditService.create(audit, (auditCreated) => {});
             });
+
+            function scheduler() {
+                notificationService.readByTime((allNotifications) => {
+                    allNotifications.map((notification) => {
+                        visitorAppointmentModel.visitor_appointment.findAll({
+                            where: {
+                                doctorId: notification.userId,
+                                startTime: {
+                                    [Op.gt]: Date.now()
+                                }
+                            }
+                        }).then((visitorAppointment) => {
+                            groupService.getAllGroupsByUserId(visitorAppointment[0].visitorId)
+                                .then((groups) => {
+                                    userService.getById(notification.userId, (user) => {
+                                        io.in(user.socketId).emit('consult-notification', { notification: notification, group: groups[1] });
+                                    });
+                                });
+                        });
+                    });
+                });
+            }
+            setInterval(scheduler, 30000);
         });
 }
