@@ -508,36 +508,39 @@ class GroupService {
         });
     }
 
-    //we will need this code to update the group status on logout of the user
-    /*async groupStatusUpdate(userId, callback) {
+    //we will need this code to review for updating the group status on logout of the user
+    async groupStatusUpdate(userId, callback) {
         var groups = await this.getAllGroupsByUserId(userId);
         var count = await this.getStatusCount(groups);
         console.log('count ', count);
+        //callback(count);
     }
 
     getStatusCount(groups) {
         return Promise.all(groups.map((group) => {
             return groupUserMapModel.group_user_map.findAll({ where: { groupId: group.id } })
                 .then((gUMaps) => {
-                    var count = 0;
+                    var count = [],
+                        i = 0;
                     return Promise.all(gUMaps.map((gUMap) => {
                         return userService.getById(gUMap.userId, (user) => {
                             if (user.status === 'online') {
-                                return ++count;
+                                return ++count[i];
                             } else {
                                 return;
                             }
                         });
                     }));
-                    // console.log('count: ' + JSON.stringify(count[0]));
-                    // if (count[0] < 2) {
-                    //     groupService.update({ id: group.id, status: 'offline' }, () => {});
-                    // } else {
-                    //     return;
-                    // }
+                    i = ++i;
+                    //console.log('count: ' + JSON.stringify(count[0]));
+                    if (count[0] < 2) {
+                        groupService.update({ id: group.id, status: 'offline' }, (res) => {});
+                    } else {
+                        return;
+                    }
                 });
         }));
-    }*/
+    }
 }
 
 export default GroupService;

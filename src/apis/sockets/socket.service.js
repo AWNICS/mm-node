@@ -21,9 +21,9 @@ const auditService = new AuditService();
 const notificationService = new NotificationService();
 
 exports.connectSocket = (io) => {
-    io.use(function (socket, next) {
+    io.use(function(socket, next) {
             if (socket.handshake.query && socket.handshake.query.token) {
-                jwt.verify(socket.handshake.query.token, process.env.JWT_SECRET, function (err, decoded) {
+                jwt.verify(socket.handshake.query.token, process.env.JWT_SECRET, function(err, decoded) {
                     if (err) return next(new Error('Authentication error'));
                     socket.decoded = decoded;
                     next();
@@ -32,7 +32,7 @@ exports.connectSocket = (io) => {
                 next(new Error('Authentication error'));
             }
         })
-        .on('connection', function (socket) {
+        .on('connection', function(socket) {
             // get userId from client
             socket.on('user-connected', userId => {
                 log.info('a user connected with ID: ' + userId);
@@ -282,28 +282,32 @@ exports.connectSocket = (io) => {
                             'status': 'offline'
                         }, (user) => {
                             log.info('User logged out: ', userId);
-                        });
-                        //we will need this code for updating the group status on logout
-                        /*groupService.groupStatusUpdate(userId, (result) => {
-                            groupService.getGroupStatus(userId, (res) => {
-                                groupService.getAllGroupsByUserId(userId)
-                                    .then((groups) => {
-                                        groups.map((group) => {
-                                            groupUserMapModel.group_user_map.findAll({
-                                                where: {
-                                                    userId: group.userId
-                                                }
-                                            }).then((gUMaps) => {
-                                                gUMaps.map((gumap) => {
-                                                    userService.getById(gumap.userId, (user) => {
-                                                        io.in(user.socketId).emit('received-group-status', res);
-                                                    });
+                            if (user) {
+                                //we will need this code to review for updating the group status on logout
+                                groupService.groupStatusUpdate(userId, (result) => {
+                                    groupService.getGroupStatus(userId, (res) => {
+                                        groupService.getAllGroupsByUserId(userId)
+                                            .then((groups) => {
+                                                groups.map((group) => {
+                                                    groupUserMapModel.group_user_map.findAll({
+                                                        where: {
+                                                            userId: group.userId
+                                                        }
+                                                    }).then((gUMaps) => {
+                                                        gUMaps.map((gumap) => {
+                                                            userService.getById(gumap.userId, (user) => {
+                                                                io.in(user.socketId).emit('received-group-status', res);
+                                                            });
+                                                        });
+                                                    })
                                                 });
-                                            })
-                                        });
+                                            });
                                     });
-                            });
-                        });*/
+                                });
+                            } else {
+                                return;
+                            }
+                        });
                     }
                 });
                 var audit = new AuditModel({
@@ -365,7 +369,6 @@ exports.connectSocket = (io) => {
                                                         log.info('Notification sent');
                                                     }
                                                 }).catch((err) => {
-                                                    // print the error details
                                                     log.error('error' + err);
                                                 });
                                         }
@@ -375,6 +378,6 @@ exports.connectSocket = (io) => {
                     });
                 });
             }
-            setInterval(scheduler, 30000);
+            //setInterval(scheduler, 30000);
         });
 }
