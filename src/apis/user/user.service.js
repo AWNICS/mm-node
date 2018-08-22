@@ -105,12 +105,14 @@ class UserService {
                         };
                         groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
                         sequelize
-                            .query("select u.id, u.firstname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
+                            .query("select u.id, u.firstname, u.lastname u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
                             .then((groupUserMaps) => {
                                 var uId;
+                                var uName;
                                 for (var i = 0; i < groupUserMaps.length; i++) {
                                     if (groupUserMaps[i].role.toLowerCase() == 'bot') {
                                         uId = groupUserMaps[i].id;
+                                        uName = groupUserMaps[i].firstname + ' ' + groupUserMaps[i].lastname;
                                         break;
                                     } else {
                                         continue;
@@ -127,7 +129,10 @@ class UserService {
                                     receiverId: createdGroup.id,
                                     receiverType: 'group', // group or individual
                                     senderId: uId,
+                                    senderName: uName,
                                     text: 'Welcome to Mesomeds!! How can we help you?',
+                                    createdBy: uId,
+                                    updatedBy: uId,
                                     createdTime: Date.now(),
                                     updatedTime: Date.now()
                                 }
@@ -154,12 +159,14 @@ class UserService {
                         };
                         groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
                         sequelize
-                            .query("select u.id, u.firstname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
+                            .query("select u.id, u.firstname, u.lastname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
                             .then((groupUserMaps) => {
                                 var uId;
+                                var uName;
                                 for (var i = 0; i < groupUserMaps.length; i++) {
                                     if (groupUserMaps[i].role.toLowerCase() == 'bot') {
                                         uId = groupUserMaps[i].id;
+                                        uName = groupUserMaps[i].firstname + ' ' + groupUserMaps[i].lastname;
                                         break;
                                     } else {
                                         continue;
@@ -176,7 +183,10 @@ class UserService {
                                     receiverId: createdGroup.id,
                                     receiverType: 'group', // group or individual
                                     senderId: uId,
+                                    senderName: uName,
                                     text: 'Welcome to Mesomeds!! How can we help you?',
+                                    createdBy: uId,
+                                    updatedBy: uId,
                                     createdTime: Date.now(),
                                     updatedTime: Date.now()
                                 }

@@ -422,8 +422,8 @@ class GroupService {
                             userId: patientId,
                             description: 'Consultation for registered patients',
                             picture: null,
-                            createdBy: 'admin',
-                            updatedBy: 'admin'
+                            createdBy: patientId,
+                            updatedBy: patientId
                         };
                         this.createGroupForConsultation(group, doctorId, patientId, (newGroup) => {
                             callback(newGroup);
@@ -468,7 +468,10 @@ class GroupService {
                                         receiverId: createdGroup.id,
                                         receiverType: 'group',
                                         senderId: user.id,
+                                        senderName: user.firstname + ' ' + user.lastname,
                                         text: 'Welcome to Mesomeds! I am Medroid, your medical assistant. How may I assist you?',
+                                        createdBy: user.id,
+                                        updatedBy: user.id,
                                         createdTime: Date.now(),
                                         updatedTime: Date.now()
                                     };
@@ -478,7 +481,7 @@ class GroupService {
                                         userId: doctorId,
                                         type: 'consultation',
                                         title: 'Skin issue',
-                                        content: 'COnsultation for skin related issue',
+                                        content: 'Consultation for skin related issue',
                                         status: 'created',
                                         channel: 'web',
                                         priority: 0,
