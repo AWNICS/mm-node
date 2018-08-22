@@ -35,8 +35,10 @@ class NotificationService {
         notificationDao.readById(id, callback);
     }
 
-    update(notification, id, callback) {
-        notificationDao.update(notification, id, callback);
+    update(notification, callback) {
+        notificationDao.update(notification, (res) => {
+            callback(res);
+        });
     }
 
     remove(id, callback) {

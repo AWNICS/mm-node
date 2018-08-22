@@ -47,17 +47,18 @@ class NotificationDao {
     /**
      * Update method
      */
-    update(notification, id, callback) {
+    update(notification, callback) {
         sequelize.transaction().then(function(t) {
             notificationModel.notification.update(notification, {
                 where: {
-                    id: id
+                    id: notification.id
                 }
             }, { transaction: t }).then(function(notificationUpdated) {
                 callback(notificationUpdated);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
+                console.log('Error while updating the user: ' + error);
                 t.rollback();
             });
         });

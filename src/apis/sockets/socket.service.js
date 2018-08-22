@@ -10,6 +10,7 @@ import AuditService from '../audit/audit.service';
 import AuditModel from '../audit/audit.model';
 import NotificationService from '../notification/notification.service';
 import visitorAppointmentModel from '../visitor/index';
+import notificationModel from '../notification/index';
 
 const Op = require('sequelize').Op;
 const messageService = new MessageService();
@@ -20,9 +21,9 @@ const auditService = new AuditService();
 const notificationService = new NotificationService();
 
 exports.connectSocket = (io) => {
-    io.use(function(socket, next) {
+    io.use(function (socket, next) {
             if (socket.handshake.query && socket.handshake.query.token) {
-                jwt.verify(socket.handshake.query.token, process.env.JWT_SECRET, function(err, decoded) {
+                jwt.verify(socket.handshake.query.token, process.env.JWT_SECRET, function (err, decoded) {
                     if (err) return next(new Error('Authentication error'));
                     socket.decoded = decoded;
                     next();
@@ -31,13 +32,17 @@ exports.connectSocket = (io) => {
                 next(new Error('Authentication error'));
             }
         })
-        .on('connection', function(socket) {
+        .on('connection', function (socket) {
             // get userId from client
             socket.on('user-connected', userId => {
                 log.info('a user connected with ID: ' + userId);
                 userService.getById(userId, (user) => {
                     if (user.id === userId) {
-                        userService.updateRegisteredUser({ 'id': userId, 'socketId': socket.id, 'status': 'online' }, (user) => {});
+                        userService.updateRegisteredUser({
+                            'id': userId,
+                            'socketId': socket.id,
+                            'status': 'online'
+                        }, (user) => {});
                         groupService.getGroupStatus(userId, (res) => {
                             groupService.getAllGroupsByUserId(userId)
                                 .then((groups) => {
@@ -133,7 +138,9 @@ exports.connectSocket = (io) => {
                 // if neither group nor user is selected
                 else {
                     userService.getById(msg.senderId, (result) => {
-                        socket.to(result.socketId).emit('receive-message', { "text": 'Select a group or an user to chat with.' }); //only to sender
+                        socket.to(result.socketId).emit('receive-message', {
+                            "text": 'Select a group or an user to chat with.'
+                        }); //only to sender
                     });
                 }
             });
@@ -177,7 +184,11 @@ exports.connectSocket = (io) => {
             socket.on('delete-message', (data, index) => {
                 messageService.removeGroupMessageMap(data._id, (result) => {
                     groupService.getUsersByGroupId(data.receiverId, (user) => {
-                        io.in(user.socketId).emit('deleted-message', { result, data, index }); //emit one-by-one for all users
+                        io.in(user.socketId).emit('deleted-message', {
+                            result,
+                            data,
+                            index
+                        }); //emit one-by-one for all users
                     });
                 });
             });
@@ -187,7 +198,9 @@ exports.connectSocket = (io) => {
              */
             socket.on('notify-users', (data) => {
                 groupService.getUsersByGroupId(data.receiverId, (user) => {
-                    io.in(user.socketId).emit('receive-notification', { 'message': 'One message deleted from this group' }); //emit one-by-one for all users
+                    io.in(user.socketId).emit('receive-notification', {
+                        'message': 'One message deleted from this group'
+                    }); //emit one-by-one for all users
                 });
             });
 
@@ -208,7 +221,10 @@ exports.connectSocket = (io) => {
                     }
                     groupService.update(group, () => {
                         groupService.getUsersByGroupId(groupId, (user) => {
-                            io.in(user.socketId).emit('receive-user-added', { message: `${doctor.firstname} ${doctor.lastname} joined the group`, doctorId: doctor.id }); //emit one-by-one for all users
+                            io.in(user.socketId).emit('receive-user-added', {
+                                message: `${doctor.firstname} ${doctor.lastname} joined the group`,
+                                doctorId: doctor.id
+                            }); //emit one-by-one for all users
                         });
                     });
                     var audit = new AuditModel({
@@ -235,7 +251,10 @@ exports.connectSocket = (io) => {
                     group.phase = 'active';
                     groupService.update(group, () => {
                         groupService.getUsersByGroupId(group.id, (user) => {
-                            io.in(user.socketId).emit('receive-user-deleted', { message: `${doctor.firstname} ${doctor.lastname} left the group`, group: group }); //emit one-by-one for all users
+                            io.in(user.socketId).emit('receive-user-deleted', {
+                                message: `${doctor.firstname} ${doctor.lastname} left the group`,
+                                group: group
+                            }); //emit one-by-one for all users
                         });
                     });
                     var audit = new AuditModel({
@@ -258,7 +277,10 @@ exports.connectSocket = (io) => {
                 socket.disconnect();
                 userService.getById(userId, (user) => {
                     if (user.id === userId) {
-                        userService.updateRegisteredUser({ 'id': userId, 'status': 'offline' }, (user) => {
+                        userService.updateRegisteredUser({
+                            'id': userId,
+                            'status': 'offline'
+                        }, (user) => {
                             log.info('User logged out: ', userId);
                         });
                         //we will need this code for updating the group status on logout
@@ -300,6 +322,7 @@ exports.connectSocket = (io) => {
             });
 
             function scheduler() {
+                console.log('Scheduler called');
                 notificationService.readByTime((allNotifications) => {
                     allNotifications.map((notification) => {
                         visitorAppointmentModel.visitor_appointment.findAll({
@@ -313,7 +336,39 @@ exports.connectSocket = (io) => {
                             groupService.getAllGroupsByUserId(visitorAppointment[0].visitorId)
                                 .then((groups) => {
                                     userService.getById(notification.userId, (user) => {
-                                        io.in(user.socketId).emit('consult-notification', { notification: notification, group: groups[1] });
+                                        if (notification.status === 'created') {
+                                            io.in(user.socketId).emit('consult-notification', {
+                                                notification: notification,
+                                                group: groups[1]
+                                            });
+                                            var updateNotification = {
+                                                id: notification.id,
+                                                template: notification.template,
+                                                userId: notification.userId,
+                                                type: notification.type,
+                                                title: notification.title,
+                                                content: notification.content,
+                                                status: "sent",
+                                                channel: notification.channel,
+                                                priority: 1,
+                                                triggerTime: notification.triggerTime,
+                                                createdBy: notification.createdBy,
+                                                updatedBy: notification.updatedBy
+                                            }
+                                            notificationModel.notification.update(updateNotification, {
+                                                    where: {
+                                                        id: updateNotification.id
+                                                    }
+                                                })
+                                                .then((res) => {
+                                                    if (res) {
+                                                        log.info('Notification sent');
+                                                    }
+                                                }).catch((err) => {
+                                                    // print the error details
+                                                    log.error('error' + err);
+                                                });
+                                        }
                                     });
                                 });
                         });
