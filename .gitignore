@@ -14,7 +14,7 @@ pids
 # Directory for Compiled files
 dist/
 
-# instance
+# keys
 src/util/MesoBot-e36b2ab1148c.json
 src/util/mesomeds-6aaa1473891d.json
 
