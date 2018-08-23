@@ -378,6 +378,6 @@ exports.connectSocket = (io) => {
                     });
                 });
             }
-            //setInterval(scheduler, 30000);
+            setInterval(scheduler, 30000);
         });
 }
