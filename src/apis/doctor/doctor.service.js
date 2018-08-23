@@ -77,53 +77,53 @@ class DoctorService {
     update(doctor, callback) {
         return doctorDao.update(doctor, (doctorUpdated) => {
             //create doctor_content and doctor_content_store
-                //iterate for languages
-                if(doctor.language) {
-                    doctor.language.map((language) => {
-                        var doctorStore = {
-                            userId: doctor.userId,
-                            type: 'Language',
-                            value: language
-                        }
-                        this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
-                    });
-                }
+            //iterate for languages
+            if (doctor.language) {
+                doctor.language.map((language) => {
+                    var doctorStore = {
+                        userId: doctor.userId,
+                        type: 'Language',
+                        value: language
+                    }
+                    this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
+                });
+            }
 
-                //iterate for location
-                if(doctor.location) {
-                    doctor.location.map((location) => {
-                        var doctorStore = {
-                            userId: doctor.userId,
-                            type: 'Location',
-                            value: location
-                        }
-                        this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
-                    });
-                }
-                
-                //iterate for qualification
-                if(doctor.qualification) {
-                    doctor.qualification.map((qualification) => {
-                        var doctorStore = {
-                            userId: doctor.userId,
-                            type: 'Qualification',
-                            value: qualification
-                        }
-                        this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
-                    });
-                }
-                
-                //iterate for consultationMode
-                if(doctor.consultationMode) {
-                    doctor.consultationMode.map((consultationMode) => {
-                        var doctorStore = {
-                            userId: doctor.userId,
-                            type: 'Consultation mode',
-                            value: consultationMode
-                        }
-                        this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
-                    });
-                }
+            //iterate for location
+            if (doctor.location) {
+                doctor.location.map((location) => {
+                    var doctorStore = {
+                        userId: doctor.userId,
+                        type: 'Location',
+                        value: location
+                    }
+                    this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
+                });
+            }
+
+            //iterate for qualification
+            if (doctor.qualification) {
+                doctor.qualification.map((qualification) => {
+                    var doctorStore = {
+                        userId: doctor.userId,
+                        type: 'Qualification',
+                        value: qualification
+                    }
+                    this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
+                });
+            }
+
+            //iterate for consultationMode
+            if (doctor.consultationMode) {
+                doctor.consultationMode.map((consultationMode) => {
+                    var doctorStore = {
+                        userId: doctor.userId,
+                        type: 'Consultation mode',
+                        value: consultationMode
+                    }
+                    this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
+                });
+            }
             callback(doctorUpdated);
         });
     }
@@ -185,7 +185,6 @@ class DoctorService {
         if (time) {
             condition = condition + ` AND ( '${time}' BETWEEN ds.startTime AND ds.endTime )`;
         }
-        console.log('condition ', condition);
         return sequelize
             .query(`
             SELECT
@@ -198,6 +197,7 @@ class DoctorService {
                 d.experience,
                 d.description,
                 d.longBio,
+                d.shortBio,
                 d.videoUrl,
                 d.ratingValue,
                 d.updatedAt,
@@ -234,7 +234,6 @@ class DoctorService {
                     log.error('Error while fetching doctors list ', err);
                     callback(err);
                 } else {
-                    console.log('list of docs ', result);
                     callback(result);
                 }
             });
