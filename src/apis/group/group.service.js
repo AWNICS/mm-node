@@ -422,6 +422,8 @@ class GroupService {
                             userId: patientId,
                             description: 'Consultation for registered patients',
                             picture: null,
+                            phase: 'active',
+                            status: 'online',
                             createdBy: patientId,
                             updatedBy: patientId
                         };

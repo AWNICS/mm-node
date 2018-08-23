@@ -147,6 +147,8 @@ class UserService {
                         url: `/medhelp/${userInserted.id}`,
                         userId: userInserted.id,
                         description: 'Med help',
+                        phase: 'active',
+                        status: 'offline',
                         createdBy: userInserted.id,
                         updatedBy: userInserted.id
                     };
