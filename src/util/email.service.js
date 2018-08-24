@@ -49,7 +49,7 @@ class EmailService {
                 callback({ message: 'There was error. Please try again after sometime' });
             }
             log.info('Email sent to user');
-            callback({ message: 'An email has been sent. Please check your inbox.' });
+            callback({ message: 'An email has been sent to your inbox. Please check your spam folder in case you do not find it in inbox' });
         });
     }
 }
