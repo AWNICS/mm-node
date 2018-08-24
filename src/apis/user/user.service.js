@@ -87,7 +87,7 @@ class UserService {
                     roleService.createUserRole(userRole, (userRole) => {});
                 });
                 if (userInserted.role.toLowerCase() == 'doctor') {
-                    this.activationLink(userInserted);
+                    // this.activationLink(userInserted);
                     var group = {
                         name: 'MedHelp',
                         url: `/medhelp/${userInserted.id}`,
@@ -105,7 +105,7 @@ class UserService {
                         };
                         groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
                         sequelize
-                            .query("select u.id, u.firstname, u.lastname u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
+                            .query("select u.id, u.firstname, u.lastname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
                             .then((groupUserMaps) => {
                                 var uId;
                                 var uName;
@@ -240,7 +240,7 @@ class UserService {
             <p>Newsletter Request</p>
             <h3>Contact Details</h3>
             <ul>
-                <li>FullName: ${user.name}</li>
+                <li>FullName: ${user.firstname} ${user.lastname}</li>
                 <li>Email ID: ${user.email}</li>
                 <li>Subject: ${subject}</li>
             </ul>

@@ -48,7 +48,7 @@ class Config {
         this.dotenv.config({ path: '.env.dev' });
         this.mongo = new MongoConfig();
     }
-
+    
     configureApp() {
         // set port to use
         this.app.set('port', (process.env.PORT));

@@ -12,6 +12,7 @@ import NotificationService from '../notification/notification.service';
 import visitorAppointmentModel from '../visitor/index';
 import notificationModel from '../notification/index';
 
+const moment = require('moment');
 const Op = require('sequelize').Op;
 const messageService = new MessageService();
 const groupService = new GroupService();
@@ -326,7 +327,7 @@ exports.connectSocket = (io) => {
             });
 
             function scheduler() {
-                console.log('Scheduler called');
+                console.log('Scheduler called at ', moment(Date.now()).format());
                 notificationService.readByTime((allNotifications) => {
                     allNotifications.map((notification) => {
                         visitorAppointmentModel.visitor_appointment.findAll({

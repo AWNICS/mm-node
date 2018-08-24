@@ -22,6 +22,9 @@ passport.use(new LocalStrategy({
             if (err) { return done(err); }
             if (!user) {
                 return done(null, false, { message: 'Incorrect email' });
+            } else if (user.activate != 1) {
+                // if the user is not activated
+                return done(null, false, {message: 'Please activate your account and try again' });
             } else {
                 // comparing the password that is stored in database with the given password using bcrypt
                 bcrypt.compare(password, user.password, function(err, res) {

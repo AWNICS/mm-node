@@ -486,7 +486,7 @@ class GroupService {
                                         content: 'Consultation for skin related issue',
                                         status: 'created',
                                         channel: 'web',
-                                        priority: 0,
+                                        priority: 1,
                                         template: '',
                                         triggerTime: '2018-08-16 09:00:00',
                                         createdBy: user.id,
@@ -514,8 +514,7 @@ class GroupService {
     async groupStatusUpdate(userId, callback) {
         var groups = await this.getAllGroupsByUserId(userId);
         var count = await this.getStatusCount(groups);
-        console.log('count ', count);
-        //callback(count);
+        callback(count);
     }
 
     getStatusCount(groups) {
@@ -534,7 +533,7 @@ class GroupService {
                         });
                     }));
                     i = ++i;
-                    //console.log('count: ' + JSON.stringify(count[0]));
+                    console.log('count: ' + JSON.stringify(count[0]));
                     if (count[0] < 2) {
                         groupService.update({ id: group.id, status: 'offline' }, (res) => {});
                     } else {
