@@ -11,6 +11,7 @@ import doctorStoreModel from './index';
 import doctorScheduleModel from './index';
 import DoctorActivityDao from './doctor-activities.dao';
 import DoctorReviewDao from './doctor-reviews.dao';
+import moment from 'moment';
 
 var doctorDao = new DoctorDao();
 var visitorAppoinmentDao = new VisitorAppointmentDao();
@@ -22,7 +23,6 @@ var doctorActivityDao = new DoctorActivityDao();
 var doctorReviewDao = new DoctorReviewDao();
 
 class DoctorService {
-    constructor() {}
 
     /**
      * for doctor
@@ -41,23 +41,25 @@ class DoctorService {
                 updatedBy: userCreated.id,
                 termsAccepted: doctor.termsAccepted
             };
-            return doctorDao.insert(newDoctor, (doctorCreated) => {
-                callback(doctorCreated);
-            });
             //create entry into doctor_schedule
             var doctorSchedule = {
                 doctorId: userCreated.id,
                 status: userCreated.status,
-                activity: 'Assisting as a doctor',
+                activity: 'Available',
                 waitTime: 5,
                 slotId: 2,
-                startTime: '2018-05-20 10:39:08',
-                endTime: '2018-06-20 10:39:08',
+                startTime: Date.now(),
+                endTime: moment(Date.now()).add(5, 'days'),
                 duration: 15,
                 createdBy: userCreated.id,
                 updatedBy: userCreated.id
             };
-            this.createDoctorSchedule(doctorSchedule, (doctorScheduleCreated) => {});
+            this.createDoctorSchedule(doctorSchedule, (doctorScheduleCreated) => {
+                log.info('Doctor schedule created ', doctorScheduleCreated);
+            });
+            return doctorDao.insert(newDoctor, (doctorCreated) => {
+                callback(doctorCreated);
+            });
         });
     }
 
@@ -76,20 +78,8 @@ class DoctorService {
     update(doctor, callback) {
         return doctorDao.update(doctor, (doctorUpdated) => {
             //create doctor_content and doctor_content_store
-            userService.getById(doctor.userId, (userDetail) => {
-                var doctorMedia = {
-                    userId: doctor.userId,
-                    title: 'Media types',
-                    description: doctor.shortBio,
-                    url: userDetail.picUrl,
-                    thumbUrl: null,
-                    type: 'image',
-                    createdBy: doctor.userId,
-                    updatedBy: doctor.userId
-                }
-                this.createDoctorMedia(doctorMedia, () => {});
-
-                //iterate for languages
+            //iterate for languages
+            if (doctor.language) {
                 doctor.language.map((language) => {
                     var doctorStore = {
                         userId: doctor.userId,
@@ -98,7 +88,10 @@ class DoctorService {
                     }
                     this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
                 });
-                //iterate for location
+            }
+
+            //iterate for location
+            if (doctor.location) {
                 doctor.location.map((location) => {
                     var doctorStore = {
                         userId: doctor.userId,
@@ -107,7 +100,10 @@ class DoctorService {
                     }
                     this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
                 });
-                //iterate for qualification
+            }
+
+            //iterate for qualification
+            if (doctor.qualification) {
                 doctor.qualification.map((qualification) => {
                     var doctorStore = {
                         userId: doctor.userId,
@@ -116,7 +112,10 @@ class DoctorService {
                     }
                     this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
                 });
-                //iterate for consultationMode
+            }
+
+            //iterate for consultationMode
+            if (doctor.consultationMode) {
                 doctor.consultationMode.map((consultationMode) => {
                     var doctorStore = {
                         userId: doctor.userId,
@@ -125,7 +124,7 @@ class DoctorService {
                     }
                     this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
                 });
-            });
+            }
             callback(doctorUpdated);
         });
     }
@@ -179,7 +178,7 @@ class DoctorService {
         var offset = ((size * page) - size);
         var condition = '';
         if (location) {
-            condition = condition + `AND dst.value = '${location}'`;
+            condition = condition + `dst.value = '${location}'`;
         }
         if (speciality) {
             condition = condition + ` AND d.speciality = '${speciality}'`;
@@ -187,22 +186,24 @@ class DoctorService {
         if (time) {
             condition = condition + ` AND ( '${time}' BETWEEN ds.startTime AND ds.endTime )`;
         }
+        console.log('condition ', condition);
         return sequelize
             .query(`
             SELECT
                 u.firstName,
                 u.lastName,
                 u.picUrl,
+                u.status,
                 d.userId,
                 d.regNo,
                 d.speciality,
                 d.experience,
                 d.description,
                 d.longBio,
+                d.shortBio,
                 d.videoUrl,
                 d.ratingValue,
                 d.updatedAt,
-                ds.status,
                 ds.waitTime,
                 dst.value
             FROM
@@ -222,7 +223,6 @@ class DoctorService {
             ON
                 d.userId = dst.userId
             WHERE
-                ds.status = 'online'
             ${condition}
             ORDER BY
                 ds.waitTime

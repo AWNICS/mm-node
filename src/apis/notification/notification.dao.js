@@ -1,24 +1,25 @@
-import groupUserMapModel from './index';
+import notificationModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
 /*
-DAO for GroupUserMapDao api
+DAO for Notification api
 */
-class GroupUserMapDao {
+class NotificationDao {
     constructor() {}
 
     /**
      * insert method
      */
-    insert(groupUser, callback) {
+    insert(notification, callback) {
         sequelize.sync({ force: false }).then(() => {
             sequelize.transaction().then(function(t) {
-                groupUserMapModel.group_user_map.create(groupUser, { transaction: t }).then(function(groupUserInserted) {
-                    callback(groupUserInserted);
+                notificationModel.notification.create(notification, { transaction: t }).then(function(notificationInserted) {
+                    callback(notificationInserted);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
+                    log.error('Error while creating a new notification: ', error);
                     t.rollback();
                 });
             });
@@ -29,8 +30,8 @@ class GroupUserMapDao {
      * read all method
      */
     readAll(callback) {
-        groupUserMapModel.group_user_map.findAll().then((allGroupUser) => {
-            callback(allGroupUser);
+        notificationModel.notification.findAll().then((allNotification) => {
+            callback(allNotification);
         });
     }
 
@@ -38,25 +39,26 @@ class GroupUserMapDao {
      * read method based on id
      */
     readById(id, callback) {
-        groupUserMapModel.group_user_map.findById(id).then((group) => {
-            callback(group);
+        notificationModel.notification.find({ where: { id: id } }).then((notification) => {
+            callback(notification);
         });
     }
 
     /**
      * Update method
      */
-    update(groupUser, callback) {
+    update(notification, callback) {
         sequelize.transaction().then(function(t) {
-            groupUserMapModel.group_user_map.update(groupUser, {
+            notificationModel.notification.update(notification, {
                 where: {
-                    id: groupUser.id
+                    id: notification.id
                 }
-            }, { transaction: t }).then(function(groupUserUpdated) {
-                callback(groupUserUpdated);
+            }, { transaction: t }).then(function(notificationUpdated) {
+                callback(notificationUpdated);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
+                console.log('Error while updating the user: ' + error);
                 t.rollback();
             });
         });
@@ -65,15 +67,14 @@ class GroupUserMapDao {
     /**
      * Delete method
      */
-    delete(userId, groupId, callback) {
+    delete(id, callback) {
         sequelize.transaction().then(function(t) {
-            groupUserMapModel.group_user_map.destroy({
+            notificationModel.notification.destroy({
                 where: {
-                    userId: userId,
-                    groupId: groupId
+                    id: id
                 }
-            }).then(function(groupUserDeleted) {
-                callback(groupUserDeleted);
+            }).then(function(notificationDeleted) {
+                callback({ message: "Notification deleted." });
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
@@ -83,4 +84,4 @@ class GroupUserMapDao {
     }
 }
 
-export default GroupUserMapDao;
+export default NotificationDao;

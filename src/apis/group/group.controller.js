@@ -295,9 +295,9 @@ router.put('/groupUserMaps', function(req, res) {
  *       200:
  *         description: Successfully deleted from MySql db
  */
-router.delete('/groupUserMaps/:id', function(req, res) {
+router.delete('/groupUserMaps/:userId/:groupId', function(req, res) {
     var id = req.params.id;
-    groupService.deleteGroupUserMap(id, (result) => {
+    groupService.deleteGroupUserMap(req.params.userId, req.params.groupId, (result) => {
         res.send('Number of groupUserMap deleted: ' + result);
     });
 });
@@ -438,6 +438,36 @@ router.get('/groups/doctors/:doctorId/patients/:patientId', function(req, res) {
     var doctorId = req.params.doctorId;
     var patientId = req.params.patientId;
     groupService.consultNow(doctorId, patientId, (result) => {
+        res.send(result);
+    });
+});
+
+
+/**
+ * @swagger
+ * /groups/:groupId/users:
+ *   get:
+ *     tags:
+ *       - Group
+ *     description: For fetching fullnames of users in group
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: groupId
+ *         in: path
+ *         description: id of the group
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *     responses:
+ *       200:
+ *         description: list of users in the group
+ */
+
+router.get('/groups/:groupId/users', function(req, res) {
+    var doctorId = req.params.groupId;
+    groupService.getAllUsersByGroupId(doctorId, (result) => {
         res.send(result);
     });
 });

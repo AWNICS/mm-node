@@ -17,6 +17,8 @@ import RoleService from '../role/role.service';
 import RoleModel from '../role/index';
 import EmailService from '../../util/email.service';
 import Properties from '../../util/properties';
+import AuditService from '../audit/audit.service';
+import AuditModel from '../audit/audit.model';
 
 const userDao = new UserDao();
 const groupDao = new GroupDao();
@@ -26,6 +28,7 @@ const roleService = new RoleService();
 const emailService = new EmailService();
 const staffInfoDao = new StaffInfoDao();
 const visitorDao = new VisitorDao();
+const auditService = new AuditService();
 
 /**
  * UserService 
@@ -50,6 +53,19 @@ class UserService {
         bcrypt.hash(user.password, 10, (err, hash) => {
             user.password = hash;
             return userDao.insert(user, (userInserted) => {
+                var audit = new AuditModel({
+                    senderId: userInserted.id,
+                    receiverId: '',
+                    receiverType: '',
+                    mode: '',
+                    entityName: 'visitor',
+                    entityEvent: 'registration',
+                    createdBy: userInserted.id,
+                    updatedBy: userInserted.id,
+                    createdTime: Date.now(),
+                    updatedTime: Date.now()
+                });
+                auditService.create(audit, (auditCreated) => {});
                 //update createdBy and updatedBy
                 userInserted.createdBy = userInserted.id;
                 userInserted.updatedBy = userInserted.id;
@@ -71,7 +87,7 @@ class UserService {
                     roleService.createUserRole(userRole, (userRole) => {});
                 });
                 if (userInserted.role.toLowerCase() == 'doctor') {
-                    this.activationLink(userInserted);
+                    // this.activationLink(userInserted);
                     var group = {
                         name: 'MedHelp',
                         url: `/medhelp/${userInserted.id}`,
@@ -89,12 +105,14 @@ class UserService {
                         };
                         groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
                         sequelize
-                            .query("select u.id, u.firstname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
+                            .query("select u.id, u.firstname, u.lastname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
                             .then((groupUserMaps) => {
                                 var uId;
+                                var uName;
                                 for (var i = 0; i < groupUserMaps.length; i++) {
                                     if (groupUserMaps[i].role.toLowerCase() == 'bot') {
                                         uId = groupUserMaps[i].id;
+                                        uName = groupUserMaps[i].firstname + ' ' + groupUserMaps[i].lastname;
                                         break;
                                     } else {
                                         continue;
@@ -111,7 +129,10 @@ class UserService {
                                     receiverId: createdGroup.id,
                                     receiverType: 'group', // group or individual
                                     senderId: uId,
+                                    senderName: uName,
                                     text: 'Welcome to Mesomeds!! How can we help you?',
+                                    createdBy: uId,
+                                    updatedBy: uId,
                                     createdTime: Date.now(),
                                     updatedTime: Date.now()
                                 }
@@ -126,6 +147,8 @@ class UserService {
                         url: `/medhelp/${userInserted.id}`,
                         userId: userInserted.id,
                         description: 'Med help',
+                        phase: 'active',
+                        status: 'offline',
                         createdBy: userInserted.id,
                         updatedBy: userInserted.id
                     };
@@ -138,12 +161,14 @@ class UserService {
                         };
                         groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
                         sequelize
-                            .query("select u.id, u.firstname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
+                            .query("select u.id, u.firstname, u.lastname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
                             .then((groupUserMaps) => {
                                 var uId;
+                                var uName;
                                 for (var i = 0; i < groupUserMaps.length; i++) {
                                     if (groupUserMaps[i].role.toLowerCase() == 'bot') {
                                         uId = groupUserMaps[i].id;
+                                        uName = groupUserMaps[i].firstname + ' ' + groupUserMaps[i].lastname;
                                         break;
                                     } else {
                                         continue;
@@ -160,11 +185,29 @@ class UserService {
                                     receiverId: createdGroup.id,
                                     receiverType: 'group', // group or individual
                                     senderId: uId,
+                                    senderName: uName,
                                     text: 'Welcome to Mesomeds!! How can we help you?',
+                                    createdBy: uId,
+                                    updatedBy: uId,
                                     createdTime: Date.now(),
                                     updatedTime: Date.now()
                                 }
                                 messageService.sendMessage(msg, (result) => {});
+
+                                //create audit entry for default group 
+                                var audit = new AuditModel({
+                                    senderId: uId,
+                                    receiverId: createdGroup.id,
+                                    receiverType: 'group',
+                                    mode: 'Guided mode',
+                                    entityName: 'group',
+                                    entityEvent: 'added',
+                                    createdBy: uId,
+                                    updatedBy: uId,
+                                    createdTime: Date.now(),
+                                    updatedTime: ''
+                                });
+                                auditService.create(audit, (auditCreated) => {});
                             });
                     });
                 } else if (userInserted.role.toLowerCase() === 'bot') {
@@ -197,14 +240,14 @@ class UserService {
             <p>Newsletter Request</p>
             <h3>Contact Details</h3>
             <ul>
-                <li>FullName: ${user.name}</li>
+                <li>FullName: ${user.firstname} ${user.lastname}</li>
                 <li>Email ID: ${user.email}</li>
                 <li>Subject: ${subject}</li>
             </ul>
             <h3>Message</h3>
             <p>Message: User confirmed.</p>
             `
-        emailService.sendEmail(userOutput, adminOutput, user.email, subject);
+        emailService.sendEmail(userOutput, adminOutput, user.email, subject, () => {});
     }
 
     /**
