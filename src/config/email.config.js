@@ -8,8 +8,8 @@ var emailConfig = new EmailTemplate({
         port: 587,
         secure: false,
         auth: {
-            user: 'gamerdudeatluri@gmail.com',
-            pass: '9848897779'
+            user: 'test.arung@gmail.com',
+            pass: 'passwordtest'
         },
         tls: {
             rejectUnauthorized: false

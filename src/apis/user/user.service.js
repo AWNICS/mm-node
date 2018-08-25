@@ -292,7 +292,7 @@ class UserService {
             .send({
                 template: 'adminmail-doctor-registration',
                 message: {
-                    to: 'hemachandsai@gmail.com'
+                    to: 'test.arung@gmail.com'
                 },
                 locals: {
                     userName: doctorDetails.firstname + ' ' + doctorDetails.lastname,
@@ -316,7 +316,7 @@ class UserService {
             .send({
                 template: 'adminmail-user-registration',
                 message: {
-                    to: 'hemachandsai@gmail.com'
+                    to: 'test.arung@gmail.com'
                 },
                 locals: {
                     subject: 'User Registration',
@@ -421,7 +421,7 @@ class UserService {
                     .send({
                         template: 'adminmail-reset-password',
                         message: {
-                            to: 'hemachandsai@gmail.com'
+                            to: 'test.arung@gmail.com'
                         },
                         locals: {
                             userName: user.firstname + ' ' + user.lastname,
