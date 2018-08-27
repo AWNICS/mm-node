@@ -60,7 +60,7 @@ class DoctorService {
                 updatedBy: userCreated.id
             };
             this.createDoctorSchedule(doctorSchedule, (doctorScheduleCreated) => {
-                log.info('Doctor schedule created ', doctorScheduleCreated);
+                log.info('Doctor schedule created');
             });
             return doctorDao.insert(newDoctor, (doctorCreated) => {
                 callback(doctorCreated);
@@ -191,7 +191,6 @@ class DoctorService {
         if (time) {
             condition = condition + ` AND ( '${time}' BETWEEN ds.startTime AND ds.endTime )`;
         }
-        console.log('condition ', condition);
         return sequelize
             .query(`
             SELECT
