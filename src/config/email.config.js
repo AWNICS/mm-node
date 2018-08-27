@@ -9,7 +9,7 @@ var emailConfig = new EmailTemplate({
         secure: false,
         auth: {
             user: 'test.arung@gmail.com',
-            pass: 'passwordtest'
+            pass: 'alphabet0711'
         },
         tls: {
             rejectUnauthorized: false
