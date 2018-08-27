@@ -308,7 +308,7 @@ class UserService {
             .then(res => {
                 log.info('Email sent to Admin for Doctor Registration');
             })
-            .catch(error => log.error('Error while sending activation mail for Doctor ' + doctorDetails.email + ' ' + err));
+            .catch(error => log.error('Error while sending activation mail for Doctor ' + doctorDetails.email + ' ' + error));
     }
 
     adminMailUserRegistration(user) {
@@ -325,7 +325,7 @@ class UserService {
                 }
             })
             .then(res => { log.info("Admin mail sent successfully for user registration  of " + user.email) })
-            .catch(error => log.error('Error while sending admin mail for User registration of ' + user.email + ' ' + err));
+            .catch(error => log.error('Error while sending admin mail for User registration of ' + user.email + ' ' + error));
 
     }
 
