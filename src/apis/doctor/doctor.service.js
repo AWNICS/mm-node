@@ -29,6 +29,11 @@ class DoctorService {
      */
     create(doctor, callback) {
         userService.register(doctor, (userCreated) => {
+            //checks the duplicate entry for doctors
+            if (userCreated.error === "DUP_ENTRY") {
+                console.log('hit')
+                return callback({ "error": "DUP_ENTRY", "message": "Doctor already registered with this email and Phonenumber. Please try logging into your account" }); //check for dup entry for email and phoneNo
+            }
             var newDoctor = {
                 userId: userCreated.id,
                 regNo: doctor.regNo,
