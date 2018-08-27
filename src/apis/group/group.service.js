@@ -393,47 +393,50 @@ class GroupService {
     }
 
     consultNow(doctorId, patientId, callback) {
-        return sequelize
-            .query(`
-            SELECT
-                ga.groupId
-            FROM
-                group_user_map AS ga, group_user_map AS gb
-            WHERE
-                ga.userId=${doctorId}
-            AND
-                gb.userId=${patientId}
-            AND
-                ga.groupId=gb.groupId;
-                `, { type: sequelize.QueryTypes.SELECT })
-            .then((result, err) => {
-                if (err) {
-                    log.error('Error while fetching doctors list ', err);
-                    callback(err);
-                } else {
-                    if (result.length >= 1) {
-                        this.getById(result[0].groupId, (existingGroup) => {
-                            callback(existingGroup);
-                        });
-                    } else {
-                        var group = {
-                            name: 'Consultation',
-                            url: `consultation/${patientId}`,
-                            userId: patientId,
-                            description: 'Consultation for registered patients',
-                            picture: null,
-                            phase: 'active',
-                            status: 'online',
-                            createdBy: patientId,
-                            updatedBy: patientId
-                        };
-                        this.createGroupForConsultation(group, doctorId, patientId, (newGroup) => {
-                            callback(newGroup);
-                        });
-                    }
-                }
-            });
+        //check for existing consultations if none create new group
+        visitorAppointmentModel.visitor_appointment.findAll({
+            where: { visitorId: patientId, doctorId: doctorId }
+        }).then((result) => {
+            if (result.length >= 1) {
+                log.info('There is and existing group for this patient of ID: ' + patientId + ' and Doctor of ID: ' + doctorId);
+                groupUserMapModel.group_user_map.findAll({
+                        where: { userId: patientId },
+                        order: [
+                            ['createdAt', 'DESC']
+                        ],
+                        limit: 1
+                    })
+                    .then((result, err) => {
+                        if (err) {
+                            log.error('Error while fetching doctors list ', err);
+                            callback(err);
+                        } else {
+                            this.getById(result[0].groupId, (existingGroup) => {
+                                callback(existingGroup);
+                            });
+                        }
+                    })
+            } else {
+                var group = {
+                    name: 'Consultation',
+                    url: `consultation/${patientId}`,
+                    userId: patientId,
+                    description: 'Consultation for registered patients',
+                    picture: null,
+                    phase: 'active',
+                    status: 'online',
+                    createdBy: patientId,
+                    updatedBy: patientId
+                };
+                this.createGroupForConsultation(group, doctorId, patientId, (newGroup) => {
+                    callback(newGroup);
+                    log.info('New group created for Patient of ID: ' + patientId + ' and Doctor of ID: ' + doctorId);
+                });
+            }
+        })
     }
+
+
 
     createGroupForConsultation(group, doctorId, patientId, callback) {
         this.create(group, (createdGroup) => {
@@ -445,69 +448,72 @@ class GroupService {
                 createdBy: createdGroup.createdBy,
                 updatedBy: createdGroup.updatedBy
             }
-            this.createGroupUserMap(groupUserMap, (userMapped) => {});
-            //mapping bot(same bot which is in MedHelp) to the consutation group and create a new message
-            groupUserMapModel.group_user_map.findAll({
-                where: { userId: patientId },
-                order: [
-                    ['createdAt', 'ASC']
-                ],
-                limit: 1
-            }).then((groupUserMap) => {
-                this.getById(groupUserMap[0].groupId, (group) => {
-                    groupUserMapModel.group_user_map.findAll({ where: { groupId: group.id } }).then((groupUserMaps) => {
-                        groupUserMaps.map((groupUserMap) => {
-                            userService.getById(groupUserMap.userId, ((user) => {
-                                if (user.role.toLowerCase() == 'bot') {
-                                    var groupUserMapBot = {
-                                        groupId: createdGroup.id,
-                                        userId: user.id,
-                                        createdBy: user.id,
-                                        updatedBy: user.id
-                                    };
-                                    groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
-                                    var msg = {
-                                        receiverId: createdGroup.id,
-                                        receiverType: 'group',
-                                        senderId: user.id,
-                                        senderName: user.firstname + ' ' + user.lastname,
-                                        text: 'Welcome to Mesomeds! I am Medroid, your medical assistant. How may I assist you?',
-                                        createdBy: user.id,
-                                        updatedBy: user.id,
-                                        createdTime: Date.now(),
-                                        updatedTime: Date.now()
-                                    };
-                                    messageService.sendMessage(msg, (result) => {});
-                                    //create notification for the doctor
-                                    var notification = {
-                                        userId: doctorId,
-                                        type: 'consultation',
-                                        title: 'Skin issue',
-                                        content: 'Consultation for skin related issue',
-                                        status: 'created',
-                                        channel: 'web',
-                                        priority: 1,
-                                        template: '',
-                                        triggerTime: '2018-08-16 09:00:00',
-                                        createdBy: user.id,
-                                        updatedBy: user.id
-                                    };
-                                    notificationService.create(notification, (notificationCreated) => {});
-                                }
-                            }));
-                        })
+            this.createGroupUserMap(groupUserMap, (userMapped) => {
+                //mapping bot(same bot which is in MedHelp) to the consutation group and create a new message
+                groupUserMapModel.group_user_map.findAll({
+                    where: { userId: patientId },
+                    order: [
+                        ['createdAt', 'DESC']
+                    ],
+                    limit: 1
+                }).then((groupUserMap) => {
+                    this.getById(groupUserMap[0].groupId, (group) => {
+                        groupUserMapModel.group_user_map.findAll({ where: { groupId: group.id } }).then((groupUserMaps) => {
+                            groupUserMaps.map((groupUserMap) => {
+                                userService.getById(groupUserMap.userId, ((user) => {
+                                    if (user.role.toLowerCase() == 'bot') {
+                                        var groupUserMapBot = {
+                                            groupId: createdGroup.id,
+                                            userId: user.id,
+                                            createdBy: user.id,
+                                            updatedBy: user.id
+                                        };
+                                        groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
+                                        var msg = {
+                                            receiverId: createdGroup.id,
+                                            receiverType: 'group',
+                                            senderId: user.id,
+                                            senderName: user.firstname + ' ' + user.lastname,
+                                            text: 'Welcome to Mesomeds! I am Medroid, your medical assistant. How may I assist you?',
+                                            createdBy: user.id,
+                                            updatedBy: user.id,
+                                            createdTime: Date.now(),
+                                            updatedTime: Date.now()
+                                        };
+                                        messageService.sendMessage(msg, (result) => {});
+                                        //create notification for the doctor
+                                        var notification = {
+                                            userId: doctorId,
+                                            type: 'consultation',
+                                            title: 'Skin issue',
+                                            content: 'Consultation for skin related issue',
+                                            status: 'created',
+                                            channel: 'web',
+                                            priority: 1,
+                                            template: '',
+                                            triggerTime: '2018-08-16 09:00:00',
+                                            createdBy: user.id,
+                                            updatedBy: user.id
+                                        };
+                                        notificationService.create(notification, (notificationCreated) => {});
+                                    }
+                                }));
+                            })
+                        });
                     });
                 });
+                //mapping doctor into visitor appointment table
+                var doctorMap = {
+                    visitorId: patientId,
+                    doctorId: doctorId,
+                    createdBy: createdGroup.createdBy,
+                    updatedBy: createdGroup.updatedBy
+                };
+                doctorService.createConsultation(doctorMap, (consultationCreated) => {});
             });
-            //mapping doctor into visitor appointment table
-            var doctorMap = {
-                patientId: patientId,
-                doctorId: doctorId,
-                createdBy: createdGroup.createdBy,
-                updatedBy: createdGroup.updatedBy
-            };
-            doctorService.createConsultation(doctorMap, (consultationCreated) => {});
-        });
+
+        })
+
     }
 
     //we will need this code to review for updating the group status on logout of the user
