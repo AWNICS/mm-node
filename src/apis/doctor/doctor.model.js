@@ -24,7 +24,13 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING
         },
         speciality: {
-            type: DataTypes.STRING
+            type: DataTypes.TEXT,
+            get: function() {
+                return JSON.parse(this.getDataValue('speciality'));
+            },
+            set: function(speciality) {
+                this.setDataValue('speciality', JSON.stringify(speciality));
+            }
         },
         experience: {
             type: DataTypes.DOUBLE
