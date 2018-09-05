@@ -174,7 +174,7 @@ class DoctorService {
         var offset = ((size * page) - size);
         var condition = '';
         if (location) {
-            condition = condition + `dst.value = '${location}'`;
+            condition = condition + `dst.value LIKE CONCAT('%','${location}','%')`;
         }
         if (speciality) {
             condition = condition + ` AND d.speciality LIKE CONCAT('%','${speciality}','%')`;
@@ -227,6 +227,8 @@ class DoctorService {
                 ${size};
                 `, { type: sequelize.QueryTypes.SELECT })
             .then((result, err) => {
+                result.map((eachresult) => { eachresult.speciality = JSON.parse(eachresult.speciality) })
+                    // result.speciality = JSON.parse(result.speciality);
                 if (err) {
                     log.error('Error while fetching doctors list ', err);
                     callback(err);
@@ -359,14 +361,15 @@ class DoctorService {
         });
     }
 
-    updateDoctorStoreByDoctorId(id, type1, value1, callback) {
-            doctorStoreModel.doctor_store.findAll({ where: { userId: id, type: type1 } }).then((doctorstore) => {
+    updateDoctorStoreByDoctorId(id, visitorStoreType, visitorStoreValue, callback) {
+            doctorStoreModel.doctor_store.findAll({ where: { userId: id, type: visitorStoreType } }).then((doctorstore) => {
                 if (doctorstore.length === 0) {
-                    let doctorStore = { userId: id, type: type1, value: value1 }
-                    this.createDoctorStore(doctorStore, (e) => { log.info("Doctor store created for Doctor id " + id + " for" + type1) })
+                    let doctorStore = { userId: id, type: visitorStoreType, value: visitorStoreValue }
+                    this.createDoctorStore(doctorStore, (createdDoctorCreated) => { log.info("Doctor store created for Doctor id " + id + " for" + visitorStoreType), callback(doctorStoreCreated) })
                 } else {
-                    return doctorStoreModel.doctor_store.update({ value: value1 }, { where: { userId: id, type: type1 } }, (doctorStoreDeleted) => {
-                        callback(doctorStoreDeleted);
+                    return doctorStoreModel.doctor_store.update({ value: visitorStoreValue }, { where: { userId: id, type: visitorStoreType } }, (doctorStoreUpdated) => {
+                        log.info("Doctor store updated for Doctor id " + id + " for" + visitorStoreType)
+                        callback(doctorStoreUpdated);
                     });
 
                 }

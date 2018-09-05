@@ -47,10 +47,10 @@ class DoctorStoreDao {
     /**
      * Update method
      */
-    update(doctorStore, id, type, callback) {
+    update(doctorStoreValueObject, id, type, callback) {
         return sequelize.transaction(function(t) {
             return doctorStoreModel.doctor_store
-                .update(doctorStore, {
+                .update(doctorStoreValueObject, {
                     where: {
                         id: id,
                         type: type
@@ -63,25 +63,8 @@ class DoctorStoreDao {
     }
 
     /**
-     * Get by user id method
+     * Delete method
      */
-    getByUserId(doctorStore, userId, type, callback) {
-            return sequelize.transaction(function(t) {
-                return doctorStoreModel.doctor_store
-                    .readAll(doctorStore, {
-                        where: {
-                            id: userId,
-                            type: type
-                        }
-                    }, { transaction: t })
-                    .then(function(updatedDoctorStore) {
-                        callback(updatedDoctorStore);
-                    });
-            });
-        }
-        /**
-         * Delete method
-         */
     delete(id, callback) {
         return sequelize.transaction(function(t) {
             return doctorStoreModel.doctor_store
