@@ -19,6 +19,7 @@ class DoctorDao {
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
+                    log.info(error);
                     t.rollback();
                 });
             });
@@ -38,7 +39,7 @@ class DoctorDao {
      * read method based on id
      */
     readById(id, callback) {
-        doctorModel.doctor.find({ where: { userId: id } }).then((doctor) => {
+        return doctorModel.doctor.find({ where: { userId: id } }).then((doctor) => {
             callback(doctor);
         });
     }

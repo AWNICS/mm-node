@@ -31,13 +31,12 @@ class DoctorService {
         userService.register(doctor, (userCreated) => {
             //checks the duplicate entry for doctors
             if (userCreated.error === "DUP_ENTRY") {
-                console.log('hit')
                 return callback({ "error": "DUP_ENTRY", "message": "Doctor already registered with this email and Phonenumber. Please try logging into your account" }); //check for dup entry for email and phoneNo
             }
             var newDoctor = {
                 userId: userCreated.id,
                 regNo: doctor.regNo,
-                speciality: doctor.speciality,
+                speciality: { "speciality": doctor.speciality },
                 experience: doctor.experience,
                 description: doctor.description,
                 videoUrl: doctor.videoUrl,
@@ -62,7 +61,9 @@ class DoctorService {
             this.createDoctorSchedule(doctorSchedule, (doctorScheduleCreated) => {
                 log.info('Doctor schedule created');
             });
+
             return doctorDao.insert(newDoctor, (doctorCreated) => {
+                log.info("New doctor created successfully with UserId " + userCreated.id);
                 callback(doctorCreated);
             });
         });
@@ -76,59 +77,49 @@ class DoctorService {
 
     getById(id, callback) {
         return doctorDao.readById(id, (doctorById) => {
-            callback(doctorById);
+            doctorById.dataValues.qualification = [];
+            doctorById.dataValues.location = [];
+            doctorById.dataValues.language = [];
+            doctorById.dataValues.consultationMode = [];
+            return new Promise((resolve, reject) => {
+                doctorStoreModel.doctor_store.findAll({
+                    where: { userId: id }
+                }).then((result) => {
+                    result.map((a) => {
+                        a.type === "Location" ? doctorById.dataValues.location = a.value : null;
+                        a.type === "Qualification" ? doctorById.dataValues.qualification = a.value : null;
+                        a.type === "Consultation mode" ? doctorById.dataValues.consultationMode = a.value : null;
+                        a.type === "Language" ? doctorById.dataValues.language = a.value : null;
+                    })
+                    callback(doctorById);
+                    resolve(result);
+                })
+            })
         });
     }
 
     update(doctor, callback) {
+        doctor.speciality = { "speciality": doctor.speciality };
         return doctorDao.update(doctor, (doctorUpdated) => {
             //create doctor_content and doctor_content_store
             //iterate for languages
             if (doctor.language) {
-                doctor.language.map((language) => {
-                    var doctorStore = {
-                        userId: doctor.userId,
-                        type: 'Language',
-                        value: language
-                    }
-                    this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
-                });
+                this.updateDoctorStoreByDoctorId(doctor.userId, 'Language', { "language": doctor.language }, (doctorStore) => { log.info('Doctor store updated of Language for ' + doctor.userId) });
             }
 
             //iterate for location
             if (doctor.location) {
-                doctor.location.map((location) => {
-                    var doctorStore = {
-                        userId: doctor.userId,
-                        type: 'Location',
-                        value: location
-                    }
-                    this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
-                });
+                this.updateDoctorStoreByDoctorId(doctor.userId, 'Location', { "location": doctor.location }, (doctorStore) => { log.info('Doctor store updated of Location for ' + doctor.userId) });
             }
 
             //iterate for qualification
             if (doctor.qualification) {
-                doctor.qualification.map((qualification) => {
-                    var doctorStore = {
-                        userId: doctor.userId,
-                        type: 'Qualification',
-                        value: qualification
-                    }
-                    this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
-                });
+                this.updateDoctorStoreByDoctorId(doctor.userId, 'Qualification', { "qualification": doctor.qualification }, (doctorStore) => { log.info('Doctor store updated of Qualification for ' + doctor.userId) });
             }
 
             //iterate for consultationMode
             if (doctor.consultationMode) {
-                doctor.consultationMode.map((consultationMode) => {
-                    var doctorStore = {
-                        userId: doctor.userId,
-                        type: 'Consultation mode',
-                        value: consultationMode
-                    }
-                    this.createDoctorStore(doctorStore, (doctorStoreCreated) => {});
-                });
+                this.updateDoctorStoreByDoctorId(doctor.userId, 'Consultation mode', { "consultationMode": doctor.consultationMode }, (doctorStore) => { log.info('Doctor store updated of Consultation mode for ' + doctor.userId) });
             }
             callback(doctorUpdated);
         });
@@ -186,7 +177,7 @@ class DoctorService {
             condition = condition + `dst.value = '${location}'`;
         }
         if (speciality) {
-            condition = condition + ` AND d.speciality = '${speciality}'`;
+            condition = condition + ` AND d.speciality LIKE CONCAT('%','${speciality}','%')`;
         }
         if (time) {
             condition = condition + ` AND ( '${time}' BETWEEN ds.startTime AND ds.endTime )`;
@@ -367,7 +358,23 @@ class DoctorService {
         });
     }
 
-    /* for doctor activity */
+    updateDoctorStoreByDoctorId(id, type1, value1, callback) {
+            doctorStoreModel.doctor_store.findAll({ where: { userId: id, type: type1 } }).then((doctorstore) => {
+                if (doctorstore.length === 0) {
+                    let doctorStore = { userId: id, type: type1, value: value1 }
+                    this.createDoctorStore(doctorStore, (e) => { log.info("Doctor store created for Doctor id " + id + " for" + type1) })
+                } else {
+                    return doctorStoreModel.doctor_store.update({ value: value1 }, { where: { userId: id, type: type1 } }, (doctorStoreDeleted) => {
+                        callback(doctorStoreDeleted);
+                    });
+
+                }
+            }).catch(err => {
+                log.error(err);
+            })
+
+        }
+        /* for doctor activity */
     createDoctorActivity(doctorActivity, callback) {
         return doctorActivityDao.insert(doctorActivity, (doctorActivityCreated) => {
             callback(doctorActivityCreated);
