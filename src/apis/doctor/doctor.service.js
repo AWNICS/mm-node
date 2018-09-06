@@ -77,23 +77,14 @@ class DoctorService {
 
     getById(id, callback) {
         return doctorDao.readById(id, (doctorById) => {
-            doctorById.dataValues.qualification = [];
-            doctorById.dataValues.location = [];
-            doctorById.dataValues.language = [];
-            doctorById.dataValues.consultationMode = [];
-            return new Promise((resolve, reject) => {
-                doctorStoreModel.doctor_store.findAll({
-                    where: { userId: id }
-                }).then((result) => {
-                    result.map((a) => {
-                        a.type === "Location" ? doctorById.dataValues.location = a.value : null;
-                        a.type === "Qualification" ? doctorById.dataValues.qualification = a.value : null;
-                        a.type === "Consultation mode" ? doctorById.dataValues.consultationMode = a.value : null;
-                        a.type === "Language" ? doctorById.dataValues.language = a.value : null;
-                    })
-                    callback(doctorById);
-                    resolve(result);
+            doctorStoreModel.doctor_store.findAll({
+                where: { userId: id }
+            }).then((result) => {
+                result.map((a) => {
+                    doctorById.dataValues[a.dataValues.type] = JSON.parse(a.dataValues.value);
                 })
+                callback(doctorById);
+
             })
         });
     }
@@ -119,7 +110,7 @@ class DoctorService {
 
             //iterate for consultationMode
             if (doctor.consultationMode) {
-                this.updateDoctorStoreByDoctorId(doctor.userId, 'Consultation mode', { "consultationMode": doctor.consultationMode }, (doctorStore) => { log.info('Doctor store updated of Consultation mode for ' + doctor.userId) });
+                this.updateDoctorStoreByDoctorId(doctor.userId, 'ConsultationMode', { "consultationMode": doctor.consultationMode }, (doctorStore) => { log.info('Doctor store updated of Consultation mode for ' + doctor.userId) });
             }
             callback(doctorUpdated);
         });
@@ -228,7 +219,6 @@ class DoctorService {
                 `, { type: sequelize.QueryTypes.SELECT })
             .then((result, err) => {
                 result.map((eachresult) => { eachresult.speciality = JSON.parse(eachresult.speciality) })
-                    // result.speciality = JSON.parse(result.speciality);
                 if (err) {
                     log.error('Error while fetching doctors list ', err);
                     callback(err);
@@ -361,14 +351,14 @@ class DoctorService {
         });
     }
 
-    updateDoctorStoreByDoctorId(id, visitorStoreType, visitorStoreValue, callback) {
-            doctorStoreModel.doctor_store.findAll({ where: { userId: id, type: visitorStoreType } }).then((doctorstore) => {
+    updateDoctorStoreByDoctorId(id, type, value, callback) {
+            doctorStoreModel.doctor_store.findAll({ where: { userId: id, type: type } }).then((doctorstore) => {
                 if (doctorstore.length === 0) {
-                    let doctorStore = { userId: id, type: visitorStoreType, value: visitorStoreValue }
-                    this.createDoctorStore(doctorStore, (createdDoctorCreated) => { log.info("Doctor store created for Doctor id " + id + " for" + visitorStoreType), callback(doctorStoreCreated) })
+                    let doctorStore = { userId: id, type: type, value: value }
+                    this.createDoctorStore(doctorStore, (createdDoctorCreated) => { log.info("Doctor store created for Doctor id " + id + " for" + type), callback(doctorStoreCreated) })
                 } else {
-                    return doctorStoreModel.doctor_store.update({ value: visitorStoreValue }, { where: { userId: id, type: visitorStoreType } }, (doctorStoreUpdated) => {
-                        log.info("Doctor store updated for Doctor id " + id + " for" + visitorStoreType)
+                    return doctorStoreModel.doctor_store.update({ value: value }, { where: { userId: id, type: type } }, (doctorStoreUpdated) => {
+                        log.info("Doctor store updated for Doctor id " + id + " for" + type)
                         callback(doctorStoreUpdated);
                     });
 
