@@ -12,6 +12,7 @@ import MessageService from '../message/message.service';
 import AuditModel from '../audit/audit.model';
 import AuditService from '../audit/audit.service';
 import NotificationService from '../notification/notification.service';
+import VisitorService from '../visitor/visitor.service';
 
 const Promise = require('bluebird');
 
@@ -22,6 +23,7 @@ const doctorService = new DoctorService();
 const messageService = new MessageService();
 const auditService = new AuditService();
 const notificationService = new NotificationService();
+const visitorService = new VisitorService();
 
 class GroupService {
     constructor() {}
@@ -453,7 +455,7 @@ class GroupService {
                 groupUserMapModel.group_user_map.findAll({
                     where: { userId: patientId },
                     order: [
-                        ['createdAt', 'DESC']
+                        ['createdAt', 'ASC']
                     ],
                     limit: 1
                 }).then((groupUserMap) => {
@@ -468,7 +470,7 @@ class GroupService {
                                             createdBy: user.id,
                                             updatedBy: user.id
                                         };
-                                        groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
+                                        this.createGroupUserMap(groupUserMapBot, () => {});
                                         var msg = {
                                             receiverId: createdGroup.id,
                                             receiverType: 'group',
@@ -509,11 +511,34 @@ class GroupService {
                     createdBy: createdGroup.createdBy,
                     updatedBy: createdGroup.updatedBy
                 };
-                doctorService.createConsultation(doctorMap, (consultationCreated) => {});
+                doctorService.createConsultation(visitorAppointment, (visitorAppointmentCreated) => {
+                    /**
+                     * create consultation entry details inside the visitor-timeline table
+                     */
+                    doctorService.getById(doctorId, (doctorDetails) => {
+                        userService.getById(doctorDetails.userId, (userDetails) => {
+                            var visitorTimeline = {
+                                visitorId: patientId,
+                                timestamp: visitorAppointmentCreated.startTime,
+                                consultations: {
+                                    "Doctor name": `Dr. ${userDetails.firstname} ${userDetails.lastname}`,
+                                    "time": visitorAppointmentCreated.startTime,
+                                    "speciality": doctorDetails.speciality,
+                                    "appointment": visitorAppointmentCreated.activity
+                                },
+                                reminders: null,
+                                events: null,
+                                createdBy: patientId,
+                                updatedBy: patientId
+                            };
+                            visitorService.createVisitorTimeline(visitorTimeline, (visitorTimelineCreated) => {
+                                console.log('timeline created: ' + JSON.stringify(visitorTimelineCreated));
+                            });
+                        });
+                    });
+                });
             });
-
-        })
-
+        });
     }
 
     //we will need this code to review for updating the group status on logout of the user

@@ -19,6 +19,8 @@ import AuditModel from '../audit/audit.model';
 import emailConfig from '../../config/email.config';
 import msgconfig from '../../config/message.config';
 import NotificationService from '../notification/notification.service';
+import VisitorService from '../visitor/visitor.service';
+import visitorModel from '../visitor/index';
 
 const userDao = new UserDao();
 const groupDao = new GroupDao();
@@ -29,6 +31,7 @@ const staffInfoDao = new StaffInfoDao();
 const visitorDao = new VisitorDao();
 const auditService = new AuditService();
 const notificationService = new NotificationService();
+const visitorService = new VisitorService();
 
 /**
  * UserService 
@@ -303,13 +306,7 @@ class UserService {
             .then(res => {
                 log.info('Email sent to Admin for Doctor Registration');
             })
-<<<<<<< HEAD
-            .catch(error => 
-                log.error('Error while sending activation mail for Doctor ' + doctorDetails.email + ' ' + error)
-            );
-=======
             .catch(error => log.error('Error while sending activation mail for Doctor ' + doctorDetails.email + ' ' + error));
->>>>>>> 46f497f83e69b861e34999f62bcb5c3f4bc2edf5
     }
 
     adminUserRegistration(user) {
@@ -325,10 +322,10 @@ class UserService {
                     userEmail: user.email,
                 }
             })
-            .then(res => { 
+            .then(res => {
                 log.info('Admin mail sent successfully for user registration  of ' + user.email);
             })
-            .catch(error => 
+            .catch(error =>
                 log.error('Error while sending admin mail for User registration of ', error)
             );
     }
@@ -420,7 +417,7 @@ class UserService {
                         log.info('Resetmail sent to User successfully ' + user.email);
                         this.createNotification(user.id, 'resetpassword', 'Reset Link sent', 'email', userEmail, 'forgot-password')
                     })
-                    .catch(err => 
+                    .catch(err =>
                         log.error('Error while sending reset password link for ' + user.email + ' ' + err)
                     );
                 emailConfig
@@ -437,7 +434,7 @@ class UserService {
                     .then(res => {
                         log.info('Resetmail sent to Admin successfully');
                     })
-                    .catch(error => 
+                    .catch(error =>
                         log.error('Error  while sending Email to admin for restmail of ' + user.email + ' ' + error)
                     );
 
@@ -510,13 +507,38 @@ class UserService {
 
     getVisitorById(id, callback) {
         visitorDao.readById(id, (visitor) => {
-            callback(visitor);
+            visitorService.readByVisitorIdHealth(visitor.userId, (visitorHealth) => {
+                visitorService.getVisitorStoreById(visitor.userId, (visitorStores) => {
+                    visitorService.readByVisitorIdPrescription(visitor.userId, (visitorPrescription) => {
+                        callback({ "patientInfo": visitor, "visitorHealthInfo": visitorHealth, "visitorStoreInfo": visitorStores, "visitorPrescriptionInfo": visitorPrescription });
+                    });
+                });
+            });
         });
     }
 
     updateVisitor(visitor, callback) {
         visitorDao.update(visitor, (updatedVisitor) => {
+            this.updateAllergy(visitor); //update the allergy inside visitor-health table
+            visitorService.updateStore(visitor);
+            visitorService.updateVisitorPrescription(visitor);
             callback(updatedVisitor);
+        });
+    }
+
+    updateAllergy(visitor) {
+        visitorService.readByVisitorIdHealth(visitor.userId, (result) => {
+            visitorModel.visitor_health.update({
+                    'foodHabits': result.foodHabits,
+                    'allergies': { "allergy": visitor.allergies }
+                }, {
+                    where: {
+                        visitorId: visitor.userId
+                    }
+                }).then(() => {})
+                .catch(err => {
+                    console.log('error while updating visitor' + err.stack);
+                });
         });
     }
 }
