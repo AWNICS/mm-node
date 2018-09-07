@@ -293,7 +293,7 @@ class VisitorService {
     updateStore(visitor) {
         if (visitor.language) {
             visitorModel.visitor_store.update({
-                'value': { "language": visitor.language }
+                'value': visitor.language
             }, {
                 where: {
                     visitorId: visitor.userId,
@@ -305,7 +305,7 @@ class VisitorService {
         }
         if (visitor.location) {
             visitorModel.visitor_store.update({
-                'value': { "location": visitor.location }
+                'value': visitor.location
             }, {
                 where: {
                     visitorId: visitor.userId,

@@ -561,16 +561,14 @@ class GroupService {
                                     "Doctor name": `Dr. ${userDetails.firstname} ${userDetails.lastname}`,
                                     "time": visitorAppointmentCreated.startTime,
                                     "speciality": doctorDetails.speciality,
-                                    "appointment": visitorAppointmentCreated.activity
+                                    "description": "Consultation for pre check-up info"
                                 },
                                 reminders: null,
                                 events: null,
                                 createdBy: patientId,
                                 updatedBy: patientId
                             };
-                            visitorService.createVisitorTimeline(visitorTimeline, (visitorTimelineCreated) => {
-                                console.log('timeline created: ' + JSON.stringify(visitorTimelineCreated));
-                            });
+                            visitorService.createVisitorTimeline(visitorTimeline, () => {});
                         });
                     });
                 });

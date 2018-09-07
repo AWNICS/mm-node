@@ -532,7 +532,7 @@ class UserService {
         visitorService.readByVisitorIdHealth(visitor.userId, (result) => {
             visitorModel.visitor_health.update({
                     'foodHabits': result.foodHabits,
-                    'allergies': { "allergy": visitor.allergies }
+                    'allergies': visitor.allergies
                 }, {
                     where: {
                         visitorId: visitor.userId
