@@ -138,7 +138,7 @@ router.get('/visitors/store', (req, res) => {
 
 router.get('/visitors/:visitorId/store', (req, res) => {
     var visitorId = req.params.visitorId;
-    visitorService.getVisitorById(visitorId, (results) => {
+    visitorService.getVisitorStoreById(visitorId, (results) => {
         res.send(results);
     });
 });

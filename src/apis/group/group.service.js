@@ -12,6 +12,7 @@ import MessageService from '../message/message.service';
 import AuditModel from '../audit/audit.model';
 import AuditService from '../audit/audit.service';
 import NotificationService from '../notification/notification.service';
+import VisitorService from '../visitor/visitor.service';
 
 const Promise = require('bluebird');
 const moment = require('moment');
@@ -23,6 +24,7 @@ const doctorService = new DoctorService();
 const messageService = new MessageService();
 const auditService = new AuditService();
 const notificationService = new NotificationService();
+const visitorService = new VisitorService();
 
 class GroupService {
     constructor() {}
@@ -546,7 +548,30 @@ class GroupService {
                     createdBy: createdGroup.createdBy,
                     updatedBy: createdGroup.updatedBy
                 };
-                doctorService.createConsultation(visitorAppointment, (consultationCreated) => {});
+                doctorService.createConsultation(visitorAppointment, (visitorAppointmentCreated) => {
+                    /**
+                     * create consultation entry details inside the visitor-timeline table
+                     */
+                    doctorService.getById(doctorId, (doctorDetails) => {
+                        userService.getById(doctorDetails.userId, (userDetails) => {
+                            var visitorTimeline = {
+                                visitorId: patientId,
+                                timestamp: visitorAppointmentCreated.startTime,
+                                consultations: {
+                                    "Doctor name": `Dr. ${userDetails.firstname} ${userDetails.lastname}`,
+                                    "time": visitorAppointmentCreated.startTime,
+                                    "speciality": doctorDetails.speciality,
+                                    "description": "Consultation for pre check-up info"
+                                },
+                                reminders: null,
+                                events: null,
+                                createdBy: patientId,
+                                updatedBy: patientId
+                            };
+                            visitorService.createVisitorTimeline(visitorTimeline, () => {});
+                        });
+                    });
+                });
             });
         });
     }

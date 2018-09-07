@@ -15,18 +15,12 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER
         },
         weight: {
-            type: DataTypes.INTEGER
+            type: DataTypes.FLOAT
         },
         height: {
-            type: DataTypes.INTEGER
+            type: DataTypes.FLOAT
         },
         bloodGroup: {
-            type: DataTypes.STRING
-        },
-        allergies: {
-            type: DataTypes.TEXT
-        },
-        location: {
             type: DataTypes.STRING
         },
         address: {
