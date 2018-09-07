@@ -36,7 +36,7 @@ class DoctorService {
             var newDoctor = {
                 userId: userCreated.id,
                 regNo: doctor.regNo,
-                speciality: { "speciality": doctor.speciality },
+                speciality: doctor.speciality,
                 experience: doctor.experience,
                 description: doctor.description,
                 videoUrl: doctor.videoUrl,
@@ -90,27 +90,27 @@ class DoctorService {
     }
 
     update(doctor, callback) {
-        doctor.speciality = { "speciality": doctor.speciality };
+        doctor.speciality = doctor.speciality;
         return doctorDao.update(doctor, (doctorUpdated) => {
             //create doctor_content and doctor_content_store
             //iterate for languages
             if (doctor.language) {
-                this.updateDoctorStoreByDoctorId(doctor.userId, 'Language', { "language": doctor.language }, (doctorStore) => { log.info('Doctor store updated of Language for ' + doctor.userId) });
+                this.updateDoctorStoreByDoctorId(doctor.userId, 'Language', doctor.language, (doctorStore) => { log.info('Doctor store updated of Language for ' + doctor.userId) });
             }
 
             //iterate for location
             if (doctor.location) {
-                this.updateDoctorStoreByDoctorId(doctor.userId, 'Location', { "location": doctor.location }, (doctorStore) => { log.info('Doctor store updated of Location for ' + doctor.userId) });
+                this.updateDoctorStoreByDoctorId(doctor.userId, 'Location', doctor.location, (doctorStore) => { log.info('Doctor store updated of Location for ' + doctor.userId) });
             }
 
             //iterate for qualification
             if (doctor.qualification) {
-                this.updateDoctorStoreByDoctorId(doctor.userId, 'Qualification', { "qualification": doctor.qualification }, (doctorStore) => { log.info('Doctor store updated of Qualification for ' + doctor.userId) });
+                this.updateDoctorStoreByDoctorId(doctor.userId, 'Qualification', doctor.qualification, (doctorStore) => { log.info('Doctor store updated of Qualification for ' + doctor.userId) });
             }
 
             //iterate for consultationMode
             if (doctor.consultationMode) {
-                this.updateDoctorStoreByDoctorId(doctor.userId, 'ConsultationMode', { "consultationMode": doctor.consultationMode }, (doctorStore) => { log.info('Doctor store updated of Consultation mode for ' + doctor.userId) });
+                this.updateDoctorStoreByDoctorId(doctor.userId, 'ConsultationMode', doctor.consultationMode, (doctorStore) => { log.info('Doctor store updated of Consultation mode for ' + doctor.userId) });
             }
             callback(doctorUpdated);
         });
@@ -165,13 +165,13 @@ class DoctorService {
         var offset = ((size * page) - size);
         var condition = '';
         if (location) {
-            condition = condition + `dst.value LIKE CONCAT('%','${location}','%')`;
+            condition = condition + `dst.value LIKE CONCAT('%','${location}','%') AND `;
         }
         if (speciality) {
-            condition = condition + ` AND d.speciality LIKE CONCAT('%','${speciality}','%')`;
+            condition = condition + `d.speciality LIKE CONCAT('%','${speciality}','%') AND `;
         }
         if (time) {
-            condition = condition + ` AND ( '${time}' BETWEEN ds.startTime AND ds.endTime )`;
+            condition = condition + `('${time}' BETWEEN ds.startTime AND ds.endTime)`;
         }
         return sequelize
             .query(`
@@ -217,7 +217,6 @@ class DoctorService {
                 ${size};
                 `, { type: sequelize.QueryTypes.SELECT })
             .then((result, err) => {
-                result.map((eachresult) => { eachresult.speciality = JSON.parse(eachresult.speciality) })
                 if (err) {
                     log.error('Error while fetching doctors list ', err);
                     callback(err);

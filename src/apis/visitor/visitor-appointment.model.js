@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING //scheduled, missed, appear(appointments)
         },
         activity: {
-            type: DataTypes.STRING // it could be absent, available for consultation, etc.
+            type: DataTypes.STRING
         },
         slotId: {
             type: DataTypes.INTEGER
