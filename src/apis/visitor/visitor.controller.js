@@ -157,4 +157,14 @@ router.get('/visitors/:visitorId/timeline', (req, res) => {
     });
 });
 
+// get appointments for doctorId
+router.get('/appointments/doctors/:doctorId', (req,res) => {
+    var doctorId = req.params.doctorId;
+    var page = parseInt(req.query.page);
+    var size = parseInt(req.query.size);
+    visitorService.getAppointmentsByDoctorId(doctorId, page, size, (results) => {
+        res.send(results);
+    });
+});
+
 module.exports = router;

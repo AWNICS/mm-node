@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER
         },
         status: {
-            type: DataTypes.STRING //missed, appear(appointments)
+            type: DataTypes.STRING //scheduled, missed, appear(appointments)
         },
         activity: {
             type: DataTypes.STRING
@@ -27,10 +27,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER
         },
         startTime: {
-            type: DataTypes.DATE // start time is when the doctor is available
+            type: DataTypes.DATE // start time is when the doctor is available(start time of consultation)
         },
         endTime: {
-            type: DataTypes.DATE // end time is when the doctor goes offline
+            type: DataTypes.DATE // end time is when the doctor goes offline(start time + 15mins)
         },
         duration: {
             type: DataTypes.INTEGER
