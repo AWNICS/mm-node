@@ -47,10 +47,10 @@ class DoctorStoreDao {
     /**
      * Update method
      */
-    update(doctorStoreValueObject, id, type, callback) {
+    update(doctorStore, id, type, callback) {
         return sequelize.transaction(function(t) {
             return doctorStoreModel.doctor_store
-                .update(doctorStoreValueObject, {
+                .update(doctorStore, {
                     where: {
                         id: id,
                         type: type
