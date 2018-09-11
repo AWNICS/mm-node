@@ -20,7 +20,7 @@ class LocationsService {
         locationsDao.delete(id, callback);
     }
 
-    update(speciality, callback) {
+    update(location, callback) {
         locationsDao.update(location, callback);
     }
 }
