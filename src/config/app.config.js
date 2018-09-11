@@ -34,6 +34,10 @@ import locations from '../apis/locations/locations.controller';
 import visitor from '../apis/visitor/visitor.controller';
 import audit from '../apis/audit/audit.controller';
 import notification from '../apis/notification/notification.controller';
+import languages from '../apis/languages/languages.controller';
+import allergies from '../apis/allergies/allergies.controller';
+import qualifications from '../apis/qualifications/qualifications.controller';
+import consultationModes from '../apis/consultationModes/consultation-modes.controller';
 
 class Config {
     constructor() {
@@ -48,7 +52,7 @@ class Config {
         this.dotenv.config({ path: '.env.dev' });
         this.mongo = new MongoConfig();
     }
-    
+
     configureApp() {
         // set port to use
         this.app.set('port', (process.env.PORT));
@@ -92,6 +96,10 @@ class Config {
         });
         this.app.use('/', locations);
         this.app.use('/', specialities);
+        this.app.use('/', languages);
+        this.app.use('/', allergies);
+        this.app.use('/', qualifications);
+        this.app.use('/', consultationModes);
         this.app.use('/', register);
         this.app.use('/', authenticate);
         this.app.use('/', dialogFlow);
