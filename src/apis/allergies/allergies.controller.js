@@ -30,7 +30,7 @@ router.put('/allergies', (req, res) => {
 
 router.delete('/allergies/:id', (req, res) => {
     allergiesService.remove(req.params.id, () => {
-        res.send("Allergy deleted successfully.");
+        res.send({ message: "Allergy deleted successfully." });
     });
 });
 
