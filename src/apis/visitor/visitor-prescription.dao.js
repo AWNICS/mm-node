@@ -11,13 +11,17 @@ class VisitorPrescriptionDao {
      * insert method
      */
     insert(visitorPrescription, callback) {
-        sequelize.sync({ force: false }).then(() => {
-            sequelize.transaction().then(function(t) {
-                visitorPrescriptionModel.visitor_prescription.create(visitorPrescription, { transaction: t }).then(function(insertedVisitorPrescription) {
+        sequelize.sync({
+            force: false
+        }).then(() => {
+            sequelize.transaction().then(function (t) {
+                visitorPrescriptionModel.visitor_prescription.create(visitorPrescription, {
+                    transaction: t
+                }).then(function (insertedVisitorPrescription) {
                     callback(insertedVisitorPrescription);
-                }).then(function() {
+                }).then(function () {
                     t.commit();
-                }).catch(function(error) {
+                }).catch(function (error) {
                     log.error('error in visitorPrescriptionDao ', error);
                     t.rollback();
                 });
@@ -38,7 +42,11 @@ class VisitorPrescriptionDao {
      * read method based on id
      */
     readById(id, callback) {
-        visitorPrescriptionModel.visitor_prescription.find({ where: { visitorId: id } }).then((visitorPrescription) => {
+        visitorPrescriptionModel.visitor_prescription.findAll({
+            where: {
+                visitorId: id
+            }
+        }).then((visitorPrescription) => {
             callback(visitorPrescription);
         });
     }
@@ -47,16 +55,19 @@ class VisitorPrescriptionDao {
      * Update method
      */
     update(visitorPrescription, callback) {
-        sequelize.transaction().then(function(t) {
+        sequelize.transaction().then(function (t) {
             visitorPrescriptionModel.visitor_prescription.update(visitorPrescription, {
                 where: {
                     visitorId: visitorPrescription.visitorId
                 }
-            }, { transaction: t }).then(function(visitorPrescriptionUpdated) {
+            }, {
+                transaction: t
+            }).then(function (visitorPrescriptionUpdated) {
                 callback(visitorPrescriptionUpdated);
-            }).then(function() {
+            }).then(function () {
                 t.commit();
-            }).catch(function(error) {
+            }).catch(function (error) {
+                log.error('Error while updating visitor prescription is dao: ', error);
                 t.rollback();
             });
         });
@@ -66,16 +77,16 @@ class VisitorPrescriptionDao {
      * Delete method
      */
     delete(id, callback) {
-        sequelize.transaction().then(function(t) {
+        sequelize.transaction().then(function (t) {
             visitorPrescriptionModel.visitor_prescription.destroy({
                 where: {
                     id: id
                 }
-            }).then(function(visitorPrescription) {
+            }).then(function (visitorPrescription) {
                 callback(visitorPrescription);
-            }).then(function() {
+            }).then(function () {
                 t.commit();
-            }).catch(function(error) {
+            }).catch(function (error) {
                 t.rollback();
             });
         });

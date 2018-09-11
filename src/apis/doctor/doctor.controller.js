@@ -386,6 +386,7 @@ router.get('/doctors/:doctorId/schedules', function(req, res) {
         res.send(result);
     });
 });
+
 /**doctorMedia */
 router.post('/doctors/bio', function(req, res) {
     var doctorMedia = req.body;
@@ -447,14 +448,14 @@ router.get('/doctors/bio/extra', function(req, res) {
 
 router.get('/doctors/:doctorId/bio/extra', function(req, res) {
     var doctorId = req.params.doctorId;
-    doctorService.getByIdDoctorStore(doctorId, (result) => {
+    doctorService.getDoctorStoreById(doctorId, (result) => {
         res.send(result);
     });
 });
 
 router.get('/doctors/:doctorId/bio', function(req, res) {
     var doctorId = req.params.doctorId;
-    doctorService.getByIdDoctorStore(doctorId, (result) => {
+    doctorService.getDoctorStoreById(doctorId, (result) => {
         res.send(result);
     });
 });
