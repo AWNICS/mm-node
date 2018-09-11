@@ -320,21 +320,23 @@ class VisitorService {
     updateVisitorPrescription(visitor) {
         this.readByVisitorIdPrescription(visitor.userId, (visitorPrescription) => {
             var description = {
-                "symptoms": visitorPrescription.description.symptoms,
+                "symptoms": visitorPrescription[0].description.symptoms,
                 "vitals": { "Blood pressure": visitor.bloodPressure, "Heart rate": visitor.heartRate },
-                "medications": visitorPrescription.description.medications,
-                "care_info": visitorPrescription.description.care_info,
-                "follow ups notes": visitorPrescription.description["follow ups notes"]
-            }
+                "medications": visitorPrescription[0].description.medications,
+                "care_info": visitorPrescription[0].description.care_info,
+                "follow ups notes": visitorPrescription[0].description["follow ups notes"]
+            };
             var prescription = {
                 "visitorId": visitor.userId,
                 "description": description,
-                "issue": visitorPrescription.issue,
-                "analysis": visitorPrescription.analysis,
-                "medication": visitorPrescription.medication,
-                "prescription": visitorPrescription.prescription
-            }
-            visitorPrescriptionDao.update(prescription, () => {});
+                "issue": visitorPrescription[0].issue,
+                "analysis": visitorPrescription[0].analysis,
+                "medication": visitorPrescription[0].medication,
+                "prescription": visitorPrescription[0].prescription
+            };
+            visitorPrescriptionDao.update(prescription, (updatedPrescription) => {
+                log.info('Prescription updated ', updatedPrescription);
+            });
         });
     }
 }

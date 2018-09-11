@@ -88,6 +88,7 @@ class NotificationService {
 
             res.on("end", function () {
                 var body = Buffer.concat(chunks);
+                log.info('OTP sent to ' + mobileNo + ' res: ' + body.toString());
                 callback(JSON.parse(body));
             });
         });
@@ -115,6 +116,7 @@ class NotificationService {
 
             res.on("end", function () {
                 var body = Buffer.concat(chunks);
+                log.info('OTP resent to ' + mobileNo + ' res: ' + body.toString());
                 callback(JSON.parse(body));
             });
         });
@@ -142,6 +144,7 @@ class NotificationService {
 
             res.on("end", function () {
                 var body = Buffer.concat(chunks);
+                log.info('OTP verified for ' + mobileNo + ' res: ' + body.toString());
                 callback(JSON.parse(body));
             });
         });
