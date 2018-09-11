@@ -30,7 +30,7 @@ router.put('/qualifications', (req, res) => {
 
 router.delete('/qualifications/:id', (req, res) => {
     qualificationsService.remove(req.params.id, (result) => {
-        res.send("Qualification deleted successfully.");
+        res.send({ message: "Qualification deleted successfully." });
     });
 });
 
