@@ -30,7 +30,7 @@ router.put('/languages', (req, res) => {
 
 router.delete('/languages/:id', (req, res) => {
     languagesService.remove(req.params.id, () => {
-        res.send("Language deleted successfully.");
+        res.send({ message: "Language deleted successfully." });
     });
 });
 
