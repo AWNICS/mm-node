@@ -30,7 +30,7 @@ router.put('/consultationmodes', (req, res) => {
 
 router.delete('/consultationmodes/:id', (req, res) => {
     consultationModesService.remove(req.params.id, () => {
-        res.send("Consultation mode deleted successfully.");
+        res.send({ message: "Consultation mode deleted successfully." });
     });
 });
 
