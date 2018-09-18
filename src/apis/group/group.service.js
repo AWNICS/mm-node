@@ -99,13 +99,13 @@ class GroupService {
      * fetching all the groups for particular userId from group-user-map
      */
     getAllGroupsByUserId(userId) {
-        return groupUserMapModel.group_user_map.findAll({
+        return groupUserMapModel.consultation_group_user_map.findAll({
             where: {
                 userId: userId
             }
         }).then((allGroupsByUserId) => {
             return Promise.map(allGroupsByUserId, groupUserMap => {
-                return groupModel.group.findById(groupUserMap.groupId);
+                return groupModel.consultation_group.findById(groupUserMap.groupId);
             });
         });
     }
@@ -114,7 +114,7 @@ class GroupService {
      * fetching all the group's status for particular userId
      */
     async getGroupStatus(userId, callback) {
-        var groupUserMaps = await groupUserMapModel.group_user_map.findAll({
+        var groupUserMaps = await groupUserMapModel.consultation_group_user_map.findAll({
             where: {
                 userId: userId
             }
@@ -131,7 +131,7 @@ class GroupService {
     async findUsers(groupUserMaps) {
         var array = [];
         await groupUserMaps.map((groupUserMap) => {
-            array.push(groupUserMapModel.group_user_map.findAll({
+            array.push(groupUserMapModel.consultation_group_user_map.findAll({
                 where: {
                     groupId: groupUserMap.groupId
                 }
@@ -152,13 +152,13 @@ class GroupService {
                             })
                             .then((user) => {
                                 if (user.status === 'online') {
-                                    return groupModel.group.find({
+                                    return groupModel.consultation_group.find({
                                             where: {
                                                 id: gum.groupId
                                             }
                                         })
                                         .then((group) => {
-                                            return groupModel.group.update({
+                                            return groupModel.consultation_group.update({
                                                     status: 'online'
                                                 }, {
                                                     where: {
@@ -166,7 +166,7 @@ class GroupService {
                                                     }
                                                 })
                                                 .then(() => {
-                                                    return groupModel.group.find({
+                                                    return groupModel.consultation_group.find({
                                                         where: {
                                                             id: group.id
                                                         }
@@ -203,7 +203,7 @@ class GroupService {
      * getting users one by one based on groupId 
      */
     getUsersByGroupId(groupId, callback) {
-        return groupUserMapModel.group_user_map.findAll({
+        return groupUserMapModel.consultation_group_user_map.findAll({
             where: {
                 groupId: groupId
             }
@@ -221,7 +221,7 @@ class GroupService {
      */
 
     getAllUsersByGroupId(groupId, callback) {
-        return groupUserMapModel.group_user_map.findAll({
+        return groupUserMapModel.consultation_group_user_map.findAll({
             where: {
                 groupId: groupId
             }
@@ -245,7 +245,7 @@ class GroupService {
      * get groups based on the group url
      */
     getGroupByUrl(url) {
-        groupModel.group.findOne({
+        groupModel.consultation_group.findOne({
             where: {
                 url: url
             }
@@ -258,7 +258,7 @@ class GroupService {
     createGroupAuto(group, receiverId, callback) {
         this.create(group, (createdGroup) => {
             callback(createdGroup);
-            groupUserMapModel.group_user_map.findAll({
+            groupUserMapModel.consultation_group_user_map.findAll({
                 where: {
                     groupId: receiverId
                 }
@@ -360,7 +360,7 @@ class GroupService {
     createGroupManual(group, receiverId, doctorId, callback) {
         this.create(group, (createdGroup) => {
             callback(createdGroup);
-            groupUserMapModel.group_user_map.findAll({
+            groupUserMapModel.consultation_group_user_map.findAll({
                 where: {
                     groupId: receiverId
                 }
@@ -419,7 +419,7 @@ class GroupService {
             SELECT
                 ga.groupId
             FROM
-                group_user_map AS ga, group_user_map AS gb
+            consultation_group_user_map AS ga, consultation_group_user_map AS gb
             WHERE
                 ga.userId=${doctorId}
             AND
@@ -470,7 +470,7 @@ class GroupService {
             };
             this.createGroupUserMap(groupUserMap, (userMapped) => {});
             //mapping bot(same bot which is in MedHelp) to the consutation group and create a new message
-            groupUserMapModel.group_user_map.findAll({
+            groupUserMapModel.consultation_group_user_map.findAll({
                 where: {
                     userId: patientId
                 },
@@ -480,7 +480,7 @@ class GroupService {
                 limit: 1
             }).then((groupUserMap) => {
                 this.getById(groupUserMap[0].groupId, (group) => {
-                    groupUserMapModel.group_user_map.findAll({
+                    groupUserMapModel.consultation_group_user_map.findAll({
                         where: {
                             groupId: group.id
                         }
@@ -585,7 +585,7 @@ class GroupService {
 
     getStatusCount(groups) {
         return Promise.all(groups.map((group) => {
-            return groupUserMapModel.group_user_map.findAll({
+            return groupUserMapModel.consultation_group_user_map.findAll({
                     where: {
                         groupId: group.id
                     }

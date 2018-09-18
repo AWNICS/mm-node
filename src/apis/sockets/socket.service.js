@@ -48,7 +48,7 @@ exports.connectSocket = (io) => {
                             groupService.getAllGroupsByUserId(userId)
                                 .then((groups) => {
                                     groups.map((group) => {
-                                        groupUserMapModel.group_user_map.findAll({
+                                        groupUserMapModel.consultation_group_user_map.findAll({
                                             where: {
                                                 userId: group.userId
                                             }
@@ -92,7 +92,7 @@ exports.connectSocket = (io) => {
                     });
                     groupService.getById(group.id, (group) => {
                         if (group.phase === 'active') {
-                            groupUserMapModel.group_user_map.findAll({
+                            groupUserMapModel.consultation_group_user_map.findAll({
                                 where: {
                                     groupId: group.id
                                 }
@@ -276,7 +276,7 @@ exports.connectSocket = (io) => {
                                         groupService.getAllGroupsByUserId(userId)
                                             .then((groups) => {
                                                 groups.map((group) => {
-                                                    groupUserMapModel.group_user_map.findAll({
+                                                    groupUserMapModel.consultation_group_user_map.findAll({
                                                         where: {
                                                             userId: group.userId
                                                         }

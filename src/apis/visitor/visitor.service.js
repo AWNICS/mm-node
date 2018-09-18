@@ -12,6 +12,8 @@ import log from '../../config/log4js.config';
 import visitorModel from './index';
 import VisitorTimelineDao from './visitor-timeline.dao';
 
+const moment = require('moment');
+const Op = require('sequelize').Op;
 const visitorHealthDao = new VisitorHealthDao();
 const visitorDiagnosticDao = new VisitorDiagnosticDao();
 const visitorReportDao = new VisitorReportDao();
@@ -183,15 +185,15 @@ class VisitorService {
             });
         });
 
-        await visitorModel.visitor_prescription.findAll({
+        await visitorModel.visitor_health.findAll({
             where: {
                 visitorId: visitorId
             }
-        }).then((visitorVitals) => {
+        }).then((visitorHealth) => {
             vitals.fill(0); //initialize the array with the initial value
-            visitorVitals.map((vital) => {
-                var createdAtMonth = vital.createdAt.getUTCMonth();
-                var updatedAtMonth = vital.updatedAt.getUTCMonth();
+            visitorHealth.map((health) => {
+                var createdAtMonth = health.createdAt.getUTCMonth();
+                var updatedAtMonth = health.updatedAt.getUTCMonth();
                 for (var i = createdAtMonth; i <= updatedAtMonth; i++) {
                     vitals[i] = vitals[i] + 1;
                 }
@@ -271,72 +273,162 @@ class VisitorService {
             });
     }
 
-    getAppointmentsByDoctorId(doctorId, page, size, callback) {
+    async getAppointmentsByDoctorId(doctorId, page, size, callback) {
         var offset = ((size * page) - size);
-        visitorAppointmentModel.visitor_appointment
+        var visitorAppointments = await visitorAppointmentModel.visitor_appointment
             .findAll({
                 where: {
-                    doctorId: doctorId
+                    doctorId: doctorId,
+                    startTime: {
+                        [Op.gte]: Date.now(),
+                        [Op.lt]: moment().add(1, 'd')
+                    }
                 },
                 offset: offset,
                 limit: size
-            }).then((visitorAppointments) => {
-                callback(visitorAppointments)
-            }).catch((err) => {
-                log.error('Error while fetching visitor appointments ', err);
-                callback({
-                    message: 'There was an error while fetching the appointments'
-                });
             });
+        var chartDetails = await this.getAppointmentsDetails(visitorAppointments);
+        callback({ "visitorAppointments": visitorAppointments, "chartDetails": chartDetails });
+    }
+
+    async getAppointmentsDetails(visitorAppointments) {
+        //for getting the doctor dashboard chart details
+        var chartDetails = await this.getChartData(visitorAppointments);
+        return chartDetails;
+    }
+
+    //get the newConsultations and follow ups
+    async getChartData(visitorAppointments) {
+        var newConsultations = new Array(9);
+        var followUps = new Array(9);
+        newConsultations.fill(0);
+        followUps.fill(0);
+        await visitorAppointments.map((visitorAppointment) => {
+            var time;
+            time = new Date(visitorAppointment.startTime).getUTCHours();
+            //indexes will be 9am-0, 10am-1, 11am-2, and so on
+            if (visitorAppointment.type === 'New consultation') {
+                switch (true) {
+                    case (time >= 9 && time < 10):
+                        newConsultations[0] = newConsultations[0] + 1;
+                        break;
+                    case (time >= 10 && time < 11):
+                        newConsultations[1] = newConsultations[1] + 1;
+                        break;
+                    case (time >= 11 && time < 12):
+                        newConsultations[2] = newConsultations[2] + 1;
+                        break;
+                    case (time >= 12 && time < 13):
+                        newConsultations[3] = newConsultations[3] + 1;
+                        break;
+                    case (time >= 13 && time < 14):
+                        newConsultations[4] = newConsultations[4] + 1;
+                        break;
+                    case (time >= 14 && time < 15):
+                        newConsultations[5] = newConsultations[5] + 1;
+                        break;
+                    case (time >= 15 && time < 16):
+                        newConsultations[6] = newConsultations[6] + 1;
+                        break;
+                    case (time >= 16 && time < 17):
+                        newConsultations[7] = newConsultations[7] + 1;
+                        break;
+                    case (time >= 17 && time < 18):
+                        newConsultations[8] = newConsultations[8] + 1;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+        await visitorAppointments.map((visitorAppointment) => {
+            var time;
+            time = new Date(visitorAppointment.startTime).getUTCHours();
+            //indexes will be 9am-0, 10am-1, 11am-2, and so on
+            if (visitorAppointment.type === 'Follow ups') {
+                switch (true) {
+                    case (time >= 9 && time < 10):
+                        followUps[0] = followUps[0] + 1;
+                        break;
+                    case (time >= 10 && time < 11):
+                        followUps[1] = followUps[1] + 1;
+                        break;
+                    case (time >= 11 && time < 12):
+                        followUps[2] = followUps[2] + 1;
+                        break;
+                    case (time >= 12 && time < 13):
+                        followUps[3] = followUps[3] + 1;
+                        break;
+                    case (time >= 13 && time < 14):
+                        followUps[4] = followUps[4] + 1;
+                        break;
+                    case (time >= 14 && time < 15):
+                        followUps[5] = followUps[5] + 1;
+                        break;
+                    case (time >= 15 && time < 16):
+                        followUps[6] = followUps[6] + 1;
+                        break;
+                    case (time >= 16 && time < 17):
+                        followUps[7] = followUps[7] + 1;
+                        break;
+                    case (time >= 17 && time < 18):
+                        followUps[8] = followUps[8] + 1;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+        return { "newConsultations": newConsultations, "followUps": followUps };
     }
 
     updateStore(visitor) {
         if (visitor.language) {
-            visitorModel.visitor_store.update({
-                'value': visitor.language
-            }, {
-                where: {
-                    visitorId: visitor.userId,
-                    type: "Language"
-                }
-            }).then(() => {}).catch(err => {
-                log.error('error while updating visitor: ' + err.stack);
-            });
+            this.createOrUpdateVisitorStore(visitor, 'Language', visitor.language);
         }
         if (visitor.location) {
-            visitorModel.visitor_store.update({
-                'value': visitor.location
-            }, {
-                where: {
-                    visitorId: visitor.userId,
-                    type: "Location"
-                }
-            }).then(() => {}).catch(err => {
-                log.error('error while updating visitor: ' + err.stack);
-            });
+            this.createOrUpdateVisitorStore(visitor, 'Location', visitor.location);
         }
     }
 
-    updateVisitorPrescription(visitor) {
-        this.readByVisitorIdPrescription(visitor.userId, (visitorPrescription) => {
-            var description = {
-                "symptoms": visitorPrescription[0].description.symptoms,
-                "vitals": { "Blood pressure": visitor.bloodPressure, "Heart rate": visitor.heartRate },
-                "medications": visitorPrescription[0].description.medications,
-                "care_info": visitorPrescription[0].description.care_info,
-                "follow ups notes": visitorPrescription[0].description["follow ups notes"]
-            };
-            var prescription = {
-                "visitorId": visitor.userId,
-                "description": description,
-                "issue": visitorPrescription[0].issue,
-                "analysis": visitorPrescription[0].analysis,
-                "medication": visitorPrescription[0].medication,
-                "prescription": visitorPrescription[0].prescription
-            };
-            visitorPrescriptionDao.update(prescription, (updatedPrescription) => {
-                log.info('Prescription updated ', updatedPrescription);
+    createOrUpdateVisitorStore(visitor, type, value) {
+        visitorModel.visitor_store.findAll({ where: { visitorId: visitor.userId, type: type } })
+            .then((visitorStore) => {
+                if (visitorStore.length === 0) {
+                    var visitorStore = { visitorId: visitor.userId, type: type, value: value }
+                    this.createStore(visitorStore, () => {});
+                } else {
+                    visitorModel.visitor_store.update({
+                        'value': value
+                    }, {
+                        where: {
+                            visitorId: visitor.userId,
+                            type: type
+                        }
+                    }).then(() => {}).catch(error => {
+                        log.error('Error while updating visitor: ' + error.stack);
+                    });
+                }
+            }).catch(error => {
+                log.error('Error while creating or updating visitor store: ' + error);
             });
+    }
+
+    updateVisitorHealth(visitor) {
+        this.readByVisitorIdHealth(visitor.userId, (result) => {
+            if (result.length === 0) {
+                visitorService.createHealth({
+                    "visitorId": visitor.userId,
+                    "allergies": visitor.allergies,
+                    "vitals": { "bloodPressure": visitor.bloodPressure, "heartRate": visitor.heartRate },
+                    "createdBy": visitor.userId,
+                    "updatedBy": visitor.userId
+                }, (createdVisitorHealth) => {
+                    log.info('Visitor health entry created: ', createdVisitorHealth);
+                });
+            } else {
+                return;
+            }
         });
     }
 }

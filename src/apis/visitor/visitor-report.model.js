@@ -8,6 +8,9 @@ module.exports = (sequelize, DataTypes) => {
         visitorId: {
             type: DataTypes.INTEGER
         },
+        consultationId: {
+            type: DataTypes.STRING //consultation_group primary key
+        },
         type: {
             type: DataTypes.STRING
         },

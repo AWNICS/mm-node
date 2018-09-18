@@ -39,241 +39,241 @@ const visitorService = new VisitorService();
 class UserService {
 
     register(user, callback) {
-        //generate random key
-        rtg.generateKey({
-            len: 16,
-            string: true,
-            strong: false,
-            retry: false
-        }, function (err, key) {
-            if (err) {
-                log.info(err);
-            } else {
-                user.token = key; //assign generated key to user
-            }
-        });
-        bcrypt.hash(user.password, 10, (err, hash) => {
-            user.password = hash;
-            return userDao.insert(user, (userInserted) => {
-                // if a user exists with same email and mobile execute this block this is to prevent duplicate registrations
-                if (userInserted.original) {
-                    if (userInserted.original.code === "ER_DUP_ENTRY") {
-                        return callback({
-                            "error": "DUP_ENTRY",
-                            "message": "An user already exists with this email and/or phone number. Please login using your password"
-                        }); //check for dup entry for email and phoneNo
-                    }
-                }
-                var audit = new AuditModel({
-                    senderId: userInserted.id,
-                    receiverId: '',
-                    receiverType: '',
-                    mode: '',
-                    entityName: 'visitor',
-                    entityEvent: 'registration',
-                    createdBy: userInserted.id,
-                    updatedBy: userInserted.id,
-                    createdTime: Date.now(),
-                    updatedTime: Date.now()
-                });
-                auditService.create(audit, (auditCreated) => {});
-                //update createdBy and updatedBy
-                userInserted.createdBy = userInserted.id;
-                userInserted.updatedBy = userInserted.id;
-                userModel.user.update({
-                    "createdBy": userInserted.id,
-                    "updatedBy": userInserted.id
-                }, {
-                    where: {
-                        id: userInserted.id
-                    }
-                }).then(() => {
-                    callback(userInserted);
-                }).catch((err) => {
-                    log.error('Error while updating the user ', err);
-                });
-
-                RoleModel.role.findOne({
-                    where: {
-                        name: userInserted.role
-                    }
-                }).then((role) => {
-                    var userRole = {
-                        userId: userInserted.id,
-                        roleId: role.id
-                    };
-                    roleService.createUserRole(userRole, (userRole) => {});
-                });
-                if (userInserted.role.toLowerCase() == 'doctor') {
-                    this.activationLink(userInserted);
-                    //call admin mail sender with all the doctor info like speciality and mci reg no etc
-                    this.adminDoctorRegistration(user);
-                    var group = {
-                        name: 'MedHelp',
-                        url: `/medhelp/${userInserted.id}`,
-                        userId: userInserted.id,
-                        description: 'Med help',
-                        createdBy: userInserted.id,
-                        updatedBy: userInserted.id
-                    };
-                    return groupDao.insert(group, (createdGroup) => {
-                        var groupUserMap = {
-                            userId: createdGroup.userId,
-                            groupId: createdGroup.id,
-                            createdBy: createdGroup.userId,
-                            updatedBy: createdGroup.userId
-                        };
-                        groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
-                        sequelize
-                            .query("select u.id, u.firstname, u.lastname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", {
-                                type: sequelize.QueryTypes.SELECT
-                            })
-                            .then((groupUserMaps) => {
-                                var uId;
-                                var uName;
-                                for (var i = 0; i < groupUserMaps.length; i++) {
-                                    if (groupUserMaps[i].role.toLowerCase() == 'bot') {
-                                        uId = groupUserMaps[i].id;
-                                        uName = groupUserMaps[i].firstname + ' ' + groupUserMaps[i].lastname;
-                                        break;
-                                    } else {
-                                        continue;
-                                    }
-                                }
-                                var groupUserMapBot = {
-                                    groupId: createdGroup.id,
-                                    userId: uId,
-                                    createdBy: uId,
-                                    updatedBy: uId
-                                }
-                                groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
-                                var msg = {
-                                    receiverId: createdGroup.id,
-                                    receiverType: 'group', // group or individual
-                                    senderId: uId,
-                                    senderName: uName,
-                                    text: 'Welcome to Mesomeds!! How can we help you?',
-                                    createdBy: uId,
-                                    updatedBy: uId,
-                                    createdTime: Date.now(),
-                                    updatedTime: Date.now()
-                                }
-                                messageService.sendMessage(msg, (result) => {});
-                            });
-                    });
-                } else if (userInserted.role.toLowerCase() === 'patient') {
-                    this.activationLink(userInserted);
-                    //call  admin mail sender with patient info
-                    this.adminUserRegistration(userInserted);
-                    this.createVisitor(userInserted);
-                    var group = {
-                        name: 'MedHelp',
-                        url: `/medhelp/${userInserted.id}`,
-                        userId: userInserted.id,
-                        description: 'Med help',
-                        phase: 'active',
-                        status: 'offline',
-                        createdBy: userInserted.id,
-                        updatedBy: userInserted.id
-                    };
-                    return groupDao.insert(group, (createdGroup) => {
-                        var groupUserMap = {
-                            userId: createdGroup.userId,
-                            groupId: createdGroup.id,
-                            createdBy: createdGroup.userId,
-                            updatedBy: createdGroup.userId
-                        };
-                        groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
-                        sequelize
-                            .query("select u.id, u.firstname, u.lastname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", {
-                                type: sequelize.QueryTypes.SELECT
-                            })
-                            .then((groupUserMaps) => {
-                                var uId;
-                                var uName;
-                                for (var i = 0; i < groupUserMaps.length; i++) {
-                                    if (groupUserMaps[i].role.toLowerCase() == 'bot') {
-                                        uId = groupUserMaps[i].id;
-                                        uName = groupUserMaps[i].firstname + ' ' + groupUserMaps[i].lastname;
-                                        break;
-                                    } else {
-                                        continue;
-                                    }
-                                }
-                                var groupUserMapBot = {
-                                    groupId: createdGroup.id,
-                                    userId: uId,
-                                    createdBy: uId,
-                                    updatedBy: uId
-                                }
-                                groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
-                                var msg = {
-                                    receiverId: createdGroup.id,
-                                    receiverType: 'group', // group or individual
-                                    senderId: uId,
-                                    senderName: uName,
-                                    text: 'Welcome to Mesomeds!! How can we help you?',
-                                    createdBy: uId,
-                                    updatedBy: uId,
-                                    createdTime: Date.now(),
-                                    updatedTime: Date.now()
-                                }
-                                messageService.sendMessage(msg, (result) => {});
-
-                                //create audit entry for default group 
-                                var audit = new AuditModel({
-                                    senderId: uId,
-                                    receiverId: createdGroup.id,
-                                    receiverType: 'group',
-                                    mode: 'Guided mode',
-                                    entityName: 'group',
-                                    entityEvent: 'added',
-                                    createdBy: uId,
-                                    updatedBy: uId,
-                                    createdTime: Date.now(),
-                                    updatedTime: ''
-                                });
-                                auditService.create(audit, (auditCreated) => {});
-                            });
-                    });
-                } else if (userInserted.role.toLowerCase() === 'bot') {
-                    // create staffInfo entry in staff_info table
-                    this.creatStaffInfo(userInserted);
+            //generate random key
+            rtg.generateKey({
+                len: 16,
+                string: true,
+                strong: false,
+                retry: false
+            }, function(err, key) {
+                if (err) {
+                    log.info(err);
                 } else {
-                    // return if none of the fields match
-                    return;
+                    user.token = key; //assign generated key to user
                 }
             });
-        });
-    }
-    //this method creates notifications and store them in DB upon email or message sending
+            bcrypt.hash(user.password, 10, (err, hash) => {
+                user.password = hash;
+                return userDao.insert(user, (userInserted) => {
+                    // if a user exists with same email and mobile execute this block this is to prevent duplicate registrations
+                    if (userInserted.original) {
+                        if (userInserted.original.code === "ER_DUP_ENTRY") {
+                            return callback({
+                                "error": "DUP_ENTRY",
+                                "message": "An user already exists with this email and/or phone number. Please login using your password"
+                            }); //check for dup entry for email and phoneNo
+                        }
+                    }
+                    var audit = new AuditModel({
+                        senderId: userInserted.id,
+                        receiverId: '',
+                        receiverType: '',
+                        mode: '',
+                        entityName: 'visitor',
+                        entityEvent: 'registration',
+                        createdBy: userInserted.id,
+                        updatedBy: userInserted.id,
+                        createdTime: Date.now(),
+                        updatedTime: Date.now()
+                    });
+                    auditService.create(audit, (auditCreated) => {});
+                    //update createdBy and updatedBy
+                    userInserted.createdBy = userInserted.id;
+                    userInserted.updatedBy = userInserted.id;
+                    userModel.user.update({
+                        "createdBy": userInserted.id,
+                        "updatedBy": userInserted.id
+                    }, {
+                        where: {
+                            id: userInserted.id
+                        }
+                    }).then(() => {
+                        callback(userInserted);
+                    }).catch((err) => {
+                        log.error('Error while updating the user ', err);
+                    });
+
+                    RoleModel.role.findOne({
+                        where: {
+                            name: userInserted.role
+                        }
+                    }).then((role) => {
+                        var userRole = {
+                            userId: userInserted.id,
+                            roleId: role.id
+                        };
+                        roleService.createUserRole(userRole, (userRole) => {});
+                    });
+                    if (userInserted.role.toLowerCase() == 'doctor') {
+                        this.activationLink(userInserted);
+                        //call admin mail sender with all the doctor info like speciality and mci reg no etc
+                        this.adminDoctorRegistration(user);
+                        var group = {
+                            name: 'MedHelp',
+                            url: `/medhelp/${userInserted.id}`,
+                            userId: userInserted.id,
+                            description: 'Med help',
+                            createdBy: userInserted.id,
+                            updatedBy: userInserted.id
+                        };
+                        return groupDao.insert(group, (createdGroup) => {
+                            var groupUserMap = {
+                                userId: createdGroup.userId,
+                                groupId: createdGroup.id,
+                                createdBy: createdGroup.userId,
+                                updatedBy: createdGroup.userId
+                            };
+                            groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
+                            sequelize
+                                .query("select u.id, u.firstname, u.lastname, u.role, u.email, count(gu.userId) from user u LEFT JOIN consultation_group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", {
+                                    type: sequelize.QueryTypes.SELECT
+                                })
+                                .then((groupUserMaps) => {
+                                    var uId;
+                                    var uName;
+                                    for (var i = 0; i < groupUserMaps.length; i++) {
+                                        if (groupUserMaps[i].role.toLowerCase() == 'bot') {
+                                            uId = groupUserMaps[i].id;
+                                            uName = groupUserMaps[i].firstname + ' ' + groupUserMaps[i].lastname;
+                                            break;
+                                        } else {
+                                            continue;
+                                        }
+                                    }
+                                    var groupUserMapBot = {
+                                        groupId: createdGroup.id,
+                                        userId: uId,
+                                        createdBy: uId,
+                                        updatedBy: uId
+                                    }
+                                    groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
+                                    var msg = {
+                                        receiverId: createdGroup.id,
+                                        receiverType: 'group', // group or individual
+                                        senderId: uId,
+                                        senderName: uName,
+                                        text: 'Welcome to Mesomeds!! How can we help you?',
+                                        createdBy: uId,
+                                        updatedBy: uId,
+                                        createdTime: Date.now(),
+                                        updatedTime: Date.now()
+                                    }
+                                    messageService.sendMessage(msg, (result) => {});
+                                });
+                        });
+                    } else if (userInserted.role.toLowerCase() === 'patient') {
+                        this.activationLink(userInserted);
+                        //call  admin mail sender with patient info
+                        this.adminUserRegistration(userInserted);
+                        this.createVisitor(userInserted);
+                        var group = {
+                            name: 'MedHelp',
+                            url: `/medhelp/${userInserted.id}`,
+                            userId: userInserted.id,
+                            description: 'Med help',
+                            phase: 'active',
+                            status: 'offline',
+                            createdBy: userInserted.id,
+                            updatedBy: userInserted.id
+                        };
+                        return groupDao.insert(group, (createdGroup) => {
+                            var groupUserMap = {
+                                userId: createdGroup.userId,
+                                groupId: createdGroup.id,
+                                createdBy: createdGroup.userId,
+                                updatedBy: createdGroup.userId
+                            };
+                            groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
+                            sequelize
+                                .query("select u.id, u.firstname, u.lastname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", {
+                                    type: sequelize.QueryTypes.SELECT
+                                })
+                                .then((groupUserMaps) => {
+                                    var uId;
+                                    var uName;
+                                    for (var i = 0; i < groupUserMaps.length; i++) {
+                                        if (groupUserMaps[i].role.toLowerCase() == 'bot') {
+                                            uId = groupUserMaps[i].id;
+                                            uName = groupUserMaps[i].firstname + ' ' + groupUserMaps[i].lastname;
+                                            break;
+                                        } else {
+                                            continue;
+                                        }
+                                    }
+                                    var groupUserMapBot = {
+                                        groupId: createdGroup.id,
+                                        userId: uId,
+                                        createdBy: uId,
+                                        updatedBy: uId
+                                    }
+                                    groupUserMapDao.insert(groupUserMapBot, (createdGroupUserMap) => {});
+                                    var msg = {
+                                        receiverId: createdGroup.id,
+                                        receiverType: 'group', // group or individual
+                                        senderId: uId,
+                                        senderName: uName,
+                                        text: 'Welcome to Mesomeds!! How can we help you?',
+                                        createdBy: uId,
+                                        updatedBy: uId,
+                                        createdTime: Date.now(),
+                                        updatedTime: Date.now()
+                                    }
+                                    messageService.sendMessage(msg, (result) => {});
+
+                                    //create audit entry for default group 
+                                    var audit = new AuditModel({
+                                        senderId: uId,
+                                        receiverId: createdGroup.id,
+                                        receiverType: 'group',
+                                        mode: 'Guided mode',
+                                        entityName: 'group',
+                                        entityEvent: 'added',
+                                        createdBy: uId,
+                                        updatedBy: uId,
+                                        createdTime: Date.now(),
+                                        updatedTime: ''
+                                    });
+                                    auditService.create(audit, (auditCreated) => {});
+                                });
+                        });
+                    } else if (userInserted.role.toLowerCase() === 'bot') {
+                        // create staffInfo entry in staff_info table
+                        this.creatStaffInfo(userInserted);
+                    } else {
+                        // return if none of the fields match
+                        return;
+                    }
+                });
+            });
+        }
+        //this method creates notifications and store them in DB upon email or message sending
     createNotification(userId, type, title, channel, templateTo, templateBody) {
-        const notification = {
-            userId: userId,
-            type: type,
-            title: title,
-            content: null,
-            status: 'sent',
-            channel: channel,
-            priority: 0,
-            template: {
-                to: templateTo,
-                from: 'test.arung@gmail.com',
-                body: templateBody,
-                signature: '',
-                attachment: '',
-            },
-            triggerTime: null,
-            createdBy: null,
-            updatedBy: null,
-        };
-        notificationService.create(notification, (res) => {
-            res ? log.info('Notification created ' + channel + ' to ' + templateTo) : log.error('Error in creating notification for ' + type + ' through ' + channel);
-        });
-    }
-    /**
-     * activation link method
-     */
+            const notification = {
+                userId: userId,
+                type: type,
+                title: title,
+                content: null,
+                status: 'sent',
+                channel: channel,
+                priority: 0,
+                template: {
+                    to: templateTo,
+                    from: 'test.arung@gmail.com',
+                    body: templateBody,
+                    signature: '',
+                    attachment: '',
+                },
+                triggerTime: null,
+                createdBy: null,
+                updatedBy: null,
+            };
+            notificationService.create(notification, (res) => {
+                res ? log.info('Notification created ' + channel + ' to ' + templateTo) : log.error('Error in creating notification for ' + type + ' through ' + channel);
+            });
+        }
+        /**
+         * activation link method
+         */
     activationLink(user) {
         const template = user.role === "patient" ? "user-registration" : "doctor-registration";
         const title = user.role === "patient" ? "User Registration" : "Doctor Registration";
@@ -555,13 +555,10 @@ class UserService {
         visitorDao.readById(id, (visitor) => {
             visitorService.readByVisitorIdHealth(visitor.userId, (visitorHealth) => {
                 visitorService.getVisitorStoreById(visitor.userId, (visitorStores) => {
-                    visitorService.readByVisitorIdPrescription(visitor.userId, (visitorPrescription) => {
-                        callback({
-                            "patientInfo": visitor,
-                            "visitorHealthInfo": visitorHealth,
-                            "visitorStoreInfo": visitorStores,
-                            "visitorPrescriptionInfo": visitorPrescription
-                        });
+                    callback({
+                        "patientInfo": visitor,
+                        "visitorHealthInfo": visitorHealth,
+                        "visitorStoreInfo": visitorStores
                     });
                 });
             });
@@ -570,39 +567,9 @@ class UserService {
 
     updateVisitor(visitor, callback) {
         visitorDao.update(visitor, (updatedVisitor) => {
-            this.updateAllergy(visitor); //update the allergy inside visitor-health table
+            visitorService.updateVisitorHealth(visitor); //update the visitor-health table
             visitorService.updateStore(visitor);
-            visitorService.updateVisitorPrescription(visitor);
             callback(updatedVisitor);
-        });
-    }
-
-    updateAllergy(visitor) {
-        visitorService.readByVisitorIdHealth(visitor.userId, (result) => {
-            if (result.length === 0) {
-                visitorService.createHealth({
-                    "visitorId": visitor.userId,
-                    "allergies": visitor.allergies,
-                    "createdBy": visitor.userId,
-                    "updatedBy": visitor.userId
-                }, (createdVisitorHealth) => {
-                    log.info('Visitor health entry ',createdVisitorHealth);
-                });
-            } else {
-                visitorModel.visitor_health.update({
-                        'foodHabits': result[0].foodHabits,
-                        'allergies': visitor.allergies
-                    }, {
-                        where: {
-                            visitorId: visitor.userId
-                        }
-                    }).then((updatedVisitorHealth) => {
-                        log.info('Visitor health entry ',updatedVisitorHealth);
-                    })
-                    .catch(err => {
-                        log.error('error while updating visitor ' + err.stack);
-                    });
-            }
         });
     }
 }
