@@ -1,25 +1,24 @@
-import doctorModel from './index';
+import qualificationsModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
 /*
-DAO for Doctor api
+DAO for Qualifications api
 */
-class DoctorDao {
+class QualificationsDao {
     constructor() {}
 
     /**
      * insert method
      */
-    insert(doctor, callback) {
+    insert(qualification, callback) {
         sequelize.sync({ force: false }).then(() => {
             sequelize.transaction().then(function(t) {
-                doctorModel.doctor.create(doctor, { transaction: t }).then(function(doctorInserted) {
-                    callback(doctorInserted);
+                qualificationsModel.qualifications.create(qualification, { transaction: t }).then(function(qualificationInserted) {
+                    callback(qualificationInserted);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
-                    log.error(error);
                     t.rollback();
                 });
             });
@@ -30,8 +29,8 @@ class DoctorDao {
      * read all method
      */
     readAll(callback) {
-        doctorModel.doctor.findAll().then((allDoctor) => {
-            callback(allDoctor);
+        qualificationsModel.qualifications.findAll().then((qualifications) => {
+            callback(qualifications);
         });
     }
 
@@ -39,26 +38,26 @@ class DoctorDao {
      * read method based on id
      */
     readById(id, callback) {
-        return doctorModel.doctor.find({ where: { userId: id } }).then((doctor) => {
-            callback(doctor);
+        qualificationsModel.qualifications.find({ where: { id: id } }).then((qualification) => {
+            callback(qualification);
         });
     }
 
     /**
      * Update method
      */
-    update(doctor, callback) {
+    update(qualification, callback) {
         sequelize.transaction().then(function(t) {
-            doctorModel.doctor.update(doctor, {
+            qualificationsModel.qualifications.update(qualification, {
                 where: {
-                    userId: doctor.userId
+                    id: qualification.id
                 }
-            }, { transaction: t }).then(function(doctorUpdated) {
-                callback(doctorUpdated);
+            }, { transaction: t }).then(function(qualificationUpdated) {
+                callback(qualificationUpdated);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
-                log.error('Error in doctor dao update ', error);
+                log.error('Error in qualification dao update ', error);
                 t.rollback();
             });
         });
@@ -69,12 +68,12 @@ class DoctorDao {
      */
     delete(id, callback) {
         sequelize.transaction().then(function(t) {
-            doctorModel.doctor.destroy({
+            qualificationsModel.qualifications.destroy({
                 where: {
                     id: id
                 }
-            }).then(function(doctorDeleted) {
-                callback(doctorDeleted);
+            }).then(function(qualificationDeleted) {
+                callback(qualificationDeleted);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
@@ -84,4 +83,4 @@ class DoctorDao {
     }
 }
 
-export default DoctorDao;
+export default QualificationsDao;

@@ -34,4 +34,13 @@ router.delete('/notifications/:id', (req, res) => {
     });
 });
 
+router.get('/notifications/users/:userId', (req,res) => {
+    var userId = req.params.userId;
+    var page = parseInt(req.query.page);
+    var size = parseInt(req.query.size);
+    notificationService.readWebNotificationsByUserId(userId, page, size, (result) => {
+        res.send(result);
+    });
+});
+
 module.exports = router;

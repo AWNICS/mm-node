@@ -7,6 +7,7 @@ import VisitorMediaDao from './visitor-media.dao';
 import VisitorAppointmentDao from './visitor-appointment.dao';
 import VisitorStoreDao from './visitor-store.dao';
 import visitorStoreModel from './index';
+import visitorAppointmentModel from './index';
 import log from '../../config/log4js.config';
 import visitorModel from './index';
 import VisitorTimelineDao from './visitor-timeline.dao';
@@ -25,85 +26,126 @@ const visitorTimelineDao = new VisitorTimelineDao();
  * VisitorService 
  */
 class VisitorService {
-    constructor() {}
 
     //for visitor-health
     createHealth(visitorHealth, callback) {
-        visitorHealthDao.insert(visitorHealth, callback);
+        visitorHealthDao.insert(visitorHealth, (visitorHealthCreated) => {
+            callback(visitorHealthCreated);
+        });
     }
 
     readAllHealth(callback) {
-        visitorHealthDao.readAll(callback);
+        visitorHealthDao.readAll((allVisitorHealth) => {
+            callback(allVisitorHealth);
+        });
     }
 
     readByVisitorIdHealth(visitorId, callback) {
-        visitorHealthDao.readById(visitorId, callback);
+        visitorHealthDao.readById(visitorId, (visitorHealth) => {
+            callback(visitorHealth);
+        });
     }
 
     //for visitor-prescription
     createPrescription(visitorPrescription, callback) {
-        visitorPrescriptionDao.insert(visitorPrescription, callback);
+        visitorPrescriptionDao.insert(visitorPrescription, (visitorPrescriptionCreated) => {
+            callback(visitorPrescriptionCreated);
+        });
     }
 
     readAllPrescription(callback) {
-        visitorPrescriptionDao.readAll(callback);
+        visitorPrescriptionDao.readAll((allVisitorPrescription) => {
+            callback(allVisitorPrescription);
+        });
     }
 
     readByVisitorIdPrescription(visitorId, callback) {
-        visitorPrescriptionDao.readById(visitorId, callback);
+        visitorPrescriptionDao.readById(visitorId, (visitorPrescription) => {
+            callback(visitorPrescription);
+        });
     }
 
     //for visitor-diagnostic
     createDiagnostic(visitorDiagnostic, callback) {
-        visitorDiagnosticDao.insert(visitorDiagnostic, callback);
+        visitorDiagnosticDao.insert(visitorDiagnostic, (diagnosticCreated) => {
+            callback(diagnosticCreated);
+        });
     }
 
     readAllDiagnostic(callback) {
-        visitorDiagnosticDao.readAll(callback);
+        visitorDiagnosticDao.readAll((allDiagnostic) => {
+            callback(allDiagnostic);
+        });
     }
 
     //for visitor-reports
     createReport(visitorReport, callback) {
-        visitorReportDao.insert(visitorReport, callback);
+        visitorReportDao.insert(visitorReport, (visitorReportCreated) => {
+            callback(visitorReportCreated);
+        });
     }
 
     readAllReport(callback) {
-        visitorReportDao.readAll(callback);
+        visitorReportDao.readAll((allReports) => {
+            callback(allReports);
+        });
     }
 
     readByVisitorIdReport(visitorId, callback) {
-        visitorReportDao.readById(visitorId, callback);
+        visitorReportDao.readById(visitorId, (report) => {
+            callback(report);
+        });
+    }
+
+    updateVisitorReport(visitorReport, callback) {
+        visitorReportDao.update(visitorReport, (visitorReportUpdated) => {
+            callback(visitorReportUpdated);
+        });
     }
 
     //for visitor-history
     createHistory(visitorHistory, callback) {
-        visitorHistoryDao.insert(visitorHistory, callback);
+        visitorHistoryDao.insert(visitorHistory, (visitorHistoryCreated) => {
+            callback(visitorHistoryCreated);
+        });
     }
 
     readAllHistory(callback) {
-        visitorHistoryDao.readAll(callback);
+        visitorHistoryDao.readAll((allVisitorHistory) => {
+            callback(allVisitorHistory);
+        });
     }
 
     //for visitor-media
     createMedia(visitorMedia, callback) {
-        visitorMediaDao.insert(visitorMedia, callback);
+        visitorMediaDao.insert(visitorMedia, (visitorMediaCreated) => {
+            callback(visitorMediaCreated);
+        });
     }
 
     readAllMedia(callback) {
-        visitorMediaDao.readAll(callback);
+        visitorMediaDao.readAll((allVisitorMedia) => {
+            callback(allVisitorMedia);
+        });
     }
 
     //for visitor-appointment
     createAppointment(visitorAppointment, callback) {
-        visitorAppointmentDao.insert(visitorAppointment, callback);
+        visitorAppointmentDao.insert(visitorAppointment, (visitorAppointmentCreated) => {
+            callback(visitorAppointmentCreated);
+        });
     }
 
     readAllAppointment(callback) {
-        visitorAppointmentDao.readAll(callback);
+        visitorAppointmentDao.readAll((allVisitorAppointment) => {
+            callback(allVisitorAppointment);
+        });
     }
 
     readByIdAppointment(visitorId, callback) {
-        visitorAppointmentDao.readById(visitorId, callback);
+        visitorAppointmentDao.readById(visitorId, (visitorAppointment) => {
+            callback(visitorAppointment);
+        });
     }
 
     async readAppointmentHistory(visitorId, callback) {
@@ -111,7 +153,11 @@ class VisitorService {
         var reports = new Array(12);
         var vitals = new Array(12);
 
-        await visitorModel.visitor_appointment.findAll({ where: { visitorId: visitorId } }).then((visitorAppointment) => {
+        await visitorModel.visitor_appointment.findAll({
+            where: {
+                visitorId: visitorId
+            }
+        }).then((visitorAppointment) => {
             consultations.fill(0); //initialize the array with the initial value
             visitorAppointment.map((appointment) => {
                 var startMonth = appointment.startTime.getUTCMonth();
@@ -122,7 +168,11 @@ class VisitorService {
             });
         });
 
-        await visitorModel.visitor_report.findAll({ where: { visitorId: visitorId } }).then((visitorReport) => {
+        await visitorModel.visitor_report.findAll({
+            where: {
+                visitorId: visitorId
+            }
+        }).then((visitorReport) => {
             reports.fill(0); //initialize the array with the initial value
             visitorReport.map((report) => {
                 var createdAtMonth = report.createdAt.getUTCMonth();
@@ -133,7 +183,11 @@ class VisitorService {
             });
         });
 
-        await visitorModel.visitor_prescription.findAll({ where: { visitorId: visitorId } }).then((visitorVitals) => {
+        await visitorModel.visitor_prescription.findAll({
+            where: {
+                visitorId: visitorId
+            }
+        }).then((visitorVitals) => {
             vitals.fill(0); //initialize the array with the initial value
             visitorVitals.map((vital) => {
                 var createdAtMonth = vital.createdAt.getUTCMonth();
@@ -143,7 +197,7 @@ class VisitorService {
                 }
             });
         });
-        //send the required history details to fill the graph
+        //send the required history details to fill the consultation history graph on visitor-dashboard
         callback({ "consultations": { "monthly": consultations }, "reports": { "monthly": reports }, "vitals": { "monthly": vitals } });
     }
 
@@ -164,33 +218,45 @@ class VisitorService {
 
     //for visitor-store
     createStore(visitorStore, callback) {
-        visitorStoreDao.insert(visitorStore, callback);
+        visitorStoreDao.insert(visitorStore, (visitorStoreCreated) => {
+            callback(visitorStoreCreated);
+        });
     }
 
     readAllStore(callback) {
-        visitorStoreDao.readAll(callback);
+        visitorStoreDao.readAll((allVisitorStore) => {
+            callback(allVisitorStore);
+        });
     }
 
-    getVisitorById(visitorId, callback) {
+    getVisitorStoreById(visitorId, callback) {
         visitorStoreModel.visitor_store
-            .findAll({ where: { visitorId: visitorId } }) //fetch all the records for the visitorId
+            .findAll({
+                where: {
+                    visitorId: visitorId
+                }
+            }) //fetch all the records for the visitorId
             .then((visitorStores) => {
                 callback(visitorStores);
             }).catch(err => {
-                log.error('Error while fetching visitor stores in visitor service: ', err);
+                log.error('Error while fetching visitor stores in visitor service: ', err.stack);
                 callback({ message: 'Visitor ID you have entered does not exist' });
             });
     }
 
     //for visitor-timeline
     createVisitorTimeline(visitorTimeline, callback) {
-        visitorTimelineDao.insert(visitorTimeline, callback);
+        visitorTimelineDao.insert(visitorTimeline, (visitorTimelineCreated) => {
+            callback(visitorTimelineCreated);
+        });
     }
 
     readTimelineByVisitorId(visitorId, callback) {
         visitorModel.visitor_timeline
             .findAll({
-                where: { visitorId: visitorId },
+                where: {
+                    visitorId: visitorId
+                },
                 limit: 3,
                 order: [
                     [visitorModel, 'timestamp', 'ASC']
@@ -199,8 +265,79 @@ class VisitorService {
                 callback(visitorTimelines);
             }).catch(err => {
                 log.error('Error while fetching visitor timeline in visitor service: ', err);
-                callback({ message: 'Visitor ID you have entered does not exist' });
+                callback({
+                    message: 'Visitor ID you have entered does not exist'
+                });
             });
+    }
+
+    getAppointmentsByDoctorId(doctorId, page, size, callback) {
+        var offset = ((size * page) - size);
+        visitorAppointmentModel.visitor_appointment
+            .findAll({
+                where: {
+                    doctorId: doctorId
+                },
+                offset: offset,
+                limit: size
+            }).then((visitorAppointments) => {
+                callback(visitorAppointments)
+            }).catch((err) => {
+                log.error('Error while fetching visitor appointments ', err);
+                callback({
+                    message: 'There was an error while fetching the appointments'
+                });
+            });
+    }
+
+    updateStore(visitor) {
+        if (visitor.language) {
+            visitorModel.visitor_store.update({
+                'value': visitor.language
+            }, {
+                where: {
+                    visitorId: visitor.userId,
+                    type: "Language"
+                }
+            }).then(() => {}).catch(err => {
+                log.error('error while updating visitor: ' + err.stack);
+            });
+        }
+        if (visitor.location) {
+            visitorModel.visitor_store.update({
+                'value': visitor.location
+            }, {
+                where: {
+                    visitorId: visitor.userId,
+                    type: "Location"
+                }
+            }).then(() => {}).catch(err => {
+                log.error('error while updating visitor: ' + err.stack);
+            });
+        }
+    }
+
+    updateVisitorPrescription(visitor) {
+        this.readByVisitorIdPrescription(visitor.userId, (visitorPrescription) => {
+            var description = {
+                "symptoms": visitorPrescription[0].description.symptoms,
+                "vitals": { "Blood pressure": visitor.bloodPressure, "Heart rate": visitor.heartRate },
+                "medications": visitorPrescription[0].description.medications,
+                "care_info": visitorPrescription[0].description.care_info,
+                "follow ups notes": visitorPrescription[0].description["follow ups notes"]
+            };
+            var prescription = {
+                "visitorId": visitor.userId,
+                "description": description,
+                "issue": visitorPrescription[0].issue,
+                "analysis": visitorPrescription[0].analysis,
+                "medication": visitorPrescription[0].medication,
+                "prescription": visitorPrescription[0].prescription
+            };
+            visitorPrescriptionDao.update(prescription, (updatedPrescription) => {
+                log.info('Prescription updated ', updatedPrescription);
+            });
+        });
     }
 }
 

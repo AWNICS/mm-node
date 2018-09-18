@@ -1,6 +1,6 @@
-import pug from 'pug';
 import EmailTemplate from 'email-templates';
 import path from 'path';
+
 var emailConfig = new EmailTemplate({
     send: true,
     transport: {
@@ -9,7 +9,7 @@ var emailConfig = new EmailTemplate({
         secure: false,
         auth: {
             user: 'test.arung@gmail.com',
-            pass: 'passwordtest'
+            pass: 'alphabet0711'
         },
         tls: {
             rejectUnauthorized: false

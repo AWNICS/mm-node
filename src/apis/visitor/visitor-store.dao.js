@@ -42,12 +42,12 @@ class VisitorStoreDao {
     /**
      * Update method
      */
-    update(visitorStore, id, type, callback) {
+    update(visitorStore, visitorId, type, callback) {
         return sequelize.transaction(function(t) {
             return visitorStoreModel.visitor_store
                 .update(visitorStore, {
                     where: {
-                        id: id,
+                        id: visitorId,
                         type: type
                     }
                 }, { transaction: t })

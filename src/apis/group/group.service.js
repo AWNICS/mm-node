@@ -12,8 +12,10 @@ import MessageService from '../message/message.service';
 import AuditModel from '../audit/audit.model';
 import AuditService from '../audit/audit.service';
 import NotificationService from '../notification/notification.service';
+import VisitorService from '../visitor/visitor.service';
 
 const Promise = require('bluebird');
+const moment = require('moment');
 
 const groupDao = new GroupDao();
 const groupUserMapDao = new GroupUserMapDao();
@@ -22,6 +24,7 @@ const doctorService = new DoctorService();
 const messageService = new MessageService();
 const auditService = new AuditService();
 const notificationService = new NotificationService();
+const visitorService = new VisitorService();
 
 class GroupService {
     constructor() {}
@@ -143,15 +146,21 @@ class GroupService {
                 return Promise.all(gUMap.map((gum => {
                     if (gum.userId !== parseInt(userId)) {
                         return userModel.user.find({
-                                where: { id: gum.userId }
+                                where: {
+                                    id: gum.userId
+                                }
                             })
                             .then((user) => {
                                 if (user.status === 'online') {
                                     return groupModel.group.find({
-                                            where: { id: gum.groupId }
+                                            where: {
+                                                id: gum.groupId
+                                            }
                                         })
                                         .then((group) => {
-                                            return groupModel.group.update({ status: 'online' }, {
+                                            return groupModel.group.update({
+                                                    status: 'online'
+                                                }, {
                                                     where: {
                                                         id: group.id
                                                     }
@@ -250,7 +259,9 @@ class GroupService {
         this.create(group, (createdGroup) => {
             callback(createdGroup);
             groupUserMapModel.group_user_map.findAll({
-                where: { groupId: receiverId }
+                where: {
+                    groupId: receiverId
+                }
             }).then((allGroupUser) => {
                 //map bot and user to created group
                 for (var i = 0; i < allGroupUser.length; i++) {
@@ -282,7 +293,9 @@ class GroupService {
                 }
             });
             sequelize
-                .query("select d.id from doctor d LEFT JOIN visitor_appointment va on d.id=va.doctorId where va.doctorId is NULL", { type: sequelize.QueryTypes.SELECT })
+                .query("select d.id from doctor d LEFT JOIN visitor_appointment va on d.id=va.doctorId where va.doctorId is NULL", {
+                    type: sequelize.QueryTypes.SELECT
+                })
                 .then((allDoctors) => {
                     if (allDoctors.length > 0) { //for new group
                         var doctorMap = { //mapping doctor to consultation
@@ -327,7 +340,13 @@ class GroupService {
                                 this.createGroupUserMap(groupDoctorMap, (doctorMapped) => {});
                                 //update lastActive for this doctor
                                 visitorAppointmentModel.visitor_appointment
-                                    .update({ "lastActive": Date.now() }, { where: { doctorId: allMappedDoctors[0].doctorId } })
+                                    .update({
+                                        "lastActive": Date.now()
+                                    }, {
+                                        where: {
+                                            doctorId: allMappedDoctors[0].doctorId
+                                        }
+                                    })
                                     .then((consultationUpdated) => {});
                             });
                     }
@@ -342,7 +361,9 @@ class GroupService {
         this.create(group, (createdGroup) => {
             callback(createdGroup);
             groupUserMapModel.group_user_map.findAll({
-                where: { groupId: receiverId }
+                where: {
+                    groupId: receiverId
+                }
             }).then((allGroupUser) => {
                 for (var i = 0; i < allGroupUser.length; i++) {
                     var groupUserMap = {
@@ -405,7 +426,9 @@ class GroupService {
                 gb.userId=${patientId}
             AND
                 ga.groupId=gb.groupId;
-                `, { type: sequelize.QueryTypes.SELECT })
+                `, {
+                type: sequelize.QueryTypes.SELECT
+            })
             .then((result, err) => {
                 if (err) {
                     log.error('Error while fetching doctors list ', err);
@@ -444,18 +467,24 @@ class GroupService {
                 userId: patientId,
                 createdBy: createdGroup.createdBy,
                 updatedBy: createdGroup.updatedBy
-            }
+            };
             this.createGroupUserMap(groupUserMap, (userMapped) => {});
             //mapping bot(same bot which is in MedHelp) to the consutation group and create a new message
             groupUserMapModel.group_user_map.findAll({
-                where: { userId: patientId },
+                where: {
+                    userId: patientId
+                },
                 order: [
                     ['createdAt', 'ASC']
                 ],
                 limit: 1
             }).then((groupUserMap) => {
                 this.getById(groupUserMap[0].groupId, (group) => {
-                    groupUserMapModel.group_user_map.findAll({ where: { groupId: group.id } }).then((groupUserMaps) => {
+                    groupUserMapModel.group_user_map.findAll({
+                        where: {
+                            groupId: group.id
+                        }
+                    }).then((groupUserMaps) => {
                         groupUserMaps.map((groupUserMap) => {
                             userService.getById(groupUserMap.userId, ((user) => {
                                 if (user.role.toLowerCase() == 'bot') {
@@ -479,34 +508,71 @@ class GroupService {
                                     };
                                     messageService.sendMessage(msg, (result) => {});
                                     //create notification for the doctor
-                                    var notification = {
-                                        userId: doctorId,
-                                        type: 'consultation',
-                                        title: 'Skin issue',
-                                        content: 'Consultation for skin related issue',
-                                        status: 'created',
-                                        channel: 'web',
-                                        priority: 1,
-                                        template: '',
-                                        triggerTime: '2018-08-16 09:00:00',
-                                        createdBy: user.id,
-                                        updatedBy: user.id
-                                    };
-                                    notificationService.create(notification, (notificationCreated) => {});
+                                    doctorService.getById(doctorId, (doctor) => {
+                                        userService.getById(patientId, (user) => {
+                                            var notification = {
+                                                userId: doctorId,
+                                                type: 'consultation',
+                                                title: `Consultation with ${user.firstname} ${user.lastname}`,
+                                                content: `Speciality chosen: ${doctor.speciality}`,
+                                                status: 'created',
+                                                channel: 'web',
+                                                priority: 1,
+                                                template: '',
+                                                triggerTime: moment().add(2, 'm'),
+                                                createdBy: user.id,
+                                                updatedBy: user.id
+                                            };
+                                            notificationService.create(notification, (notificationCreated) => {});
+                                        });
+                                    });
                                 }
                             }));
-                        })
+                        });
                     });
                 });
             });
-            //mapping doctor into visitor appointment table
-            var doctorMap = {
-                patientId: patientId,
-                doctorId: doctorId,
-                createdBy: createdGroup.createdBy,
-                updatedBy: createdGroup.updatedBy
-            };
-            doctorService.createConsultation(doctorMap, (consultationCreated) => {});
+            // create visitorAppointment
+            userService.getById(patientId, (user) => {
+                var visitorAppointment = {
+                    visitorId: patientId,
+                    doctorId: doctorId,
+                    status: 'scheduled',
+                    activity: `Consultation with ${user.firstname} ${user.lastname}`,
+                    slotId: 5,
+                    type: 'New consultation',
+                    waitTime: 5,
+                    startTime: moment().add(5, 'm'),
+                    endTime: moment().add(20, 'm'),
+                    duration: 15,
+                    createdBy: createdGroup.createdBy,
+                    updatedBy: createdGroup.updatedBy
+                };
+                doctorService.createConsultation(visitorAppointment, (visitorAppointmentCreated) => {
+                    /**
+                     * create consultation entry details inside the visitor-timeline table
+                     */
+                    doctorService.getById(doctorId, (doctorDetails) => {
+                        userService.getById(doctorDetails.userId, (userDetails) => {
+                            var visitorTimeline = {
+                                visitorId: patientId,
+                                timestamp: visitorAppointmentCreated.startTime,
+                                consultations: {
+                                    "Doctor name": `Dr. ${userDetails.firstname} ${userDetails.lastname}`,
+                                    "time": visitorAppointmentCreated.startTime,
+                                    "speciality": doctorDetails.speciality,
+                                    "description": "Consultation for pre check-up info"
+                                },
+                                reminders: null,
+                                events: null,
+                                createdBy: patientId,
+                                updatedBy: patientId
+                            };
+                            visitorService.createVisitorTimeline(visitorTimeline, () => {});
+                        });
+                    });
+                });
+            });
         });
     }
 
@@ -519,7 +585,11 @@ class GroupService {
 
     getStatusCount(groups) {
         return Promise.all(groups.map((group) => {
-            return groupUserMapModel.group_user_map.findAll({ where: { groupId: group.id } })
+            return groupUserMapModel.group_user_map.findAll({
+                    where: {
+                        groupId: group.id
+                    }
+                })
                 .then((gUMaps) => {
                     var count = [],
                         i = 0;
@@ -535,7 +605,10 @@ class GroupService {
                     i = ++i;
                     console.log('count: ' + JSON.stringify(count[0]));
                     if (count[0] < 2) {
-                        groupService.update({ id: group.id, status: 'offline' }, (res) => {});
+                        groupService.update({
+                            id: group.id,
+                            status: 'offline'
+                        }, (res) => {});
                     } else {
                         return;
                     }

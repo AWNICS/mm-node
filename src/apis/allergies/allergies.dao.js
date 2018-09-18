@@ -1,25 +1,24 @@
-import doctorModel from './index';
+import allergiesModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
 /*
-DAO for Doctor api
+DAO for Allergies api
 */
-class DoctorDao {
+class AllergiesDao {
     constructor() {}
 
     /**
      * insert method
      */
-    insert(doctor, callback) {
+    insert(allergy, callback) {
         sequelize.sync({ force: false }).then(() => {
             sequelize.transaction().then(function(t) {
-                doctorModel.doctor.create(doctor, { transaction: t }).then(function(doctorInserted) {
-                    callback(doctorInserted);
+                allergiesModel.allergies.create(allergy, { transaction: t }).then(function(allergiesInserted) {
+                    callback(allergiesInserted);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
-                    log.error(error);
                     t.rollback();
                 });
             });
@@ -30,8 +29,8 @@ class DoctorDao {
      * read all method
      */
     readAll(callback) {
-        doctorModel.doctor.findAll().then((allDoctor) => {
-            callback(allDoctor);
+        allergiesModel.allergies.findAll().then((allergies) => {
+            callback(allergies);
         });
     }
 
@@ -39,26 +38,26 @@ class DoctorDao {
      * read method based on id
      */
     readById(id, callback) {
-        return doctorModel.doctor.find({ where: { userId: id } }).then((doctor) => {
-            callback(doctor);
+        allergiesModel.allergies.find({ where: { id: id } }).then((allergy) => {
+            callback(allergy);
         });
     }
 
     /**
      * Update method
      */
-    update(doctor, callback) {
+    update(allergy, callback) {
         sequelize.transaction().then(function(t) {
-            doctorModel.doctor.update(doctor, {
+            allergiesModel.allergies.update(allergy, {
                 where: {
-                    userId: doctor.userId
+                    id: allergy.id
                 }
-            }, { transaction: t }).then(function(doctorUpdated) {
-                callback(doctorUpdated);
+            }, { transaction: t }).then(function(allergyUpdated) {
+                callback(allergyUpdated);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
-                log.error('Error in doctor dao update ', error);
+                log.error('Error in allergy dao update ', error);
                 t.rollback();
             });
         });
@@ -69,12 +68,12 @@ class DoctorDao {
      */
     delete(id, callback) {
         sequelize.transaction().then(function(t) {
-            doctorModel.doctor.destroy({
+            allergiesModel.allergies.destroy({
                 where: {
                     id: id
                 }
-            }).then(function(doctorDeleted) {
-                callback(doctorDeleted);
+            }).then(function(allergyDeleted) {
+                callback(allergyDeleted);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
@@ -84,4 +83,4 @@ class DoctorDao {
     }
 }
 
-export default DoctorDao;
+export default AllergiesDao;

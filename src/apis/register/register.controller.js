@@ -3,10 +3,12 @@ import DoctorService from '../doctor/doctor.service';
 import UserService from '../user/user.service';
 import log from '../../config/log4js.config';
 import Properties from '../../util/properties';
+import NotificationService from '../notification/notification.service';
 
 const router = express.Router();
 const doctorService = new DoctorService();
 const userService = new UserService();
+const notificationService = new NotificationService();
 
 /**
  * @swagger
@@ -62,7 +64,7 @@ const userService = new UserService();
  *       200:
  *         description: Successfully created in MySql
  */
-router.post('/doctors', function(req, res) {
+router.post('/doctors', function (req, res) {
     var doctor = req.body;
     doctorService.create(doctor, (result) => {
         res.send(result);
@@ -131,7 +133,7 @@ router.post('/doctors', function(req, res) {
  *       200:
  *         description: Successfully created in MySql db
  */
-router.post('/users', function(req, res) {
+router.post('/users', function (req, res) {
     var user = req.body;
     userService.register(user, (result) => {
         res.send(result);
@@ -159,9 +161,11 @@ router.post('/users', function(req, res) {
  *       200:
  *         description: An user activated in MySql db
  */
-router.get('/activates/:token', function(req, res) {
+router.get('/activates/:token', function (req, res) {
     userService.activateUser(req.params.token, (result) => {
-        res.sendFile('./activate.html', { root: __dirname });
+        res.sendFile('./activate.html', {
+            root: __dirname
+        });
     });
 });
 
@@ -185,7 +189,7 @@ router.get('/activates/:token', function(req, res) {
  *       200:
  *         description: Successfully updated in MySql db
  */
-router.post('/resetPassword', function(req, res) {
+router.post('/resetPassword', function (req, res) {
     var email = req.body.email;
     userService.resetPasswordMail(email, (result) => {
         res.send(result);
@@ -213,7 +217,7 @@ router.post('/resetPassword', function(req, res) {
  *       200:
  *         description: Token verified 
  */
-router.get('/resetPassword/:token', function(req, res) {
+router.get('/resetPassword/:token', function (req, res) {
     userService.verifyToken(req.params.token, (result) => {
         if (result === true) {
             res.redirect(`${Properties.redirectToClient}/${req.params.token}`);
@@ -253,9 +257,32 @@ router.get('/resetPassword/:token', function(req, res) {
  *       200:
  *         description: Successfully updated in MySql db
  */
-router.put('/resetPassword/:token', function(req, res) {
+router.put('/resetPassword/:token', function (req, res) {
     var password = req.body.password;
     userService.resetPassword(password, req.params.token, (result) => {
+        res.send(result);
+    });
+});
+
+router.get('/send/otp/mobile/:mobileNo', (req, res) => {
+    var mobileNo = req.params.mobileNo;
+    var message = 'Your%20verfication%20code%20is:%20%23%23OTP%23%23';
+    notificationService.sendOtp(message, mobileNo, (result) => {
+        res.send(result);
+    });
+});
+
+router.get('/resend/otp/mobile/:mobileNo', (req, res) => {
+    var mobileNo = req.params.mobileNo;
+    notificationService.resendOtp(mobileNo, (result) => {
+        res.send(result);
+    });
+});
+
+router.get('/verify/mobile/:mobileNo/otp/:otp', (req, res) => {
+    var otp = req.params.otp;
+    var mobileNo = req.params.mobileNo;
+    notificationService.verfiyOtp(mobileNo, otp, (result) => {
         res.send(result);
     });
 });

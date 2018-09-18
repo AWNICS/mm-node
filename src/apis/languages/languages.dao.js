@@ -1,25 +1,24 @@
-import doctorModel from './index';
+import languageModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
 /*
-DAO for Doctor api
+DAO for Languages api
 */
-class DoctorDao {
+class LanguagesDao {
     constructor() {}
 
     /**
      * insert method
      */
-    insert(doctor, callback) {
+    insert(language, callback) {
         sequelize.sync({ force: false }).then(() => {
             sequelize.transaction().then(function(t) {
-                doctorModel.doctor.create(doctor, { transaction: t }).then(function(doctorInserted) {
-                    callback(doctorInserted);
+                languageModel.languages.create(language, { transaction: t }).then(function(languageInserted) {
+                    callback(languageInserted);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
-                    log.error(error);
                     t.rollback();
                 });
             });
@@ -30,8 +29,8 @@ class DoctorDao {
      * read all method
      */
     readAll(callback) {
-        doctorModel.doctor.findAll().then((allDoctor) => {
-            callback(allDoctor);
+        languageModel.languages.findAll().then((languages) => {
+            callback(languages);
         });
     }
 
@@ -39,26 +38,26 @@ class DoctorDao {
      * read method based on id
      */
     readById(id, callback) {
-        return doctorModel.doctor.find({ where: { userId: id } }).then((doctor) => {
-            callback(doctor);
+        languageModel.languages.find({ where: { id: id } }).then((language) => {
+            callback(language);
         });
     }
 
     /**
      * Update method
      */
-    update(doctor, callback) {
+    update(language, callback) {
         sequelize.transaction().then(function(t) {
-            doctorModel.doctor.update(doctor, {
+            languageModel.languages.update(language, {
                 where: {
-                    userId: doctor.userId
+                    id: language.id
                 }
-            }, { transaction: t }).then(function(doctorUpdated) {
-                callback(doctorUpdated);
+            }, { transaction: t }).then(function(languageUpdated) {
+                callback(languageUpdated);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
-                log.error('Error in doctor dao update ', error);
+                log.error('Error in language dao update ', error);
                 t.rollback();
             });
         });
@@ -69,12 +68,12 @@ class DoctorDao {
      */
     delete(id, callback) {
         sequelize.transaction().then(function(t) {
-            doctorModel.doctor.destroy({
+            languageModel.languages.destroy({
                 where: {
                     id: id
                 }
-            }).then(function(doctorDeleted) {
-                callback(doctorDeleted);
+            }).then(function(languageDeleted) {
+                callback(languageDeleted);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
@@ -84,4 +83,4 @@ class DoctorDao {
     }
 }
 
-export default DoctorDao;
+export default LanguagesDao;

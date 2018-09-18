@@ -138,7 +138,7 @@ router.get('/visitors/store', (req, res) => {
 
 router.get('/visitors/:visitorId/store', (req, res) => {
     var visitorId = req.params.visitorId;
-    visitorService.getVisitorById(visitorId, (results) => {
+    visitorService.getVisitorStoreById(visitorId, (results) => {
         res.send(results);
     });
 });
@@ -153,6 +153,16 @@ router.post('/visitors/timeline', (req, res) => {
 router.get('/visitors/:visitorId/timeline', (req, res) => {
     var visitorId = req.params.visitorId;
     visitorService.readTimelineByVisitorId(visitorId, (results) => {
+        res.send(results);
+    });
+});
+
+// get appointments for doctorId
+router.get('/appointments/doctors/:doctorId', (req,res) => {
+    var doctorId = req.params.doctorId;
+    var page = parseInt(req.query.page);
+    var size = parseInt(req.query.size);
+    visitorService.getAppointmentsByDoctorId(doctorId, page, size, (results) => {
         res.send(results);
     });
 });
