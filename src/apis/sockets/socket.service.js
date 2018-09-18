@@ -48,7 +48,7 @@ exports.connectSocket = (io) => {
                             groupService.getAllGroupsByUserId(userId)
                                 .then((groups) => {
                                     groups.map((group) => {
-                                        groupUserMapModel.group_user_map.findAll({
+                                        groupUserMapModel.consultation_group_user_map.findAll({
                                             where: {
                                                 userId: group.userId
                                             }
@@ -92,7 +92,7 @@ exports.connectSocket = (io) => {
                     });
                     groupService.getById(group.id, (group) => {
                         if (group.phase === 'active') {
-                            groupUserMapModel.group_user_map.findAll({
+                            groupUserMapModel.consultation_group_user_map.findAll({
                                 where: {
                                     groupId: group.id
                                 }
@@ -146,26 +146,12 @@ exports.connectSocket = (io) => {
                 }
             });
 
-            socket.on('send-typing', (data) => {
-                // if it is a group message
-                if (data.receiverType === "group") {
-                    groupService.getUsersByGroupId(data.receiver.id)
-                        .then((users) => {
-                            users.map(user => {
-                                socket.to(user.socketId).emit('receive-typing', data); //emit one-by-one for all users
-                            });
-                        });
-                }
-                // if it is a private message 
-                else if (data.receiverType === "private") {
-                    userService.getById(data.receiver.id, (result) => {
-                        socket.to(result.socketId).emit('receive-typing', data);
+            socket.on('send-typing', (groupId, socketId, username) => {
+                groupService.getAllUsersByGroupId(groupId, (users) => {
+                    users.map(user => {
+                        user.socketId === socketId ? null : socket.to(user.socketId).emit('receive-typing', groupId, username); //emit one-by-one for all users
                     });
-                }
-                // if neither group nor user is selected
-                else {
-                    console.log('There has been an error');
-                }
+                });
             });
 
             /**
@@ -290,7 +276,7 @@ exports.connectSocket = (io) => {
                                         groupService.getAllGroupsByUserId(userId)
                                             .then((groups) => {
                                                 groups.map((group) => {
-                                                    groupUserMapModel.group_user_map.findAll({
+                                                    groupUserMapModel.consultation_group_user_map.findAll({
                                                         where: {
                                                             userId: group.userId
                                                         }
