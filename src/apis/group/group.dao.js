@@ -1,4 +1,4 @@
-import groupModel from './index';
+import consultationGroupModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
@@ -14,7 +14,7 @@ class GroupDao {
     insert(group, callback) {
         sequelize.sync({ force: false }).then(() => {
             sequelize.transaction().then(function(t) {
-                groupModel.group.create(group, { transaction: t }).then(function(groupInserted) {
+                consultationGroupModel.consultation_group.create(group, { transaction: t }).then(function(groupInserted) {
                     callback(groupInserted);
                 }).then(function() {
                     t.commit();
@@ -30,7 +30,7 @@ class GroupDao {
      * read all method
      */
     readAll(callback) {
-        groupModel.group.findAll().then((allGroup) => {
+        consultationGroupModel.consultation_group.findAll().then((allGroup) => {
             callback(allGroup);
         });
     }
@@ -39,7 +39,7 @@ class GroupDao {
      * read method based on id
      */
     readById(id, callback) {
-        groupModel.group.find({ where: { id: id } }).then((group) => {
+        consultationGroupModel.consultation_group.find({ where: { id: id } }).then((group) => {
             callback(group);
         });
     }
@@ -49,7 +49,7 @@ class GroupDao {
      */
     update(group, callback) {
         sequelize.transaction().then(function(t) {
-            groupModel.group.update(group, {
+            consultationGroupModel.consultation_group.update(group, {
                 where: {
                     id: group.id
                 }
@@ -68,7 +68,7 @@ class GroupDao {
      */
     delete(id, callback) {
         sequelize.transaction().then(function(t) {
-            groupModel.group.destroy({
+            consultationGroupModel.consultation_group.destroy({
                 where: {
                     id: id
                 }

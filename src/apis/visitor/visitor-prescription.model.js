@@ -11,11 +11,14 @@ module.exports = (sequelize, DataTypes) => {
         doctorId: {
             type: DataTypes.INTEGER
         },
+        consultationId: {
+            type: DataTypes.STRING //consultation_group primary key
+        },
         type: {
             type: DataTypes.STRING //Criticality related(chronic, immidiate)
         },
         description: {
-            type: DataTypes.TEXT, //symptoms, vitals, medications, care_info, follow ups notes
+            type: DataTypes.TEXT, //symptoms, medications, care_info, follow ups notes
             get: function() {
                 return JSON.parse(this.getDataValue('description'));
             },

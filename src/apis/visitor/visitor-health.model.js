@@ -26,6 +26,15 @@ module.exports = (sequelize, DataTypes) => {
                 this.setDataValue('foodHabits', JSON.stringify(foodHabits));
             }
         },
+        vitals: {
+            type: DataTypes.TEXT,
+            get: function() {
+                return JSON.parse(this.getDataValue('vitals'));
+            },
+            set: function(vitals) {
+                this.setDataValue('vitals', JSON.stringify(vitals));
+            }
+        },
         startTime: {
             type: DataTypes.DATE //chickenpox from 2012-11-02 to 2012-12-01 same for allergies and other habits
         },
