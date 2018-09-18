@@ -586,7 +586,7 @@ class UserService {
                     "createdBy": visitor.userId,
                     "updatedBy": visitor.userId
                 }, (createdVisitorHealth) => {
-                    log.info('Visitor health entry ',createdVisitorHealth);
+                    log.info('Visitor health entry for visitor ID ', visitor.userId);
                 });
             } else {
                 visitorModel.visitor_health.update({
@@ -597,7 +597,7 @@ class UserService {
                             visitorId: visitor.userId
                         }
                     }).then((updatedVisitorHealth) => {
-                        log.info('Visitor health entry ',updatedVisitorHealth);
+                        log.info('Visitor health entry for visitor ID ', visitor.userId);
                     })
                     .catch(err => {
                         log.error('error while updating visitor ' + err.stack);
