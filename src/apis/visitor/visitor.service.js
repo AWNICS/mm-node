@@ -417,14 +417,14 @@ class VisitorService {
     updateVisitorHealth(visitor) {
         this.readByVisitorIdHealth(visitor.userId, (result) => {
             if (result.length === 0) {
-                visitorService.createHealth({
+                this.createHealth({
                     "visitorId": visitor.userId,
                     "allergies": visitor.allergies,
                     "vitals": { "bloodPressure": visitor.bloodPressure, "heartRate": visitor.heartRate },
                     "createdBy": visitor.userId,
                     "updatedBy": visitor.userId
                 }, (createdVisitorHealth) => {
-                    log.info('Visitor health entry created: ', createdVisitorHealth);
+                    log.info('Visitor health entry created for: ', createdVisitorHealth.visitorId);
                 });
             } else {
                 return;
