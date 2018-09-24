@@ -558,7 +558,8 @@ class GroupService {
                                 visitorId: patientId,
                                 timestamp: visitorAppointmentCreated.startTime,
                                 consultations: {
-                                    "Doctor name": `Dr. ${userDetails.firstname} ${userDetails.lastname}`,
+                                    "appointmentId": visitorAppointmentCreated.id,
+                                    "doctorName": `Dr. ${userDetails.firstname} ${userDetails.lastname}`,
                                     "time": visitorAppointmentCreated.startTime,
                                     "speciality": doctorDetails.speciality,
                                     "description": "Consultation for pre check-up info"
