@@ -442,6 +442,7 @@ class UserService {
                         }
                     })
                     .then(res => {
+                        callback({message: 'An email has been sent to your mail ID with a link to reset password.'});
                         log.info('Resetmail sent to User successfully ' + user.email);
                         this.createNotification(user.id, 'resetpassword', 'Reset Link sent', 'email', userEmail, 'forgot-password')
                     })
@@ -488,6 +489,7 @@ class UserService {
                 callback(true);
             }
         }).catch((err) => {
+            log.error('Error while varifying token in user service ', err);
             callback(false);
         });
     }
