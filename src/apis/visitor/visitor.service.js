@@ -200,7 +200,17 @@ class VisitorService {
             });
         });
         //send the required history details to fill the consultation history graph on visitor-dashboard
-        callback({ "consultations": { "monthly": consultations }, "reports": { "monthly": reports }, "vitals": { "monthly": vitals } });
+        callback({
+            "consultations": {
+                "monthly": consultations
+            },
+            "reports": {
+                "monthly": reports
+            },
+            "vitals": {
+                "monthly": vitals
+            }
+        });
     }
 
     getSchedules(startTime, endTime) {
@@ -242,7 +252,9 @@ class VisitorService {
                 callback(visitorStores);
             }).catch(err => {
                 log.error('Error while fetching visitor stores in visitor service: ', err.stack);
-                callback({ message: 'Visitor ID you have entered does not exist' });
+                callback({
+                    message: 'Visitor ID you have entered does not exist'
+                });
             });
     }
 
@@ -273,6 +285,35 @@ class VisitorService {
             });
     }
 
+
+    /**
+     *
+     * get consultations for consultations page
+     * @param {*} visitorId
+     * @param {*} page
+     * @param {*} size
+     * @param {*} callback
+     * @memberof VisitorService
+     */
+    readConsultationsByVisitorId(visitorId, page, size, callback) {
+        var offset = ((size * page) - size);
+        visitorModel.visitor_timeline
+            .findAll({
+                where: {
+                    visitorId: visitorId
+                },
+                offset: offset,
+                limit: size,
+                order: [
+                    [visitorModel, 'timestamp', 'ASC']
+                ]
+            }).then((visitorTimelines) => {
+                callback(visitorTimelines);
+            }).catch(err => {
+                log.error('Error while fetching visitor timeline in visitor service: ', err);
+            });
+    }
+
     async getAppointmentsByDoctorId(doctorId, page, size, callback) {
         var offset = ((size * page) - size);
         var visitorAppointments = await visitorAppointmentModel.visitor_appointment
@@ -288,7 +329,10 @@ class VisitorService {
                 limit: size
             });
         var chartDetails = await this.getAppointmentsDetails(visitorAppointments);
-        callback({ "visitorAppointments": visitorAppointments, "chartDetails": chartDetails });
+        callback({
+            "visitorAppointments": visitorAppointments,
+            "chartDetails": chartDetails
+        });
     }
 
     async getAppointmentsDetails(visitorAppointments) {
@@ -379,7 +423,10 @@ class VisitorService {
                 }
             }
         });
-        return { "newConsultations": newConsultations, "followUps": followUps };
+        return {
+            "newConsultations": newConsultations,
+            "followUps": followUps
+        };
     }
 
     updateStore(visitor) {
@@ -392,10 +439,19 @@ class VisitorService {
     }
 
     createOrUpdateVisitorStore(visitor, type, value) {
-        visitorModel.visitor_store.findAll({ where: { visitorId: visitor.userId, type: type } })
+        visitorModel.visitor_store.findAll({
+                where: {
+                    visitorId: visitor.userId,
+                    type: type
+                }
+            })
             .then((visitorStore) => {
                 if (visitorStore.length === 0) {
-                    var visitorStore = { visitorId: visitor.userId, type: type, value: value }
+                    var visitorStore = {
+                        visitorId: visitor.userId,
+                        type: type,
+                        value: value
+                    }
                     this.createStore(visitorStore, () => {});
                 } else {
                     visitorModel.visitor_store.update({
@@ -420,7 +476,10 @@ class VisitorService {
                 this.createHealth({
                     "visitorId": visitor.userId,
                     "allergies": visitor.allergies,
-                    "vitals": { "bloodPressure": visitor.bloodPressure, "heartRate": visitor.heartRate },
+                    "vitals": {
+                        "bloodPressure": visitor.bloodPressure,
+                        "heartRate": visitor.heartRate
+                    },
                     "createdBy": visitor.userId,
                     "updatedBy": visitor.userId
                 }, (createdVisitorHealth) => {
