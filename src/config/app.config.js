@@ -38,6 +38,7 @@ import languages from '../apis/languages/languages.controller';
 import allergies from '../apis/allergies/allergies.controller';
 import qualifications from '../apis/qualifications/qualifications.controller';
 import consultationModes from '../apis/consultationModes/consultation-modes.controller';
+import billing from '../apis/billing/billing.controller';
 
 class Config {
     constructor() {
@@ -111,6 +112,7 @@ class Config {
         this.app.use('/', passport.authenticate('jwt', { session: false }), group);
         this.app.use('/', passport.authenticate('jwt', { session: false }), file);
         this.app.use('/', passport.authenticate('jwt', { session: false }), message);
+        this.app.use('/', passport.authenticate('jwt', { session: false }), billing);
         //this.app.use('/role', role);
         //this.app.use('/contact', passport.authenticate('jwt', { session: false }), contactUs);
         //this.app.use('/orderRequest', passport.authenticate('jwt', { session: false }), orderRequest);

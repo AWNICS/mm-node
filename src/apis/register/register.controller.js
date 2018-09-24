@@ -1,7 +1,6 @@
 import express from 'express';
 import DoctorService from '../doctor/doctor.service';
 import UserService from '../user/user.service';
-import log from '../../config/log4js.config';
 import Properties from '../../util/properties';
 import NotificationService from '../notification/notification.service';
 
@@ -64,7 +63,7 @@ const notificationService = new NotificationService();
  *       200:
  *         description: Successfully created in MySql
  */
-router.post('/doctors', function (req, res) {
+router.post('/doctors', function(req, res) {
     var doctor = req.body;
     doctorService.create(doctor, (result) => {
         res.send(result);
@@ -133,7 +132,7 @@ router.post('/doctors', function (req, res) {
  *       200:
  *         description: Successfully created in MySql db
  */
-router.post('/users', function (req, res) {
+router.post('/users', function(req, res) {
     var user = req.body;
     userService.register(user, (result) => {
         res.send(result);
@@ -161,11 +160,11 @@ router.post('/users', function (req, res) {
  *       200:
  *         description: An user activated in MySql db
  */
-router.get('/activates/:token', function (req, res) {
+router.put('/activates/:token', function(req, res) {
     userService.activateUser(req.params.token, (result) => {
-        res.sendFile('./activate.html', {
-            root: __dirname
-        });
+        if (result) {
+            res.send({ message: "User activated." });
+        }
     });
 });
 
@@ -189,7 +188,7 @@ router.get('/activates/:token', function (req, res) {
  *       200:
  *         description: Successfully updated in MySql db
  */
-router.post('/resetPassword', function (req, res) {
+router.post('/resetPassword', function(req, res) {
     var email = req.body.email;
     userService.resetPasswordMail(email, (result) => {
         res.send(result);
@@ -217,10 +216,10 @@ router.post('/resetPassword', function (req, res) {
  *       200:
  *         description: Token verified 
  */
-router.get('/resetPassword/:token', function (req, res) {
+router.get('/resetPassword/:token', function(req, res) {
     userService.verifyToken(req.params.token, (result) => {
         if (result === true) {
-            res.redirect(`${Properties.redirectToClient}/${req.params.token}`);
+            res.redirect(`${Properties.resetPassword}/${req.params.token}`);
         } else {
             res.send('Your link is expired. Try again');
         }
@@ -257,7 +256,7 @@ router.get('/resetPassword/:token', function (req, res) {
  *       200:
  *         description: Successfully updated in MySql db
  */
-router.put('/resetPassword/:token', function (req, res) {
+router.put('/resetPassword/:token', function(req, res) {
     var password = req.body.password;
     userService.resetPassword(password, req.params.token, (result) => {
         res.send(result);
