@@ -20,7 +20,6 @@ import emailConfig from '../../config/email.config';
 import msgconfig from '../../config/message.config';
 import NotificationService from '../notification/notification.service';
 import VisitorService from '../visitor/visitor.service';
-import visitorModel from '../visitor/index';
 
 const userDao = new UserDao();
 const groupDao = new GroupDao();
@@ -295,8 +294,6 @@ class UserService {
             .catch(error => log.error('Error while sending activation link to ' + user.email + ' ' + error));
         const message = user.role === "patient" ? msgconfig.usermessage : msgconfig.doctormessage;
         this.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, message, user.firstname + ' ' + user.lastname, 'registration', "Message sent for " + title)
-
-
     }
 
     adminDoctorRegistration(doctorDetails) {
@@ -371,8 +368,9 @@ class UserService {
                     where: {
                         token: resultFind.token
                     }
+                }).then((userUpdated) => {
+                    callback(userUpdated);
                 });
-                callback(resultFind);
             } else {
                 log.error('Error while updating the user ');
             }
@@ -438,7 +436,7 @@ class UserService {
                         locals: {
                             subject: 'Password reset Link',
                             userName: user.firstname + ' ' + user.lastname,
-                            userLink: Properties.activation + '/' + user.token,
+                            userLink: Properties.resetPassword + '/' + user.token,
                         }
                     })
                     .then(res => {
