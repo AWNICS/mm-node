@@ -150,6 +150,12 @@ class VisitorService {
         });
     }
 
+    getAppointments(visitorId, doctorId, callback) {
+        visitorModel.visitor_appointment.find({ where: { visitorId: visitorId, doctorId: doctorId } }).then((appointments) => {
+            callback(appointments);
+        })
+    }
+
     async readAppointmentHistory(visitorId, callback) {
         var consultations = new Array(12);
         var reports = new Array(12);
