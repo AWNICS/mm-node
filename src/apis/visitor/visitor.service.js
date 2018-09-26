@@ -150,9 +150,9 @@ class VisitorService {
         });
     }
 
-    getAppointments(visitorId, doctorId, callback) {
-        visitorModel.visitor_appointment.find({ where: { visitorId: visitorId, doctorId: doctorId } }).then((appointments) => {
-            callback(appointments);
+    getAppointmentDetails(visitorId, doctorId, callback) {
+        visitorModel.visitor_appointment.find({ where: { visitorId: visitorId, doctorId: doctorId } }).then((appointmentDetails) => {
+            callback(appointmentDetails);
         })
     }
 

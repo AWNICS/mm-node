@@ -526,7 +526,7 @@ class DoctorService {
         });
         bucket.upload('./tmp/' + name, { destination: name }, (err, file) => {
             if (err) {
-                log.info('Error while  uploading pdf' + err);
+                log.info('Error while  uploading pdf ' + err);
             } else {
                 log.info('Uploading PDF success');
                 fs.unlink('./tmp/' + name);

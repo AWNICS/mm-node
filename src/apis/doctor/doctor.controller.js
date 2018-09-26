@@ -560,8 +560,8 @@ router.get('/doctors/:doctorId/history', function(req, res) {
 });
 
 router.post('/doctors/:doctorId/genpdf', function(req, res) {
-    doctorService.generatePdf(req.body.data, (callback) => {
-        res.status(200).send(callback);
+    doctorService.generatePdf(req.body.data, (uploadedFileName) => {
+        res.status(200).send(uploadedFileName);
     })
 });
 

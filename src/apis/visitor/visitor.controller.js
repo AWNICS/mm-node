@@ -126,8 +126,8 @@ router.get('/visitors/:visitorId/appointments/history', (req, res) => {
 router.get('/visitors/:visitorId/doctors/:doctorId/appointments', (req, res) => {
     var visitorId = req.params.visitorId;
     var doctorId = req.params.doctorId
-    visitorService.getAppointments(visitorId, doctorId, (results) => {
-        res.send(results);
+    visitorService.getAppointmentDetails(visitorId, doctorId, (appointmentDetails) => {
+        res.send(appointmentDetails);
     });
 });
 
