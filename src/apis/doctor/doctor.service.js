@@ -13,6 +13,9 @@ import DoctorActivityDao from './doctor-activities.dao';
 import DoctorReviewDao from './doctor-reviews.dao';
 import moment from 'moment';
 import visitorModel from '../visitor/index';
+import fs from 'fs';
+import bucket from '../../config/gcp.config';
+
 
 var doctorDao = new DoctorDao();
 var visitorAppoinmentDao = new VisitorAppointmentDao();
@@ -512,6 +515,25 @@ class DoctorService {
             }
         });
         return ({ "today": daily, "week": weekly, "month": monthly });
+    }
+
+    generatePdf(pdfData, callback) {
+        let name = Date.now() + Date.now() + '.pdf';
+        fs.writeFile('./tmp/' + name, pdfData, 'binary', (err) => {
+            if (err) {
+                log.info('Error writing pdf data to file ' + err);
+            }
+        });
+        bucket.upload('./tmp/' + name, { destination: name }, (err, file) => {
+            if (err) {
+                log.info('Error while  uploading pdf ' + err);
+            } else {
+                log.info('Uploading PDF success');
+                fs.unlink('./tmp/' + name);
+                callback({ "fileName": name });
+            }
+        })
+
     }
 }
 

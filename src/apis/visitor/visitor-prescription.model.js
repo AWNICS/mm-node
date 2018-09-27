@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
         issue: {
             type: DataTypes.STRING, //{symptoms, reason, medications_history, medications_response, preventive_stuff, doctor_history, diagnostic_history}
         },
-        analysis: {
+        analysis: { // comments about each issue and analysis about the issue
             type: DataTypes.TEXT, //{for each symptom provide a comment/response}
             get: function() {
                 return JSON.parse(this.getDataValue('analysis'));
@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
                 this.setDataValue('analysis', JSON.stringify(analysis));
             }
         },
-        medication: {
+        medication: { // medicines prescribed by the doctor
             type: DataTypes.TEXT, //{for each symptom or analysis provide a medicines, provide time, doses etc., any extra comment or warning}
             get: function() {
                 return JSON.parse(this.getDataValue('medication'));
@@ -50,7 +50,7 @@ module.exports = (sequelize, DataTypes) => {
                 this.setDataValue('diagnostic', JSON.stringify(diagnostic));
             }
         },
-        prescription: {
+        prescription: { // collation of information and create an object. Never changes once doctor signs it.
             type: DataTypes.STRING, //{brief, responses for medication, expected behaviour, }
             get: function() {
                 return JSON.parse(this.getDataValue('prescription'));

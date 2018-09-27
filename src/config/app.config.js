@@ -58,9 +58,9 @@ class Config {
         // set port to use
         this.app.set('port', (process.env.PORT));
         // use body parser as middleware
-        this.app.use(bodyParser.json());
+        this.app.use(bodyParser.json({ limit: '10mb' }));
         // use urlEncoder as middleware
-        this.app.use(bodyParser.urlencoded({ extended: false }));
+        this.app.use(bodyParser.urlencoded({ extended: false, limit: '10mb' }));
         // use cookieParser as middleware
         this.app.use(cookieParser());
         // connect mongo server
