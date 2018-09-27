@@ -26,6 +26,8 @@ router.get('/visitors/:visitorId/health', (req, res) => {
 
 //visitor-prescription
 router.post('/visitors/prescriptions', (req, res) => {
+    req.body.analysis = null;
+    req.body.prescription = null;
     visitorService.createPrescription(req.body, (result) => {
         res.send(result);
     });
@@ -158,7 +160,7 @@ router.get('/visitors/:visitorId/timeline', (req, res) => {
 });
 
 // get appointments for doctorId
-router.get('/appointments/doctors/:doctorId', (req,res) => {
+router.get('/appointments/doctors/:doctorId', (req, res) => {
     var doctorId = req.params.doctorId;
     var page = parseInt(req.query.page);
     var size = parseInt(req.query.size);

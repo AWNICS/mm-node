@@ -18,22 +18,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING //Criticality related(chronic, immidiate)
         },
         description: {
-            type: DataTypes.TEXT, //symptoms, medications, care_info, follow ups notes
-            get: function() {
-                return JSON.parse(this.getDataValue('description'));
-            },
-            set: function(description) {
-                this.setDataValue('description', JSON.stringify(description));
-            }
+            type: DataTypes.STRING, //symptoms, medications, care_info, follow ups notes
         },
         issue: {
-            type: DataTypes.TEXT, //{symptoms, reason, medications_history, medications_response, preventive_stuff, doctor_history, diagnostic_history}
-            get: function() {
-                return JSON.parse(this.getDataValue('issue'));
-            },
-            set: function(issue) {
-                this.setDataValue('issue', JSON.stringify(issue));
-            }
+            type: DataTypes.STRING, //{symptoms, reason, medications_history, medications_response, preventive_stuff, doctor_history, diagnostic_history}
         },
         analysis: {
             type: DataTypes.TEXT, //{for each symptom provide a comment/response}
@@ -53,6 +41,15 @@ module.exports = (sequelize, DataTypes) => {
                 this.setDataValue('medication', JSON.stringify(medication));
             }
         },
+        diagnostic: {
+            type: DataTypes.TEXT, //store the list of diagnostics provided in prescription pdf
+            get: function() {
+                return JSON.parse(this.getDataValue('diagnostic'));
+            },
+            set: function(diagnostic) {
+                this.setDataValue('diagnostic', JSON.stringify(diagnostic));
+            }
+        },
         prescription: {
             type: DataTypes.STRING, //{brief, responses for medication, expected behaviour, }
             get: function() {
@@ -64,6 +61,9 @@ module.exports = (sequelize, DataTypes) => {
         },
         expectation: {
             type: DataTypes.STRING //{next_consultation/followUps}
+        },
+        instructions: {
+            type: DataTypes.STRING //special instructions provided in prescription pdf
         },
         createdBy: {
             type: DataTypes.INTEGER,
