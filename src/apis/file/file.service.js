@@ -1,5 +1,6 @@
 import sharp from 'sharp';
 import log from '../../config/log4js.config';
+import fs from 'fs';
 
 class FileService {
 
@@ -86,6 +87,18 @@ class FileService {
                     .pipe(res);
             })
             .catch(err => log.error('err ', err));
+    }
+
+    pdfUpload(fileName, bucket, callback) {
+        bucket.upload('./tmp/' + fileName, { destination: fileName }, (err, file) => {
+            if (err) {
+                log.info('Error while  uploading pdf ' + err);
+            } else {
+                log.info('Uploading PDF success');
+                fs.unlink('./tmp/' + fileName);
+                callback({ "fileName": fileName });
+            }
+        })
     }
 }
 
