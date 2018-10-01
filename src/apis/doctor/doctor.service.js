@@ -13,13 +13,16 @@ import DoctorActivityDao from './doctor-activities.dao';
 import DoctorReviewDao from './doctor-reviews.dao';
 import moment from 'moment';
 import visitorModel from '../visitor/index';
-import fs from 'fs';
+import FileService from '../file/file.service';
 import bucket from '../../config/gcp.config';
-import groupModel from '../group/index';
+import fs from 'fs';
+
+
 
 var doctorDao = new DoctorDao();
 var visitorAppoinmentDao = new VisitorAppointmentDao();
 var userService = new UserService();
+var fileService = new FileService();
 var doctorScheduleDao = new DoctorSchedule();
 var doctorMediaDao = new DoctorMediaDao();
 var doctorStoreDao = new DoctorStoreDao();
@@ -517,24 +520,19 @@ class DoctorService {
         return ({ "today": daily, "week": weekly, "month": monthly });
     }
 
-    generatePdf(pdfData, userId, callback) {
-        var date = moment().date() + '-' + (moment().month() + 1) + '-' + moment().year() +
-            'T' + moment().hour() + '-' + moment().minute() + '-' + moment().second();
-        var name = 'userId-' + userId + '-Date-' + date + '.pdf';
-        fs.writeFile('./tmp/' + name, pdfData, 'binary', (err) => {
+    generatePdf(pdfData, callback) {
+        var date = moment().utcOffset(330).format('DD-MM-YYYYTHH-mm-ss-SSS');
+        var fileName = pdfData.userId + '-' + date + '.pdf';
+        fs.writeFile('./tmp/' + fileName, pdfData.data, 'binary', (err) => {
             if (err) {
                 log.info('Error writing pdf data to file ' + err);
             }
         });
-        bucket.upload('./tmp/' + name, { destination: name }, (err, file) => {
-            if (err) {
-                log.info('Error while  uploading pdf ' + err);
-            } else {
-                log.info('Uploading PDF success');
-                fs.unlink('./tmp/' + name);
-                callback({ "fileName": name });
-            }
+        fileService.pdfUpload(fileName, bucket, (fileName) => {
+            callback(fileName);
         });
+
+
     }
 }
 
