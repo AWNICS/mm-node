@@ -15,7 +15,7 @@ import moment from 'moment';
 import visitorModel from '../visitor/index';
 import fs from 'fs';
 import bucket from '../../config/gcp.config';
-
+import groupModel from '../group/index';
 
 var doctorDao = new DoctorDao();
 var visitorAppoinmentDao = new VisitorAppointmentDao();
@@ -517,8 +517,10 @@ class DoctorService {
         return ({ "today": daily, "week": weekly, "month": monthly });
     }
 
-    generatePdf(pdfData, callback) {
-        let name = Date.now() + Date.now() + '.pdf';
+    generatePdf(pdfData, userId, callback) {
+        var date = moment().date() + '-' + (moment().month() + 1) + '-' + moment().year() +
+            'T' + moment().hour() + '-' + moment().minute() + '-' + moment().second();
+        var name = 'userId-' + userId + '-Date-' + date + '.pdf';
         fs.writeFile('./tmp/' + name, pdfData, 'binary', (err) => {
             if (err) {
                 log.info('Error writing pdf data to file ' + err);
@@ -532,8 +534,7 @@ class DoctorService {
                 fs.unlink('./tmp/' + name);
                 callback({ "fileName": name });
             }
-        })
-
+        });
     }
 }
 

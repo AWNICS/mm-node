@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER
         },
         consultationId: {
-            type: DataTypes.STRING //consultation_group primary key
+            type: DataTypes.INTEGER //consultation_group primary key
         },
         type: {
             type: DataTypes.STRING
