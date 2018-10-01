@@ -559,4 +559,10 @@ router.get('/doctors/:doctorId/history', function(req, res) {
     });
 });
 
+router.post('/doctors/:doctorId/files/pdf', function(req, res) {
+    doctorService.generatePdf(req.body, (uploadedFileName) => {
+        res.status(200).send(uploadedFileName);
+    })
+});
+
 module.exports = router;

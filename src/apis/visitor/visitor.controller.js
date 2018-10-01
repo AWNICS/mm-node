@@ -123,6 +123,15 @@ router.get('/visitors/:visitorId/appointments/history', (req, res) => {
     });
 });
 
+router.get('/visitors/:visitorId/doctors/:doctorId/appointments', (req, res) => {
+    var visitorId = req.params.visitorId;
+    var doctorId = req.params.doctorId
+    visitorService.getAppointmentDetails(visitorId, doctorId, (appointmentDetails) => {
+        res.send(appointmentDetails);
+    });
+});
+
+
 //visitor-store
 router.post('/visitors/store', (req, res) => {
     visitorService.createStore(req.body, (result) => {
@@ -168,7 +177,7 @@ router.get('/visitors/:visitorId/consultations', (req, res) => {
 });
 
 // get appointments for doctorId
-router.get('/appointments/doctors/:doctorId', (req,res) => {
+router.get('/appointments/doctors/:doctorId', (req, res) => {
     var doctorId = req.params.doctorId;
     var page = parseInt(req.query.page);
     var size = parseInt(req.query.size);
