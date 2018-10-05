@@ -12,28 +12,16 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER
         },
         consultationId: {
-            type: DataTypes.STRING //consultation_group primary key
+            type: DataTypes.INTEGER //consultation_group primary key
         },
         type: {
             type: DataTypes.STRING //Criticality related(chronic, immidiate)
         },
-        description: { // what patient describes
-            type: DataTypes.TEXT, //symptoms, medications, care_info, follow ups notes
-            get: function() {
-                return JSON.parse(this.getDataValue('description'));
-            },
-            set: function(description) {
-                this.setDataValue('description', JSON.stringify(description));
-            }
+        description: {
+            type: DataTypes.STRING, //symptoms, medications, care_info, follow ups notes
         },
-        issue: { // data that is listed by the doctor
-            type: DataTypes.TEXT, //{symptoms, reason, medications_history, medications_response, preventive_stuff, doctor_history, diagnostic_history}
-            get: function() {
-                return JSON.parse(this.getDataValue('issue'));
-            },
-            set: function(issue) {
-                this.setDataValue('issue', JSON.stringify(issue));
-            }
+        issue: {
+            type: DataTypes.STRING, //{symptoms, reason, medications_history, medications_response, preventive_stuff, doctor_history, diagnostic_history}
         },
         analysis: { // comments about each issue and analysis about the issue
             type: DataTypes.TEXT, //{for each symptom provide a comment/response}
@@ -53,6 +41,15 @@ module.exports = (sequelize, DataTypes) => {
                 this.setDataValue('medication', JSON.stringify(medication));
             }
         },
+        diagnostic: {
+            type: DataTypes.TEXT, //store the list of diagnostics provided in prescription pdf
+            get: function() {
+                return JSON.parse(this.getDataValue('diagnostic'));
+            },
+            set: function(diagnostic) {
+                this.setDataValue('diagnostic', JSON.stringify(diagnostic));
+            }
+        },
         prescription: { // collation of information and create an object. Never changes once doctor signs it.
             type: DataTypes.STRING, //{brief, responses for medication, expected behaviour, }
             get: function() {
@@ -64,6 +61,9 @@ module.exports = (sequelize, DataTypes) => {
         },
         expectation: {
             type: DataTypes.STRING //{next_consultation/followUps}
+        },
+        instructions: {
+            type: DataTypes.STRING //special instructions provided in prescription pdf
         },
         createdBy: {
             type: DataTypes.INTEGER,

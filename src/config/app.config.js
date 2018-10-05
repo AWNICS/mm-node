@@ -39,6 +39,7 @@ import allergies from '../apis/allergies/allergies.controller';
 import qualifications from '../apis/qualifications/qualifications.controller';
 import consultationModes from '../apis/consultationModes/consultation-modes.controller';
 import billing from '../apis/billing/billing.controller';
+import contactCareer from '../apis/contact-career/contact-career.controller';
 
 class Config {
     constructor() {
@@ -101,6 +102,7 @@ class Config {
         this.app.use('/', allergies);
         this.app.use('/', qualifications);
         this.app.use('/', consultationModes);
+        this.app.use('/', contactCareer);
         this.app.use('/', register);
         this.app.use('/', authenticate);
         this.app.use('/', dialogFlow);
