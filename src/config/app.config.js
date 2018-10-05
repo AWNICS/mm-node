@@ -39,6 +39,7 @@ import allergies from '../apis/allergies/allergies.controller';
 import qualifications from '../apis/qualifications/qualifications.controller';
 import consultationModes from '../apis/consultationModes/consultation-modes.controller';
 import billing from '../apis/billing/billing.controller';
+import payments from '../apis/payments/payments.controller';
 
 class Config {
     constructor() {
@@ -106,6 +107,7 @@ class Config {
         this.app.use('/', dialogFlow);
         this.app.use('/', audit);
         this.app.use('/', notification);
+        this.app.use('/', passport.authenticate('jwt', { session: false }), payments);
         this.app.use('/', passport.authenticate('jwt', { session: false }), visitor);
         this.app.use('/', passport.authenticate('jwt', { session: false }), doctor);
         this.app.use('/', passport.authenticate('jwt', { session: false }), user);
