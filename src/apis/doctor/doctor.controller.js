@@ -371,7 +371,32 @@ router.get('/doctors/schedules', function(req, res) {
     });
 });
 
-//update status for doctor schedule 
+/**
+ * @swagger
+ * /doctors/{doctorId}/schedules/status:
+ *   put:
+ *     tags:
+ *       - DoctorSchedule
+ *     description: Updates status for doctor schedule
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - in: body
+ *         name: body
+ *         description: Status of doctor data that needs to be update
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/DoctorSchedule'
+ *       - in: path
+ *         name: doctorId
+ *         description: DoctorId's status needs to be updated
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/DoctorSchedule'
+ *     responses:
+ *       200:
+ *         description: Successfully updated doctor status in schedule in MySql
+ */
 router.put('/doctors/:doctorId/schedules/status', function(req, res) {
     var status = req.body;
     var doctorId = req.params.doctorId;
@@ -380,6 +405,27 @@ router.put('/doctors/:doctorId/schedules/status', function(req, res) {
     });
 });
 
+/**
+ * @swagger
+ * /doctors/{doctorId}/schedules:
+ *   get:
+ *     tags:
+ *       - DoctorSchedule
+ *     description: Returns doctorSchedule by doctorId from MySql
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: doctorId
+ *         in: path
+ *         description: doctorId for doctorSchedule to return
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/DoctorSchedule'
+ *     responses:
+ *       200:
+ *         description: DoctorSchedules return from MySql db
+ */
 router.get('/doctors/:doctorId/schedules', function(req, res) {
     var doctorId = req.params.doctorId;
     doctorService.getDoctorScheduleByDoctorId(doctorId, (result) => {
@@ -387,7 +433,50 @@ router.get('/doctors/:doctorId/schedules', function(req, res) {
     });
 });
 
-/**doctorMedia */
+/**
+ * @swagger
+ * definitions:
+ *   DoctorMedia:
+ *     properties:
+ *       id:
+ *         type: integer
+ *       userId:
+ *         type: integer
+ *       title:
+ *         type: string
+ *       description:
+ *         type: string
+ *       url:
+ *         type: string
+ *       thumbUrl:
+ *         type: string
+ *       type: 
+ *         type: string
+ *       createdBy: 
+ *         type: integer
+ *       updatedBy:
+ *         type: integer
+ */
+/**
+ * @swagger
+ * /doctors/bio:
+ *   post:
+ *     tags:
+ *       - DoctorMedia
+ *     description: Creates a new doctorMedia in MySql DB
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: DoctorMedia
+ *         description: DoctorMedia object
+ *         in: body
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/DoctorMedia'
+ *     responses:
+ *       200:
+ *         description: Successfully created in MySql DB
+ */
 router.post('/doctors/bio', function(req, res) {
     var doctorMedia = req.body;
     doctorService.createDoctorMedia(doctorMedia, (result) => {
@@ -557,6 +646,12 @@ router.get('/doctors/:doctorId/history', function(req, res) {
     doctorService.getConsutationDetails(doctorId, (result) => {
         res.send(result);
     });
+});
+
+router.post('/doctors/:doctorId/files/pdf', function(req, res) {
+    doctorService.generatePdf(req.body, (uploadedFileName) => {
+        res.status(200).send(uploadedFileName);
+    })
 });
 
 module.exports = router;

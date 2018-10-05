@@ -11,10 +11,13 @@ var router = express.Router();
  *   Specialities:
  *     properties:
  *       id:
- *         type: string
- *         format: date
+ *         type: integer
  *       name:
  *         type: string
+ *       createdBy: 
+ *         type: integer
+ *       updatedBy:
+ *         type: integer
  */
 /**
  * @swagger
@@ -77,7 +80,7 @@ router.get('/specialities', (req, res) => {
  *         in: path
  *         description: id for Speciality to return
  *         required: true
- *         type: string
+ *         type: integer
  *         schema:
  *           $ref: '#/definitions/Specialities'
  *     responses:
@@ -130,7 +133,7 @@ router.put('/specialities', (req, res) => {
  *         description: speciality's id
  *         in: path
  *         required: true
- *         type: string
+ *         type: integer
  *     responses:
  *       200:
  *         description: Successfully deleted from MySql

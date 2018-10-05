@@ -40,6 +40,7 @@ import qualifications from '../apis/qualifications/qualifications.controller';
 import consultationModes from '../apis/consultationModes/consultation-modes.controller';
 import billing from '../apis/billing/billing.controller';
 import payments from '../apis/payments/payments.controller';
+import contactCareer from '../apis/contact-career/contact-career.controller';
 
 class Config {
     constructor() {
@@ -59,9 +60,9 @@ class Config {
         // set port to use
         this.app.set('port', (process.env.PORT));
         // use body parser as middleware
-        this.app.use(bodyParser.json());
+        this.app.use(bodyParser.json({ limit: '10mb' }));
         // use urlEncoder as middleware
-        this.app.use(bodyParser.urlencoded({ extended: false }));
+        this.app.use(bodyParser.urlencoded({ extended: false, limit: '10mb' }));
         // use cookieParser as middleware
         this.app.use(cookieParser());
         // connect mongo server
@@ -102,6 +103,7 @@ class Config {
         this.app.use('/', allergies);
         this.app.use('/', qualifications);
         this.app.use('/', consultationModes);
+        this.app.use('/', contactCareer);
         this.app.use('/', register);
         this.app.use('/', authenticate);
         this.app.use('/', dialogFlow);

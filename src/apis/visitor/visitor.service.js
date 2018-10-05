@@ -150,6 +150,12 @@ class VisitorService {
         });
     }
 
+    getAppointmentDetails(visitorId, doctorId, callback) {
+        visitorModel.visitor_appointment.find({ where: { visitorId: visitorId, doctorId: doctorId } }).then((appointmentDetails) => {
+            callback(appointmentDetails);
+        })
+    }
+
     async readAppointmentHistory(visitorId, callback) {
         var consultations = new Array(12);
         var reports = new Array(12);
@@ -211,21 +217,6 @@ class VisitorService {
                 "monthly": vitals
             }
         });
-    }
-
-    getSchedules(startTime, endTime) {
-        var startTime = new Date(startTime).getUTCHours();
-        var ampm = startTime >= 12 ? 'pm' : 'am';
-        startTime = startTime % 12;
-        startTime = startTime ? startTime : 12; // the hour '0' should be '12'
-        var initial = startTime + ampm;
-
-        var endTime = new Date(endTime).getUTCHours();
-        ampm = endTime >= 12 ? 'pm' : 'am';
-        endTime = endTime % 12;
-        endTime = endTime ? endTime : 12; // the hour '0' should be '12'
-        var end = endTime + ampm;
-        return (initial + ' - ' + end);
     }
 
     //for visitor-store
@@ -321,8 +312,8 @@ class VisitorService {
                 where: {
                     doctorId: doctorId,
                     startTime: {
-                        [Op.gte]: Date.now(),
-                        [Op.lt]: moment().add(1, 'd')
+                        [Op.gte]: moment().add({ hours: 5, minutes: 30 }),
+                        [Op.lt]: moment().endOf('day').add({ hours: 5, minutes: 30 })
                     }
                 },
                 offset: offset,

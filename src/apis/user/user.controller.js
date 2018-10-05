@@ -1,11 +1,7 @@
 import express from 'express';
-import UserDao from './user.dao';
 import UserService from './user.service';
-import log from '../../config/log4js.config';
-//import activate from './activate';
 
 var router = express.Router();
-var userDao = new UserDao();
 var userService = new UserService();
 
 /**
