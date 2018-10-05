@@ -1,30 +1,18 @@
 module.exports = (sequelize, DataTypes) => {
-    var VisitorReport = sequelize.define('visitor_report', {
+    var ConsultationPrice = sequelize.define('consultation_price', {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
-        visitorId: {
+        doctorId: {
             type: DataTypes.INTEGER
         },
-        consultationId: {
-            type: DataTypes.STRING //consultation_group primary key
-        },
-        type: {
+        speciality: {
             type: DataTypes.STRING
         },
-        url: {
-            type: DataTypes.STRING
-        },
-        title: {
-            type: DataTypes.STRING
-        },
-        description: {
-            type: DataTypes.STRING
-        },
-        status: {
-            type: DataTypes.STRING //seen, new, consulted, etc
+        price: {
+            type: DataTypes.FLOAT
         },
         createdBy: {
             type: DataTypes.INTEGER,
@@ -37,5 +25,5 @@ module.exports = (sequelize, DataTypes) => {
     }, {
         freezeTableName: true
     });
-    return VisitorReport;
+    return ConsultationPrice;
 };

@@ -1,21 +1,21 @@
-import consultationGroupUserMapModel from './index';
+import billingModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
 /*
-DAO for GroupUserMapDao api
+DAO for Billing api
 */
-class GroupUserMapDao {
+class BillingDao {
     constructor() {}
 
     /**
      * insert method
      */
-    insert(groupUser, callback) {
+    insert(billing, callback) {
         sequelize.sync({ force: false }).then(() => {
             sequelize.transaction().then(function(t) {
-                consultationGroupUserMapModel.consultation_group_user_map.create(groupUser, { transaction: t }).then(function(groupUserInserted) {
-                    callback(groupUserInserted);
+                billingModel.billing.create(billing, { transaction: t }).then(function(billingInserted) {
+                    callback(billingInserted);
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
@@ -29,8 +29,8 @@ class GroupUserMapDao {
      * read all method
      */
     readAll(callback) {
-        consultationGroupUserMapModel.consultation_group_user_map.findAll().then((allGroupUser) => {
-            callback(allGroupUser);
+        billingModel.billing.findAll().then((billings) => {
+            callback(billings);
         });
     }
 
@@ -38,25 +38,26 @@ class GroupUserMapDao {
      * read method based on id
      */
     readById(id, callback) {
-        consultationGroupUserMapModel.consultation_group_user_map.findById(id).then((group) => {
-            callback(group);
+        billingModel.billing.find({ where: { id: id } }).then((billing) => {
+            callback(billing);
         });
     }
 
     /**
      * Update method
      */
-    update(groupUser, callback) {
+    update(billing, callback) {
         sequelize.transaction().then(function(t) {
-            consultationGroupUserMapModel.consultation_group_user_map.update(groupUser, {
+            billingModel.billing.update(billing, {
                 where: {
-                    id: groupUser.id
+                    id: billing.id
                 }
-            }, { transaction: t }).then(function(groupUserUpdated) {
-                callback(groupUserUpdated);
+            }, { transaction: t }).then(function(billingUpdated) {
+                callback(billingUpdated);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
+                log.error('Error in billing dao update ', error);
                 t.rollback();
             });
         });
@@ -65,15 +66,14 @@ class GroupUserMapDao {
     /**
      * Delete method
      */
-    delete(userId, groupId, callback) {
+    delete(id, callback) {
         sequelize.transaction().then(function(t) {
-            consultationGroupUserMapModel.consultation_group_user_map.destroy({
+            billingModel.billing.destroy({
                 where: {
-                    userId: userId,
-                    groupId: groupId
+                    id: id
                 }
-            }).then(function(groupUserDeleted) {
-                callback(groupUserDeleted);
+            }).then(function(billingDeleted) {
+                callback(billingDeleted);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
@@ -83,4 +83,4 @@ class GroupUserMapDao {
     }
 }
 
-export default GroupUserMapDao;
+export default BillingDao;

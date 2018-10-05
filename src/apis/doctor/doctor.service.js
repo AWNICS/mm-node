@@ -12,10 +12,17 @@ import doctorScheduleModel from './index';
 import DoctorActivityDao from './doctor-activities.dao';
 import DoctorReviewDao from './doctor-reviews.dao';
 import moment from 'moment';
+import visitorModel from '../visitor/index';
+import FileService from '../file/file.service';
+import bucket from '../../config/gcp.config';
+import fs from 'fs';
+
+
 
 var doctorDao = new DoctorDao();
 var visitorAppoinmentDao = new VisitorAppointmentDao();
 var userService = new UserService();
+var fileService = new FileService();
 var doctorScheduleDao = new DoctorSchedule();
 var doctorMediaDao = new DoctorMediaDao();
 var doctorStoreDao = new DoctorStoreDao();
@@ -418,7 +425,7 @@ class DoctorService {
 
             }
         }).catch(err => {
-            log.error('Error while fetching doctor store ',err);
+            log.error('Error while fetching doctor store ', err);
         });
 
     }
@@ -483,6 +490,49 @@ class DoctorService {
         return doctorReviewDao.delete(id, (doctorReviewDeleted) => {
             callback(doctorReviewDeleted);
         });
+    }
+
+    async getConsutationDetails(doctorId, callback) {
+        var visitorAppointments = visitorModel.visitor_appointment.findAll({ where: { doctorId: doctorId } });
+        var consultationDetails = await this.consultationDetails(visitorAppointments);
+        callback(consultationDetails);
+    }
+
+    async consultationDetails(visitorAppointments) {
+        var daily = 0,
+            weekly = 0,
+            monthly = 0;
+        await visitorAppointments.map((visitorAppointment) => {
+            var month = moment(visitorAppointment.startTime).month();
+            var currentMonth = moment().month();
+            if (moment(visitorAppointment.startTime).year() === moment().year()) {
+                if (++month === ++currentMonth) {
+                    monthly = monthly + 1;
+                    if (moment(visitorAppointment.startTime).date() === moment().date()) {
+                        daily = daily + 1;
+                    }
+                    if (moment(visitorAppointment.startTime).week() === moment().week()) {
+                        weekly = weekly + 1;
+                    }
+                }
+            }
+        });
+        return ({ "today": daily, "week": weekly, "month": monthly });
+    }
+
+    generatePdf(pdfData, callback) {
+        var date = moment().utcOffset(330).format('DD-MM-YYYYTHH-mm-ss-SSS');
+        var fileName = pdfData.userId + '-' + date + '.pdf';
+        fs.writeFile('./tmp/' + fileName, pdfData.data, 'binary', (err) => {
+            if (err) {
+                log.info('Error writing pdf data to file ' + err);
+            }
+        });
+        fileService.pdfUpload(fileName, bucket, (fileName) => {
+            callback(fileName);
+        });
+
+
     }
 }
 

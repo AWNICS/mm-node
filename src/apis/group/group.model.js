@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    var Group = sequelize.define('group', {
+    var ConsultationGroup = sequelize.define('consultation_group', {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
@@ -37,5 +37,5 @@ module.exports = (sequelize, DataTypes) => {
     }, {
         freezeTableName: true
     });
-    return Group;
+    return ConsultationGroup;
 };

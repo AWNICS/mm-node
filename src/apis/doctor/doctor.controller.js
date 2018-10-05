@@ -552,4 +552,17 @@ router.delete('/doctors/:doctorId/reviews/:id', function(req, res) {
     });
 });
 
+router.get('/doctors/:doctorId/history', function(req, res) {
+    var doctorId = req.params.doctorId;
+    doctorService.getConsutationDetails(doctorId, (result) => {
+        res.send(result);
+    });
+});
+
+router.post('/doctors/:doctorId/files/pdf', function(req, res) {
+    doctorService.generatePdf(req.body, (uploadedFileName) => {
+        res.status(200).send(uploadedFileName);
+    })
+});
+
 module.exports = router;

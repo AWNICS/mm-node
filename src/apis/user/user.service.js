@@ -20,7 +20,6 @@ import emailConfig from '../../config/email.config';
 import msgconfig from '../../config/message.config';
 import NotificationService from '../notification/notification.service';
 import VisitorService from '../visitor/visitor.service';
-import visitorModel from '../visitor/index';
 
 const userDao = new UserDao();
 const groupDao = new GroupDao();
@@ -125,7 +124,7 @@ class UserService {
                             };
                             groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
                             sequelize
-                                .query("select u.id, u.firstname, u.lastname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", {
+                                .query("select u.id, u.firstname, u.lastname, u.role, u.email, count(gu.userId) from user u LEFT JOIN consultation_group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", {
                                     type: sequelize.QueryTypes.SELECT
                                 })
                                 .then((groupUserMaps) => {
@@ -252,7 +251,7 @@ class UserService {
                 userId: userId,
                 type: type,
                 title: title,
-                content: templateBody,
+                content: null,
                 status: 'sent',
                 channel: channel,
                 priority: 0,
@@ -295,8 +294,6 @@ class UserService {
             .catch(error => log.error('Error while sending activation link to ' + user.email + ' ' + error));
         const message = user.role === "patient" ? msgconfig.usermessage : msgconfig.doctormessage;
         this.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, message, user.firstname + ' ' + user.lastname, 'registration', "Message sent for " + title)
-
-
     }
 
     adminDoctorRegistration(doctorDetails) {
@@ -371,8 +368,9 @@ class UserService {
                     where: {
                         token: resultFind.token
                     }
+                }).then((userUpdated) => {
+                    callback(userUpdated);
                 });
-                callback(resultFind);
             } else {
                 log.error('Error while updating the user ');
             }
@@ -438,10 +436,11 @@ class UserService {
                         locals: {
                             subject: 'Password reset Link',
                             userName: user.firstname + ' ' + user.lastname,
-                            userLink: Properties.activation + '/' + user.token,
+                            userLink: Properties.resetPassword + '/' + user.token,
                         }
                     })
                     .then(res => {
+                        callback({ message: 'An email has been sent to your mail ID with a link to reset password.' });
                         log.info('Resetmail sent to User successfully ' + user.email);
                         this.createNotification(user.id, 'resetpassword', 'Reset Link sent', 'email', userEmail, 'forgot-password')
                     })
@@ -488,6 +487,7 @@ class UserService {
                 callback(true);
             }
         }).catch((err) => {
+            log.error('Error while varifying token in user service ', err);
             callback(false);
         });
     }
@@ -555,13 +555,10 @@ class UserService {
         visitorDao.readById(id, (visitor) => {
             visitorService.readByVisitorIdHealth(visitor.userId, (visitorHealth) => {
                 visitorService.getVisitorStoreById(visitor.userId, (visitorStores) => {
-                    visitorService.readByVisitorIdPrescription(visitor.userId, (visitorPrescription) => {
-                        callback({
-                            "patientInfo": visitor,
-                            "visitorHealthInfo": visitorHealth,
-                            "visitorStoreInfo": visitorStores,
-                            "visitorPrescriptionInfo": visitorPrescription
-                        });
+                    callback({
+                        "patientInfo": visitor,
+                        "visitorHealthInfo": visitorHealth,
+                        "visitorStoreInfo": visitorStores
                     });
                 });
             });
@@ -570,39 +567,9 @@ class UserService {
 
     updateVisitor(visitor, callback) {
         visitorDao.update(visitor, (updatedVisitor) => {
-            this.updateAllergy(visitor); //update the allergy inside visitor-health table
+            visitorService.updateVisitorHealth(visitor); //update the visitor-health table
             visitorService.updateStore(visitor);
-            visitorService.updateVisitorPrescription(visitor);
             callback(updatedVisitor);
-        });
-    }
-
-    updateAllergy(visitor) {
-        visitorService.readByVisitorIdHealth(visitor.userId, (result) => {
-            if (result.length === 0) {
-                visitorService.createHealth({
-                    "visitorId": visitor.userId,
-                    "allergies": visitor.allergies,
-                    "createdBy": visitor.userId,
-                    "updatedBy": visitor.userId
-                }, (createdVisitorHealth) => {
-                    log.info('Visitor health entry ', createdVisitorHealth);
-                });
-            } else {
-                visitorModel.visitor_health.update({
-                        'foodHabits': result[0].foodHabits,
-                        'allergies': visitor.allergies
-                    }, {
-                        where: {
-                            visitorId: visitor.userId
-                        }
-                    }).then((updatedVisitorHealth) => {
-                        log.info('Visitor health entry ', updatedVisitorHealth);
-                    })
-                    .catch(err => {
-                        log.error('error while updating visitor ' + err.stack);
-                    });
-            }
         });
     }
 }
