@@ -136,8 +136,8 @@ class BillingService {
     moneyEarnedByDoctor(doctorId, callback) {
         this.getAllBillingByDoctorId(doctorId, (billings) => {
             var earned = 0;
-            Promise.all(billings.map((billing) => {
-                earned = earned + billing.amount.consultationCharges;
+            Promise.all(billings.map((billing) => { //only 75% will have to give to the doctor
+                earned = earned + billing.amount.consultationCharges * 0.75;
             }));
             callback(earned);
         });

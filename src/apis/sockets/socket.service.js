@@ -149,7 +149,7 @@ exports.connectSocket = (io) => {
             socket.on('send-typing', (groupId, socketId, username) => {
                 groupService.getAllUsersByGroupId(groupId, (users) => {
                     users.map(user => {
-                        user.socketId === socketId ? null : socket.to(user.socketId).emit('receive-typing', groupId, username); //emit one-by-one for all users
+                        user.socketId === socketId ? null : socket.to(user.socketId).emit('receive-typing', {groupId: groupId, userName: username}); //emit one-by-one for all users
                     });
                 });
             });

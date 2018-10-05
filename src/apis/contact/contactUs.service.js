@@ -1,5 +1,4 @@
 import ContactDao from './contactUs.dao';
-import log from '../../config/log4js.config';
 
 var contactDao = new ContactDao();
 /*
