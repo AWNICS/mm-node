@@ -13,9 +13,12 @@ const multer = Multer({
 });
 
 router.post('/file', multer.single('file'), function(req, res, next) {
-    fileService.upload(req, bucket, next, (result) => {
+    const fileName = Date.now() + req.file.originalname;
+    //send the created thumbnail back to user
+    fileService.resizeToThumb(req, bucket, fileName, (result) => {
         res.send(result);
     });
+    fileService.upload(req, bucket, fileName, next, (result) => {});
 });
 
 router.get('/file/:fileName', function(req, res) {

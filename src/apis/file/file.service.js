@@ -9,39 +9,70 @@ class FileService {
     }
 
     createThumb(file, callback) {
-        const image = sharp(file.buffer);
-        image
-            .metadata()
-            .then((metadata, err) => {
-                if (err) {
-                    log.error('Error while converting file ', err);
-                } else {
-                    return image
-                        .resize(Math.round(metadata.width / 2), Math.round(metadata.height / 2))
-                        .jpeg({
-                            quality: 80,
-                            chromaSubsampling: '4:4:4'
-                        })
-                        .toBuffer({ resolveWithObject: true })
-                        .then(({ data, info }) => {
-                            log.info('Converted file info: ', info);
-                            callback(data);
-                        })
-                        .catch(err => {
-                            log.error('err ', err);
-                        });
-                }
+            const image = sharp(file.buffer);
+            image
+                .metadata()
+                .then((metadata, err) => {
+                    if (err) {
+                        log.error('Error while converting file ', err);
+                    } else {
+                        return image
+                            .resize(Math.round(metadata.width / 2), Math.round(metadata.height / 2))
+                            .jpeg({
+                                quality: 80,
+                                chromaSubsampling: '4:4:4'
+                            })
+                            .toBuffer({ resolveWithObject: true })
+                            .then(({ data, info }) => {
+                                log.info('Converted file info: ', info);
+                                callback(data);
+                            })
+                            .catch(err => {
+                                log.error('err ', err);
+                            });
+                    }
+                });
+        }
+        //resize the image to thumbnail for faster UI repsone time
+    resizeToThumb(req, bucket, fileName, callback) {
+        sharp(req.file.buffer)
+            .resize(130, 130)
+            .ignoreAspectRatio()
+            .jpeg()
+            .toBuffer({ resolveWithObject: true })
+            .then(({ data, info }) => {
+                fileName = fileName + '-thumb'
+                log.info('Resized file info: ', info);
+                const file = bucket.file(fileName);
+
+                const stream = file.createWriteStream({
+                    metadata: {
+                        contentType: req.file.mimetype
+                    }
+                });
+                stream.on('error', (err) => {
+                    req.file.cloudStorageError = err;
+                    log.error('Error uploading: ', err);
+                    next(err);
+                });
+                stream.on('finish', () => {
+                    log.info('Upload complete');
+                    callback(fileName);
+                });
+                stream.end(data);
+            })
+            .catch(err => {
+                log.error('err ', err);
             });
     }
 
-    upload(req, bucket, next, callback) {
+    upload(req, bucket, fileName, next, callback) {
         if (!req.file) {
             return next();
         }
         log.info('Uploading file...');
-        const gcsname = Date.now() + req.file.originalname;
+        const gcsname = fileName;
         const file = bucket.file(gcsname);
-
         const stream = file.createWriteStream({
             metadata: {
                 contentType: req.file.mimetype
@@ -56,7 +87,6 @@ class FileService {
 
         stream.on('finish', () => {
             log.info('Upload complete');
-            callback(gcsname);
         });
 
         stream.end(req.file.buffer);
@@ -73,6 +103,7 @@ class FileService {
                 res.setHeader('Content-Length', metadata.size);
                 res.setHeader('Content-type', metadata.contentType || 'text/plain');
                 res.setHeader('Content-Disposition', 'attachment;');
+                res.setHeader('Cache-control', 'private, max-age=1728000')
                 readStream
                     .on('error', function(err) {
                         log.error('Error in download: ', err);
