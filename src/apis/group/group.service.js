@@ -12,9 +12,10 @@ import MessageService from '../message/message.service';
 import AuditModel from '../audit/audit.model';
 import AuditService from '../audit/audit.service';
 import NotificationService from '../notification/notification.service';
-import UserModel from '../user/index';
+import VisitorService from '../visitor/visitor.service';
 
 const Promise = require('bluebird');
+const moment = require('moment');
 
 const groupDao = new GroupDao();
 const groupUserMapDao = new GroupUserMapDao();
@@ -23,6 +24,7 @@ const doctorService = new DoctorService();
 const messageService = new MessageService();
 const auditService = new AuditService();
 const notificationService = new NotificationService();
+const visitorService = new VisitorService();
 
 class GroupService {
     constructor() {}
@@ -93,7 +95,7 @@ class GroupService {
         });
     }
 
-    /**update
+    /**
      * fetching all the groups for particular userId from group-user-map
      */
     getAllGroupsByUserId(userId) {
@@ -144,7 +146,9 @@ class GroupService {
                 return Promise.all(gUMap.map((gum => {
                     if (gum.userId !== parseInt(userId)) {
                         return userModel.user.find({
-                                where: { id: gum.userId }
+                                where: {
+                                    id: gum.userId
+                                }
                             })
                             .then((user) => {
                                 if (user.status === 'online') {
@@ -210,25 +214,6 @@ class GroupService {
                 });
             });
         });
-    }
-    async getGroupStatus1(r) {
-        return new Promise((resolve, reject) => {
-            let count = 0;
-            Promise.all(r.map((g) => {
-                return new Promise((resolve, reject) => {
-                    UserModel.user.findAll({ where: { id: g.userId, status: 'online' } }).then((h) => {
-                        if (h.length !== 0) {
-                            count++;
-                        }
-                        resolve(1);
-                    }).catch(e => console.log(e))
-                })
-            })).then(() => {
-                resolve(count);
-            })
-        });
-
-        // return count;
     }
 
     /**
@@ -308,7 +293,9 @@ class GroupService {
                 }
             });
             sequelize
-                .query("select d.id from doctor d LEFT JOIN visitor_appointment va on d.id=va.doctorId where va.doctorId is NULL", { type: sequelize.QueryTypes.SELECT })
+                .query("select d.id from doctor d LEFT JOIN visitor_appointment va on d.id=va.doctorId where va.doctorId is NULL", {
+                    type: sequelize.QueryTypes.SELECT
+                })
                 .then((allDoctors) => {
                     if (allDoctors.length > 0) { //for new group
                         var doctorMap = { //mapping doctor to consultation
@@ -353,7 +340,13 @@ class GroupService {
                                 this.createGroupUserMap(groupDoctorMap, (doctorMapped) => {});
                                 //update lastActive for this doctor
                                 visitorAppointmentModel.visitor_appointment
-                                    .update({ "lastActive": Date.now() }, { where: { doctorId: allMappedDoctors[0].doctorId } })
+                                    .update({
+                                        "lastActive": Date.now()
+                                    }, {
+                                        where: {
+                                            doctorId: allMappedDoctors[0].doctorId
+                                        }
+                                    })
                                     .then((consultationUpdated) => {});
                             });
                     }
@@ -465,8 +458,6 @@ class GroupService {
             });
     }
 
-
-
     createGroupForConsultation(group, doctorId, patientId, callback) {
         this.create(group, (createdGroup) => {
             callback(createdGroup);
@@ -540,10 +531,20 @@ class GroupService {
                         });
                     });
                 });
-                //mapping doctor into visitor appointment table
-                var doctorMap = {
+            });
+            // create visitorAppointment
+            userService.getById(patientId, (user) => {
+                var visitorAppointment = {
                     visitorId: patientId,
                     doctorId: doctorId,
+                    status: 'scheduled',
+                    activity: `Consultation with ${user.firstname} ${user.lastname}`,
+                    slotId: 5,
+                    type: 'New consultation',
+                    waitTime: 5,
+                    startTime: moment().add(5, 'm'),
+                    endTime: moment().add(20, 'm'),
+                    duration: 15,
                     createdBy: createdGroup.createdBy,
                     updatedBy: createdGroup.updatedBy
                 };
@@ -573,9 +574,7 @@ class GroupService {
                     });
                 });
             });
-
-        })
-
+        });
     }
 
     //we will need this code to review for updating the group status on logout of the user
@@ -607,7 +606,10 @@ class GroupService {
                     i = ++i;
                     console.log('count: ' + JSON.stringify(count[0]));
                     if (count[0] < 2) {
-                        groupService.update({ id: group.id, status: 'offline' }, (res) => {});
+                        groupService.update({
+                            id: group.id,
+                            status: 'offline'
+                        }, (res) => {});
                     } else {
                         return;
                     }
