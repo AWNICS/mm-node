@@ -35,38 +35,45 @@ class FileService {
         }
         //resize the image to thumbnail for faster UI repsone time
     resizeToThumb(req, bucket, fileName, callback) {
-        sharp(req.file.buffer)
-            .resize(130, 130)
-            .ignoreAspectRatio()
-            .jpeg()
-            .toBuffer({ resolveWithObject: true })
-            .then(({ data, info }) => {
-                fileName = fileName + '-thumb'
-                log.info('Resized file info: ', info);
-                const file = bucket.file(fileName);
+        if (req.file.mimetype.match(/image/)) {
+            sharp(req.file.buffer)
+                .resize(130, 130)
+                .ignoreAspectRatio()
+                .jpeg()
+                .toBuffer({ resolveWithObject: true })
+                .then(({ data, info }) => {
+                    let thumbFileName = fileName + '-thumb'
+                    log.info('Resized file info: ', info);
+                    const file = bucket.file(thumbFileName);
 
-                const stream = file.createWriteStream({
-                    metadata: {
-                        contentType: req.file.mimetype
-                    }
+                    const stream = file.createWriteStream({
+                        metadata: {
+                            contentType: req.file.mimetype
+                        }
+                    });
+                    stream.on('error', (err) => {
+                        req.file.cloudStorageError = err;
+                        log.error('Error uploading: ', err);
+                        next(err);
+                    });
+                    stream.on('finish', () => {
+                        log.info('Upload Thumbnail complete');
+                        callback(thumbFileName);
+                        this.upload(req, bucket, fileName, (result) => {});
+                    });
+                    stream.end(data);
+                })
+                .catch(err => {
+                    log.error('Error in resize to thumb method Fileservice ', err);
                 });
-                stream.on('error', (err) => {
-                    req.file.cloudStorageError = err;
-                    log.error('Error uploading: ', err);
-                    next(err);
-                });
-                stream.on('finish', () => {
-                    log.info('Upload complete');
-                    callback(fileName);
-                });
-                stream.end(data);
-            })
-            .catch(err => {
-                log.error('err ', err);
+        } else {
+            this.upload(req, bucket, fileName, (result) => {
+                callback(result);
             });
+        }
     }
 
-    upload(req, bucket, fileName, next, callback) {
+    upload(req, bucket, fileName, callback) {
         if (!req.file) {
             return next();
         }
@@ -87,6 +94,7 @@ class FileService {
 
         stream.on('finish', () => {
             log.info('Upload complete');
+            callback(fileName);
         });
 
         stream.end(req.file.buffer);
@@ -131,6 +139,7 @@ class FileService {
             }
         })
     }
+
 }
 
 export default FileService;

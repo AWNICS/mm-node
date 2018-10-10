@@ -18,7 +18,6 @@ router.post('/file', multer.single('file'), function(req, res, next) {
     fileService.resizeToThumb(req, bucket, fileName, (result) => {
         res.send(result);
     });
-    fileService.upload(req, bucket, fileName, next, (result) => {});
 });
 
 router.get('/file/:fileName', function(req, res) {
