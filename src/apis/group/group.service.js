@@ -219,7 +219,6 @@ class GroupService {
     /**
      * getting all users based on groupId 
      */
-
     getAllUsersByGroupId(groupId, callback) {
         return groupUserMapModel.consultation_group_user_map.findAll({
             where: {
@@ -439,19 +438,25 @@ class GroupService {
                             callback(existingGroup);
                         });
                     } else {
-                        var group = {
-                            name: 'Consultation',
-                            url: `consultation/${patientId}`,
-                            userId: patientId,
-                            description: 'Consultation for registered patients',
-                            picture: null,
-                            phase: 'active',
-                            status: 'online',
-                            createdBy: patientId,
-                            updatedBy: patientId
-                        };
-                        this.createGroupForConsultation(group, doctorId, patientId, (newGroup) => {
-                            callback(newGroup);
+                        userService.getById(doctorId, (doctor) => {
+                            var groupName = '';
+                            userService.getById(patientId, (user) => {
+                                groupName = 'Dr. ' + doctor.firstname + ' ' + doctor.lastname + ', ' + user.firstname + user.lastname;
+                                var group = {
+                                    name: groupName,
+                                    url: `consultation/${patientId}`,
+                                    userId: patientId,
+                                    description: 'Consultation for registered patients',
+                                    picture: null,
+                                    phase: 'active',
+                                    status: 'online',
+                                    createdBy: patientId,
+                                    updatedBy: patientId
+                                };
+                                this.createGroupForConsultation(group, doctorId, patientId, (newGroup) => {
+                                    callback(newGroup);
+                                });
+                            });
                         });
                     }
                 }
