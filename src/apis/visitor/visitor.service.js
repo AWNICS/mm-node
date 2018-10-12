@@ -11,7 +11,11 @@ import visitorAppointmentModel from './index';
 import log from '../../config/log4js.config';
 import visitorModel from './index';
 import VisitorTimelineDao from './visitor-timeline.dao';
+import UserDao from '../user/user.dao';
+import messageModel from '../message/message.model';
+import billingModel from '../billing/index';
 
+const Promise = require('bluebird');
 const moment = require('moment');
 const Op = require('sequelize').Op;
 const visitorHealthDao = new VisitorHealthDao();
@@ -23,6 +27,7 @@ const visitorMediaDao = new VisitorMediaDao();
 const visitorAppointmentDao = new VisitorAppointmentDao();
 const visitorStoreDao = new VisitorStoreDao();
 const visitorTimelineDao = new VisitorTimelineDao();
+const userDao = new UserDao();
 
 /**
  * VisitorService 
@@ -153,7 +158,7 @@ class VisitorService {
     getAppointmentDetails(visitorId, doctorId, callback) {
         visitorModel.visitor_appointment.find({ where: { visitorId: visitorId, doctorId: doctorId } }).then((appointmentDetails) => {
             callback(appointmentDetails);
-        })
+        });
     }
 
     async readAppointmentHistory(visitorId, callback) {
@@ -286,9 +291,9 @@ class VisitorService {
      * @param {*} callback
      * @memberof VisitorService
      */
-    readConsultationsByVisitorId(visitorId, page, size, callback) {
+    async readConsultationsByVisitorId(visitorId, page, size, callback) {
         var offset = ((size * page) - size);
-        visitorModel.visitor_timeline
+        var visitorPrescriptions = await visitorModel.visitor_prescription
             .findAll({
                 where: {
                     visitorId: visitorId
@@ -296,13 +301,52 @@ class VisitorService {
                 offset: offset,
                 limit: size,
                 order: [
-                    [visitorModel, 'timestamp', 'ASC']
+                    [visitorModel, 'createdAt', 'DESC']
                 ]
-            }).then((visitorTimelines) => {
-                callback(visitorTimelines);
-            }).catch(err => {
-                log.error('Error while fetching visitor timeline in visitor service: ', err);
             });
+        var result = await this.getDoctorDetail(visitorPrescriptions, visitorId);
+        callback(result);;
+    }
+
+    async getDoctorDetail(visitorPrescriptions, visitorId) {
+        return Promise.map(visitorPrescriptions, prescription => {
+            return new Promise((resolve, reject) => {
+                userDao.readById(prescription.doctorId, (user) => {
+                    //find the fileName of prescription from message details
+                    var time = moment(new Date(prescription.createdAt)).add(10, 'm').toDate();
+                    time = moment(new Date(time)).subtract({ hours: 5, minutes: 30 }).toDate();
+                    messageModel.find({
+                            $and: [{
+                                    senderId: prescription.doctorId
+                                },
+                                {
+                                    receiverId: prescription.consultationId
+                                },
+                                {
+                                    type: 'doc'
+                                },
+                                {
+                                    createdTime: { $lte: time }
+                                }
+                            ]
+                        })
+                        .then((message) => {
+                            if (message.length >= 1) {
+                                resolve({ prescription: prescription, user: user, urlFileName: message[0].contentData.data[0] });
+                                //find the billing fileName from billing details
+                                //we will need this code for displaying the billings
+                                /*billingModel.billing.find({
+                                        where: { consultationId: prescription.consultationId }
+                                    })
+                                    .then((billing) => {
+                                        console.log('billing: ' + JSON.stringify(billing));
+                                        resolve({ prescription: prescription, user: user, urlFileName: message[0].contentData.data[0], billingDetails: billing });
+                                    });*/
+                            }
+                        });
+                });
+            });
+        });
     }
 
     async getAppointmentsByDoctorId(doctorId, page, size, callback) {

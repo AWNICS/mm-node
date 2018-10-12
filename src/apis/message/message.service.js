@@ -4,8 +4,6 @@ import groupMapDao from './group-message-map.dao';
 import Message from './message.model';
 import GroupMessageMap from './group-message-map.model';
 import UserMessageMap from './user-message-map.model';
-import Status from '../../util/status.message';
-import log from '../../config/log4js.config';
 
 class MessageService {
 
