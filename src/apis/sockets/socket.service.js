@@ -146,10 +146,10 @@ exports.connectSocket = (io) => {
                 }
             });
 
-            socket.on('send-typing', (groupId, socketId, username) => {
+            socket.on('send-typing', (groupId, userName) => {
                 groupService.getAllUsersByGroupId(groupId, (users) => {
                     users.map(user => {
-                        user.socketId === socketId ? null : socket.to(user.socketId).emit('receive-typing', groupId, username); //emit one-by-one for all users
+                        user.firstname + ' ' + user.lastname === userName ? null : socket.to(user.socketId).emit('receive-typing', groupId, userName); //emit one-by-one for all users
                     });
                 });
             });
