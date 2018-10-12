@@ -219,7 +219,6 @@ class GroupService {
     /**
      * getting all users based on groupId 
      */
-
     getAllUsersByGroupId(groupId, callback) {
         return groupUserMapModel.consultation_group_user_map.findAll({
             where: {
@@ -449,39 +448,45 @@ class GroupService {
                         // this.createGroupUserMap(groupUserMap, (doctorMapped) => {
                         // });
                         //create notification for the doctor
-                        doctorService.getById(doctorId, (doctor) => {
+                        // doctorService.getById(doctorId, (doctor) => {
+                        //     userService.getById(patientId, (user) => {
+                        //         var notification = {
+                        //             userId: doctorId,
+                        //             type: 'follow up',
+                        //             title: `Follow up with ${user.firstname} ${user.lastname}`,
+                        //             content: `Speciality chosen: ${doctor.doctorDetails.speciality}`,
+                        //             status: 'created',
+                        //             channel: 'web',
+                        //             priority: 1,
+                        //             template: '',
+                        //             triggerTime: moment().add(2, 'm'),
+                        //             createdBy: user.id,
+                        //             updatedBy: user.id
+                        //         };
+                        //         notificationService.create(notification, (notificationCreated) => {
+                        //         });
+                        //     });
+                        // });
+                    } else {
+                        userService.getById(doctorId, (doctor) => {
+                            var groupName = '';
                             userService.getById(patientId, (user) => {
-                                var notification = {
-                                    userId: doctorId,
-                                    type: 'follow up',
-                                    title: `Follow up with ${user.firstname} ${user.lastname}`,
-                                    content: `Speciality chosen: ${doctor.doctorDetails.speciality}`,
-                                    status: 'created',
-                                    channel: 'web',
-                                    priority: 1,
-                                    template: '',
-                                    triggerTime: moment().add(2, 'm'),
-                                    createdBy: user.id,
-                                    updatedBy: user.id
+                                groupName = 'Dr. ' + doctor.firstname + ' ' + doctor.lastname + ', ' + user.firstname + user.lastname;
+                                var group = {
+                                    name: groupName,
+                                    url: `consultation/${patientId}`,
+                                    userId: patientId,
+                                    description: 'Consultation for registered patients',
+                                    picture: null,
+                                    phase: 'active',
+                                    status: 'online',
+                                    createdBy: patientId,
+                                    updatedBy: patientId
                                 };
-                                notificationService.create(notification, (notificationCreated) => {
+                                this.createGroupForConsultation(group, doctorId, patientId, (newGroup) => {
+                                    callback(newGroup);
                                 });
                             });
-                        });
-                    } else {
-                        var group = {
-                            name: 'Consultation',
-                            url: `consultation/${doctorId}`, // Changing the url to get doctor details using doctorId
-                            userId: patientId,
-                            description: 'Consultation for registered patients',
-                            picture: null,
-                            phase: 'active',
-                            status: 'online',
-                            createdBy: patientId,
-                            updatedBy: patientId
-                        };
-                        this.createGroupForConsultation(group, doctorId, patientId, (newGroup) => {
-                            callback(newGroup);
                         });
                     }
                 }

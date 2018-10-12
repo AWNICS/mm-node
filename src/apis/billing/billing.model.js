@@ -38,6 +38,9 @@ module.exports = (sequelize, DataTypes) => {
         modeOfPayment: {
             type: DataTypes.STRING //free credits, net banking, payment gateways etc.
         },
+        url: {
+            type: DataTypes.STRING //filename of the billing pdf
+        },
         createdBy: {
             type: DataTypes.INTEGER,
             defaultValue: null
