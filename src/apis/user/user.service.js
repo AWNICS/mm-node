@@ -184,7 +184,7 @@ class UserService {
                             };
                             groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
                             sequelize
-                                .query("select u.id, u.firstname, u.lastname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", {
+                                .query("select u.id, u.firstname, u.lastname, u.role, u.email, count(gu.userId) from user u LEFT JOIN consultation_group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", {
                                     type: sequelize.QueryTypes.SELECT
                                 })
                                 .then((groupUserMaps) => {
