@@ -34,6 +34,13 @@ import locations from '../apis/locations/locations.controller';
 import visitor from '../apis/visitor/visitor.controller';
 import audit from '../apis/audit/audit.controller';
 import notification from '../apis/notification/notification.controller';
+import languages from '../apis/languages/languages.controller';
+import allergies from '../apis/allergies/allergies.controller';
+import qualifications from '../apis/qualifications/qualifications.controller';
+import consultationModes from '../apis/consultationModes/consultation-modes.controller';
+import billing from '../apis/billing/billing.controller';
+import payments from '../apis/payments/payments.controller';
+import contactCareer from '../apis/contact-career/contact-career.controller';
 
 class Config {
     constructor() {
@@ -48,14 +55,14 @@ class Config {
         this.dotenv.config({ path: '.env.dev' });
         this.mongo = new MongoConfig();
     }
-    
+
     configureApp() {
         // set port to use
         this.app.set('port', (process.env.PORT));
         // use body parser as middleware
-        this.app.use(bodyParser.json());
+        this.app.use(bodyParser.json({ limit: '10mb' }));
         // use urlEncoder as middleware
-        this.app.use(bodyParser.urlencoded({ extended: false }));
+        this.app.use(bodyParser.urlencoded({ extended: false, limit: '10mb' }));
         // use cookieParser as middleware
         this.app.use(cookieParser());
         // connect mongo server
@@ -92,17 +99,24 @@ class Config {
         });
         this.app.use('/', locations);
         this.app.use('/', specialities);
+        this.app.use('/', languages);
+        this.app.use('/', allergies);
+        this.app.use('/', qualifications);
+        this.app.use('/', consultationModes);
+        this.app.use('/', contactCareer);
         this.app.use('/', register);
         this.app.use('/', authenticate);
         this.app.use('/', dialogFlow);
         this.app.use('/', audit);
         this.app.use('/', notification);
+        this.app.use('/', passport.authenticate('jwt', { session: false }), payments);
         this.app.use('/', passport.authenticate('jwt', { session: false }), visitor);
         this.app.use('/', passport.authenticate('jwt', { session: false }), doctor);
         this.app.use('/', passport.authenticate('jwt', { session: false }), user);
         this.app.use('/', passport.authenticate('jwt', { session: false }), group);
         this.app.use('/', passport.authenticate('jwt', { session: false }), file);
         this.app.use('/', passport.authenticate('jwt', { session: false }), message);
+        this.app.use('/', passport.authenticate('jwt', { session: false }), billing);
         //this.app.use('/role', role);
         //this.app.use('/contact', passport.authenticate('jwt', { session: false }), contactUs);
         //this.app.use('/orderRequest', passport.authenticate('jwt', { session: false }), orderRequest);

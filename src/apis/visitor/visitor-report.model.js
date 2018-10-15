@@ -8,8 +8,8 @@ module.exports = (sequelize, DataTypes) => {
         visitorId: {
             type: DataTypes.INTEGER
         },
-        reportId: {
-            type: DataTypes.INTEGER
+        consultationId: {
+            type: DataTypes.INTEGER //consultation_group primary key
         },
         type: {
             type: DataTypes.STRING

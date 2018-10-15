@@ -1,6 +1,5 @@
 import express from 'express';
 import GroupService from './group.service';
-import log from '../../config/log4js.config';
 
 var router = express.Router();
 var groupService = new GroupService();

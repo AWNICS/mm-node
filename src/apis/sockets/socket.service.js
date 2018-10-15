@@ -3,7 +3,7 @@ import MessageService from '../message/message.service';
 import GroupService from '../group/group.service';
 import log from '../../config/log4js.config';
 import UserService from '../user/user.service';
-import groupUserMapModel from '../group/index';
+import consultationGroupModel from '../group/index';
 import DialogFlowService from '../dialogFlow/dialogFlow.service';
 const jwt = require('jsonwebtoken');
 import AuditService from '../audit/audit.service';
@@ -11,6 +11,7 @@ import AuditModel from '../audit/audit.model';
 import NotificationService from '../notification/notification.service';
 import visitorAppointmentModel from '../visitor/index';
 import notificationModel from '../notification/index';
+import sequelize from '../../util/conn.mysql';
 
 const moment = require('moment');
 const Op = require('sequelize').Op;
@@ -22,9 +23,9 @@ const auditService = new AuditService();
 const notificationService = new NotificationService();
 
 exports.connectSocket = (io) => {
-    io.use(function(socket, next) {
+    io.use(function (socket, next) {
             if (socket.handshake.query && socket.handshake.query.token) {
-                jwt.verify(socket.handshake.query.token, process.env.JWT_SECRET, function(err, decoded) {
+                jwt.verify(socket.handshake.query.token, process.env.JWT_SECRET, function (err, decoded) {
                     if (err) return next(new Error('Authentication error'));
                     socket.decoded = decoded;
                     next();
@@ -33,7 +34,7 @@ exports.connectSocket = (io) => {
                 next(new Error('Authentication error'));
             }
         })
-        .on('connection', function(socket) {
+        .on('connection', function (socket) {
             // get userId from client
             socket.on('user-connected', userId => {
                 log.info('a user connected with ID: ' + userId);
@@ -48,7 +49,7 @@ exports.connectSocket = (io) => {
                             groupService.getAllGroupsByUserId(userId)
                                 .then((groups) => {
                                     groups.map((group) => {
-                                        groupUserMapModel.group_user_map.findAll({
+                                        consultationGroupModel.consultation_group_user_map.findAll({
                                             where: {
                                                 userId: group.userId
                                             }
@@ -92,7 +93,7 @@ exports.connectSocket = (io) => {
                     });
                     groupService.getById(group.id, (group) => {
                         if (group.phase === 'active') {
-                            groupUserMapModel.group_user_map.findAll({
+                            consultationGroupModel.consultation_group_user_map.findAll({
                                 where: {
                                     groupId: group.id
                                 }
@@ -146,35 +147,24 @@ exports.connectSocket = (io) => {
                 }
             });
 
-            socket.on('send-typing', (data) => {
-                // if it is a group message
-                if (data.receiverType === "group") {
-                    groupService.getUsersByGroupId(data.receiver.id)
-                        .then((users) => {
-                            users.map(user => {
-                                socket.to(user.socketId).emit('receive-typing', data); //emit one-by-one for all users
-                            });
-                        });
-                }
-                // if it is a private message 
-                else if (data.receiverType === "private") {
-                    userService.getById(data.receiver.id, (result) => {
-                        socket.to(result.socketId).emit('receive-typing', data);
+            socket.on('send-typing', (groupId, userName) => {
+                groupService.getAllUsersByGroupId(groupId, (users) => {
+                    users.map(user => {
+                        user.firstname + ' ' + user.lastname === userName ? null : socket.to(user.socketId).emit('receive-typing', groupId, userName); //emit one-by-one for all users
                     });
-                }
-                // if neither group nor user is selected
-                else {
-                    console.log('There has been an error');
-                }
+                });
             });
 
             /**
              * for updating the message in mongo
              */
             socket.on('update-message', (data) => {
-                messageService.update(data, (res) => {
-                    groupService.getUsersByGroupId(data.receiverId, (user) => {
-                        io.in(user.socketId).emit('updated-message', res); //emit one-by-one for all users
+                messageService.update(data.message, (res) => {
+                    groupService.getUsersByGroupId(data.message.receiverId, (user) => {
+                        io.in(user.socketId).emit('updated-message', {
+                            message: res,
+                            index: data.index // added message index to update the same on UI
+                        }); //emit one-by-one for all users
                     });
                 });
             });
@@ -290,7 +280,7 @@ exports.connectSocket = (io) => {
                                         groupService.getAllGroupsByUserId(userId)
                                             .then((groups) => {
                                                 groups.map((group) => {
-                                                    groupUserMapModel.group_user_map.findAll({
+                                                    consultationGroupModel.consultation_group_user_map.findAll({
                                                         where: {
                                                             userId: group.userId
                                                         }
@@ -327,7 +317,7 @@ exports.connectSocket = (io) => {
             });
 
             function scheduler() {
-                console.log('Scheduler called at ', moment(Date.now()).format());
+                log.info('Scheduler called at ', moment(Date.now()).format());
                 notificationService.readByTime((allNotifications) => {
                     allNotifications.map((notification) => {
                         visitorAppointmentModel.visitor_appointment.findAll({
@@ -338,43 +328,48 @@ exports.connectSocket = (io) => {
                                 }
                             }
                         }).then((visitorAppointment) => {
-                            groupService.getAllGroupsByUserId(visitorAppointment[0].visitorId)
-                                .then((groups) => {
-                                    userService.getById(notification.userId, (user) => {
-                                        if (notification.status === 'created') {
-                                            io.in(user.socketId).emit('consult-notification', {
-                                                notification: notification,
-                                                group: groups[1]
-                                            });
-                                            var updateNotification = {
-                                                id: notification.id,
-                                                template: notification.template,
-                                                userId: notification.userId,
-                                                type: notification.type,
-                                                title: notification.title,
-                                                content: notification.content,
-                                                status: "sent",
-                                                channel: notification.channel,
-                                                priority: 1,
-                                                triggerTime: notification.triggerTime,
-                                                createdBy: notification.createdBy,
-                                                updatedBy: notification.updatedBy
-                                            }
-                                            notificationModel.notification.update(updateNotification, {
-                                                    where: {
-                                                        id: updateNotification.id
-                                                    }
-                                                })
-                                                .then((res) => {
-                                                    if (res) {
-                                                        log.info('Notification sent');
-                                                    }
-                                                }).catch((err) => {
-                                                    log.error('error' + err);
-                                                });
+                            consultationGroupModel.consultation_group.findAll({
+                                where: {
+                                    userId: visitorAppointment[0].visitorId,
+                                    url: `consultation/${notification.userId}`
+                                }
+                            }).then((group) => {
+                                userService.getById(notification.userId, (user) => {
+                                    if (notification.status === 'created') {
+                                        log.info('group ' + JSON.stringify(group) + ' notification ' + JSON.stringify(notification));
+                                        io.in(user.socketId).emit('consult-notification', {
+                                            notification: notification,
+                                            group: group
+                                        });
+                                        var updateNotification = {
+                                            id: notification.id,
+                                            template: notification.template,
+                                            userId: notification.userId,
+                                            type: notification.type,
+                                            title: notification.title,
+                                            content: notification.content,
+                                            status: "sent",
+                                            channel: notification.channel,
+                                            priority: 1,
+                                            triggerTime: notification.triggerTime,
+                                            createdBy: notification.createdBy,
+                                            updatedBy: notification.updatedBy
                                         }
-                                    });
+                                        notificationModel.notification.update(updateNotification, {
+                                                where: {
+                                                    id: updateNotification.id
+                                                }
+                                            })
+                                            .then((res) => {
+                                                if (res) {
+                                                    log.info('Notification sent');
+                                                }
+                                            }).catch((err) => {
+                                                log.error('error' + err);
+                                            });
+                                    }
                                 });
+                            });
                         });
                     });
                 });

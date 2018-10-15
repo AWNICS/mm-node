@@ -1,6 +1,6 @@
 import rtg from 'random-token-generator';
-import Sequelize from 'sequelize';
 import bcrypt from 'bcrypt';
+import http from 'http';
 
 import log from '../../config/log4js.config';
 import sequelize from '../../util/conn.mysql';
@@ -10,19 +10,16 @@ import GroupDao from '../group/group.dao';
 import GroupUserMapDao from '../group/groupUserMap.dao';
 import StaffInfoDao from './staff-info.dao';
 import VisitorDao from '../visitor/visitor.dao';
-import groupModel from '../group/index';
-import groupUserMapModel from '../group/index';
 import MessageService from '../message/message.service';
 import RoleService from '../role/role.service';
 import RoleModel from '../role/index';
 import Properties from '../../util/properties';
 import AuditService from '../audit/audit.service';
 import AuditModel from '../audit/audit.model';
-import http from 'http';
 import emailConfig from '../../config/email.config';
 import msgconfig from '../../config/message.config';
 import NotificationService from '../notification/notification.service';
-
+import VisitorService from '../visitor/visitor.service';
 
 const userDao = new UserDao();
 const groupDao = new GroupDao();
@@ -33,12 +30,12 @@ const staffInfoDao = new StaffInfoDao();
 const visitorDao = new VisitorDao();
 const auditService = new AuditService();
 const notificationService = new NotificationService();
+const visitorService = new VisitorService();
 
 /**
  * UserService 
  */
 class UserService {
-    constructor() {}
 
     register(user, callback) {
             //generate random key
@@ -60,7 +57,10 @@ class UserService {
                     // if a user exists with same email and mobile execute this block this is to prevent duplicate registrations
                     if (userInserted.original) {
                         if (userInserted.original.code === "ER_DUP_ENTRY") {
-                            return callback({ "error": "DUP_ENTRY", "message": "A User already exists with this Email and Phone number.Please login using your password" }); //check for dup entry for email and phoneNo
+                            return callback({
+                                "error": "DUP_ENTRY",
+                                "message": "An user already exists with this email and/or phone number. Please login using your password"
+                            }); //check for dup entry for email and phoneNo
                         }
                     }
                     var audit = new AuditModel({
@@ -79,7 +79,10 @@ class UserService {
                     //update createdBy and updatedBy
                     userInserted.createdBy = userInserted.id;
                     userInserted.updatedBy = userInserted.id;
-                    userModel.user.update({ "createdBy": userInserted.id, "updatedBy": userInserted.id }, {
+                    userModel.user.update({
+                        "createdBy": userInserted.id,
+                        "updatedBy": userInserted.id
+                    }, {
                         where: {
                             id: userInserted.id
                         }
@@ -89,7 +92,11 @@ class UserService {
                         log.error('Error while updating the user ', err);
                     });
 
-                    RoleModel.role.findOne({ where: { name: userInserted.role } }).then((role) => {
+                    RoleModel.role.findOne({
+                        where: {
+                            name: userInserted.role
+                        }
+                    }).then((role) => {
                         var userRole = {
                             userId: userInserted.id,
                             roleId: role.id
@@ -99,7 +106,7 @@ class UserService {
                     if (userInserted.role.toLowerCase() == 'doctor') {
                         this.activationLink(userInserted);
                         //call admin mail sender with all the doctor info like speciality and mci reg no etc
-                        this.adminMailDoctorRegistration(user);
+                        this.adminDoctorRegistration(user);
                         var group = {
                             name: 'MedHelp',
                             url: `/medhelp/${userInserted.id}`,
@@ -117,7 +124,9 @@ class UserService {
                             };
                             groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
                             sequelize
-                                .query("select u.id, u.firstname, u.lastname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
+                                .query("select u.id, u.firstname, u.lastname, u.role, u.email, count(gu.userId) from user u LEFT JOIN consultation_group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", {
+                                    type: sequelize.QueryTypes.SELECT
+                                })
                                 .then((groupUserMaps) => {
                                     var uId;
                                     var uName;
@@ -154,7 +163,7 @@ class UserService {
                     } else if (userInserted.role.toLowerCase() === 'patient') {
                         this.activationLink(userInserted);
                         //call  admin mail sender with patient info
-                        this.adminMailUserRegistration(userInserted);
+                        this.adminUserRegistration(userInserted);
                         this.createVisitor(userInserted);
                         var group = {
                             name: 'MedHelp',
@@ -175,7 +184,9 @@ class UserService {
                             };
                             groupUserMapDao.insert(groupUserMap, (createdGroupUserMap) => {});
                             sequelize
-                                .query("select u.id, u.firstname, u.lastname, u.role, u.email, count(gu.userId) from user u LEFT JOIN group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", { type: sequelize.QueryTypes.SELECT })
+                                .query("select u.id, u.firstname, u.lastname, u.role, u.email, count(gu.userId) from user u LEFT JOIN consultation_group_user_map gu on u.id=gu.userId and u.role='BOT' group by u.id order by count(gu.userId) ASC", {
+                                    type: sequelize.QueryTypes.SELECT
+                                })
                                 .then((groupUserMaps) => {
                                     var uId;
                                     var uName;
@@ -246,7 +257,7 @@ class UserService {
                 priority: 0,
                 template: {
                     to: templateTo,
-                    from: 'info@awnics.com',
+                    from: 'test.arung@gmail.com',
                     body: templateBody,
                     signature: '',
                     attachment: '',
@@ -254,10 +265,10 @@ class UserService {
                 triggerTime: null,
                 createdBy: null,
                 updatedBy: null,
-            }
+            };
             notificationService.create(notification, (res) => {
                 res ? log.info('Notification created ' + channel + ' to ' + templateTo) : log.error('Error in creating notification for ' + type + ' through ' + channel);
-            })
+            });
         }
         /**
          * activation link method
@@ -283,14 +294,12 @@ class UserService {
             .catch(error => log.error('Error while sending activation link to ' + user.email + ' ' + error));
         const message = user.role === "patient" ? msgconfig.usermessage : msgconfig.doctormessage;
         this.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, message, user.firstname + ' ' + user.lastname, 'registration', "Message sent for " + title)
-
-
     }
 
-    adminMailDoctorRegistration(doctorDetails) {
+    adminDoctorRegistration(doctorDetails) {
         emailConfig
             .send({
-                template: 'adminmail-doctor-registration',
+                template: 'admin-doctor-registration',
                 message: {
                     to: 'test.arung@gmail.com'
                 },
@@ -308,13 +317,15 @@ class UserService {
             .then(res => {
                 log.info('Email sent to Admin for Doctor Registration');
             })
-            .catch(error => log.error('Error while sending activation mail for Doctor ' + doctorDetails.email + ' ' + error));
+            .catch(error =>
+                log.error('Error while sending activation mail for Doctor ' + doctorDetails.email + ' ' + error)
+            );
     }
 
-    adminMailUserRegistration(user) {
+    adminUserRegistration(user) {
         emailConfig
             .send({
-                template: 'adminmail-user-registration',
+                template: 'admin-user-registration',
                 message: {
                     to: 'test.arung@gmail.com'
                 },
@@ -324,9 +335,12 @@ class UserService {
                     userEmail: user.email,
                 }
             })
-            .then(res => { log.info("Admin mail sent successfully for user registration  of " + user.email) })
-            .catch(error => log.error('Error while sending admin mail for User registration of ' + user.email + ' ' + error));
-
+            .then(res => {
+                log.info('Admin mail sent successfully for user registration  of ' + user.email);
+            })
+            .catch(error =>
+                log.error('Error while sending admin mail for User registration of ', error)
+            );
     }
 
     // sends a registration confirmation text message to user
@@ -335,17 +349,28 @@ class UserService {
         http.get(`http://api.msg91.com/api/sendhttp.php?sender=MESMED&route=4&mobiles=${phone}&authkey=${authkey}&country=${country}&message=${msg}`, (response) => {
             log.info('Message sent to ' + phone);
             this.createNotification(userId, type, title, 'message', phone, msg);
-        })
+        });
     }
 
     /**
      * change activate column and match token
      */
     activateUser(token, callback) {
-        userModel.user.find({ where: { token: token } }).then((resultFind) => {
+        userModel.user.find({
+            where: {
+                token: token
+            }
+        }).then((resultFind) => {
             if (resultFind.token === token) {
-                userModel.user.update({ "activate": 1 }, { where: { token: resultFind.token } });
-                callback(resultFind);
+                userModel.user.update({
+                    "activate": 1
+                }, {
+                    where: {
+                        token: resultFind.token
+                    }
+                }).then((userUpdated) => {
+                    callback(userUpdated);
+                });
             } else {
                 log.error('Error while updating the user ');
             }
@@ -390,7 +415,9 @@ class UserService {
             callback(user);
         }).catch(err => {
             log.error('Error while fetching user in user service: ', err);
-            callback({ message: 'Email ID you have entered does not exist' });
+            callback({
+                message: 'Email ID you have entered does not exist'
+            });
         });
     }
 
@@ -409,17 +436,20 @@ class UserService {
                         locals: {
                             subject: 'Password reset Link',
                             userName: user.firstname + ' ' + user.lastname,
-                            userLink: Properties.activation + '/' + user.token,
+                            userLink: Properties.resetPassword + '/' + user.token,
                         }
                     })
                     .then(res => {
+                        callback({ message: 'An email has been sent to your mail ID with a link to reset password.' });
                         log.info('Resetmail sent to User successfully ' + user.email);
                         this.createNotification(user.id, 'resetpassword', 'Reset Link sent', 'email', userEmail, 'forgot-password')
                     })
-                    .catch(err => log.error('Error while sending reset password link for ' + user.email + ' ' + err));
+                    .catch(err =>
+                        log.error('Error while sending reset password link for ' + user.email + ' ' + err)
+                    );
                 emailConfig
                     .send({
-                        template: 'adminmail-reset-password',
+                        template: 'admin-reset-password',
                         message: {
                             to: 'test.arung@gmail.com'
                         },
@@ -431,40 +461,62 @@ class UserService {
                     .then(res => {
                         log.info('Resetmail sent to Admin successfully');
                     })
-                    .catch(error => log.error('Error  while sending Email to admin for restmail of ' + user.email + ' ' + error));
+                    .catch(error =>
+                        log.error('Error  while sending Email to admin for restmail of ' + user.email + ' ' + error)
+                    );
 
                 //send text message to user upon request for password reset
                 this.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, msgconfig.passwordresetmessage, user.firstname + ' ' + user.lastname, 'passwordreset', 'Reset Message sent')
             } else {
-                callback({ message: 'Email ID you have entered does not exist' });
+                callback({
+                    message: 'Email ID you have entered does not exist'
+                });
             }
         })
     }
+
     verifyToken(token, callback) {
-        userModel.user.find({ where: { token: token } }).then((user) => {
+        userModel.user.find({
+            where: {
+                token: token
+            }
+        }).then((user) => {
             if (user === null) {
                 callback(false);
             } else {
                 callback(true);
             }
         }).catch((err) => {
+            log.error('Error while varifying token in user service ', err);
             callback(false);
         });
     }
 
     resetPassword(password, token, callback) {
         bcrypt.hash(password, 10, (err, hash) => {
-            userModel.user.update({ password: hash }, { where: { token: token } })
+            userModel.user.update({
+                    password: hash
+                }, {
+                    where: {
+                        token: token
+                    }
+                })
                 .then((res) => {
                     if (res[0] > 0) {
-                        callback({ message: 'Updated password successfully.' });
+                        callback({
+                            message: 'Updated password successfully.'
+                        });
                     } else {
                         log.error('Tokens do not match');
-                        callback({ message: 'Link in invalid. Please try again.' });
+                        callback({
+                            message: 'Link in invalid. Please try again.'
+                        });
                     }
                 }).catch((err) => {
                     log.error('Error in updating password: ' + err);
-                    callback({ message: 'Error in password reset. Please try again..' });
+                    callback({
+                        message: 'Error in password reset. Please try again..'
+                    });
                 });
         });
     }
@@ -501,12 +553,22 @@ class UserService {
 
     getVisitorById(id, callback) {
         visitorDao.readById(id, (visitor) => {
-            callback(visitor);
+            visitorService.readByVisitorIdHealth(visitor.userId, (visitorHealth) => {
+                visitorService.getVisitorStoreById(visitor.userId, (visitorStores) => {
+                    callback({
+                        "patientInfo": visitor,
+                        "visitorHealthInfo": visitorHealth,
+                        "visitorStoreInfo": visitorStores
+                    });
+                });
+            });
         });
     }
 
     updateVisitor(visitor, callback) {
         visitorDao.update(visitor, (updatedVisitor) => {
+            visitorService.updateVisitorHealth(visitor); //update the visitor-health table
+            visitorService.updateStore(visitor);
             callback(updatedVisitor);
         });
     }

@@ -11,7 +11,6 @@ class VisitorTimelineDao {
      * insert method
      */
     insert(visitorTimeline, callback) {
-        console.log('data in dao:' + JSON.stringify(visitorTimeline));
         sequelize.sync({ force: false }).then(() => {
             sequelize.transaction().then(function(t) {
                 visitorTimelineModel.visitor_timeline.create(visitorTimeline, { transaction: t }).then(function(insertedVisitorTimeline) {

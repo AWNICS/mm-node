@@ -1,6 +1,6 @@
-import pug from 'pug';
 import EmailTemplate from 'email-templates';
 import path from 'path';
+
 var emailConfig = new EmailTemplate({
     send: true,
     transport: {

@@ -63,25 +63,8 @@ class DoctorStoreDao {
     }
 
     /**
-     * Get by user id method
+     * Delete method
      */
-    getByUserId(doctorStore, userId, type, callback) {
-            return sequelize.transaction(function(t) {
-                return doctorStoreModel.doctor_store
-                    .readAll(doctorStore, {
-                        where: {
-                            id: userId,
-                            type: type
-                        }
-                    }, { transaction: t })
-                    .then(function(updatedDoctorStore) {
-                        callback(updatedDoctorStore);
-                    });
-            });
-        }
-        /**
-         * Delete method
-         */
     delete(id, callback) {
         return sequelize.transaction(function(t) {
             return doctorStoreModel.doctor_store

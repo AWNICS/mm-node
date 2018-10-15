@@ -1,12 +1,13 @@
 import express from 'express';
 import DoctorService from '../doctor/doctor.service';
 import UserService from '../user/user.service';
-import log from '../../config/log4js.config';
 import Properties from '../../util/properties';
+import NotificationService from '../notification/notification.service';
 
 const router = express.Router();
 const doctorService = new DoctorService();
 const userService = new UserService();
+const notificationService = new NotificationService();
 
 /**
  * @swagger
@@ -159,9 +160,11 @@ router.post('/users', function(req, res) {
  *       200:
  *         description: An user activated in MySql db
  */
-router.get('/activates/:token', function(req, res) {
+router.put('/activates/:token', function(req, res) {
     userService.activateUser(req.params.token, (result) => {
-        res.sendFile('./activate.html', { root: __dirname });
+        if (result) {
+            res.send({ message: "User activated." });
+        }
     });
 });
 
@@ -216,7 +219,7 @@ router.post('/resetPassword', function(req, res) {
 router.get('/resetPassword/:token', function(req, res) {
     userService.verifyToken(req.params.token, (result) => {
         if (result === true) {
-            res.redirect(`${Properties.redirectToClient}/${req.params.token}`);
+            res.redirect(`${Properties.resetPassword}/${req.params.token}`);
         } else {
             res.send('Your link is expired. Try again');
         }
@@ -256,6 +259,29 @@ router.get('/resetPassword/:token', function(req, res) {
 router.put('/resetPassword/:token', function(req, res) {
     var password = req.body.password;
     userService.resetPassword(password, req.params.token, (result) => {
+        res.send(result);
+    });
+});
+
+router.get('/send/otp/mobile/:mobileNo', (req, res) => {
+    var mobileNo = req.params.mobileNo;
+    var message = 'Your%20verfication%20code%20is:%20%23%23OTP%23%23';
+    notificationService.sendOtp(message, mobileNo, (result) => {
+        res.send(result);
+    });
+});
+
+router.get('/resend/otp/mobile/:mobileNo', (req, res) => {
+    var mobileNo = req.params.mobileNo;
+    notificationService.resendOtp(mobileNo, (result) => {
+        res.send(result);
+    });
+});
+
+router.get('/verify/mobile/:mobileNo/otp/:otp', (req, res) => {
+    var otp = req.params.otp;
+    var mobileNo = req.params.mobileNo;
+    notificationService.verfiyOtp(mobileNo, otp, (result) => {
         res.send(result);
     });
 });

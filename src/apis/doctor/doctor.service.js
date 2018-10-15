@@ -12,10 +12,17 @@ import doctorScheduleModel from './index';
 import DoctorActivityDao from './doctor-activities.dao';
 import DoctorReviewDao from './doctor-reviews.dao';
 import moment from 'moment';
+import visitorModel from '../visitor/index';
+import FileService from '../file/file.service';
+import bucket from '../../config/gcp.config';
+import fs from 'fs';
+
+
 
 var doctorDao = new DoctorDao();
 var visitorAppoinmentDao = new VisitorAppointmentDao();
 var userService = new UserService();
+var fileService = new FileService();
 var doctorScheduleDao = new DoctorSchedule();
 var doctorMediaDao = new DoctorMediaDao();
 var doctorStoreDao = new DoctorStoreDao();
@@ -31,12 +38,15 @@ class DoctorService {
         userService.register(doctor, (userCreated) => {
             //checks the duplicate entry for doctors
             if (userCreated.error === "DUP_ENTRY") {
-                return callback({ "error": "DUP_ENTRY", "message": "Doctor already registered with this email and Phonenumber. Please try logging into your account" }); //check for dup entry for email and phoneNo
+                return callback({
+                    "error": "DUP_ENTRY",
+                    "message": "Doctor already registered with this email and Phonenumber. Please try logging into your account"
+                }); //check for dup entry for email and phoneNo
             }
             var newDoctor = {
                 userId: userCreated.id,
                 regNo: doctor.regNo,
-                speciality: { "speciality": doctor.speciality },
+                speciality: doctor.speciality,
                 experience: doctor.experience,
                 description: doctor.description,
                 videoUrl: doctor.videoUrl,
@@ -59,7 +69,7 @@ class DoctorService {
                 updatedBy: userCreated.id
             };
             this.createDoctorSchedule(doctorSchedule, (doctorScheduleCreated) => {
-                log.info('Doctor schedule created ', doctorScheduleCreated);
+                log.info('Doctor schedule created');
             });
 
             return doctorDao.insert(newDoctor, (doctorCreated) => {
@@ -76,50 +86,49 @@ class DoctorService {
     }
 
     getById(id, callback) {
-        return doctorDao.readById(id, (doctorById) => {
-            doctorById.dataValues.qualification = [];
-            doctorById.dataValues.location = [];
-            doctorById.dataValues.language = [];
-            doctorById.dataValues.consultationMode = [];
-            return new Promise((resolve, reject) => {
-                doctorStoreModel.doctor_store.findAll({
-                    where: { userId: id }
-                }).then((result) => {
-                    result.map((a) => {
-                        a.type === "Location" ? doctorById.dataValues.location = a.value : null;
-                        a.type === "Qualification" ? doctorById.dataValues.qualification = a.value : null;
-                        a.type === "Consultation mode" ? doctorById.dataValues.consultationMode = a.value : null;
-                        a.type === "Language" ? doctorById.dataValues.language = a.value : null;
-                    })
-                    callback(doctorById);
-                    resolve(result);
-                })
-            })
+        return doctorDao.readById(id, (doctorDetails) => {
+            doctorStoreModel.doctor_store.findAll({
+                where: {
+                    userId: id
+                }
+            }).then((doctorStores) => {
+                callback({
+                    'doctorDetails': doctorDetails,
+                    'doctorStores': doctorStores
+                });
+            });
         });
     }
 
     update(doctor, callback) {
-        doctor.speciality = { "speciality": doctor.speciality };
         return doctorDao.update(doctor, (doctorUpdated) => {
             //create doctor_content and doctor_content_store
             //iterate for languages
             if (doctor.language) {
-                this.updateDoctorStoreByDoctorId(doctor.userId, 'Language', { "language": doctor.language }, (doctorStore) => { log.info('Doctor store updated of Language for ' + doctor.userId) });
+                this.updateDoctorStoreByDoctorId(doctor.userId, 'Language', doctor.language, (doctorStore) => {
+                    log.info('Doctor store updated of Language');
+                });
             }
 
             //iterate for location
             if (doctor.location) {
-                this.updateDoctorStoreByDoctorId(doctor.userId, 'Location', { "location": doctor.location }, (doctorStore) => { log.info('Doctor store updated of Location for ' + doctor.userId) });
+                this.updateDoctorStoreByDoctorId(doctor.userId, 'Location', doctor.location, (doctorStore) => {
+                    log.info('Doctor store updated of Location');
+                });
             }
 
             //iterate for qualification
             if (doctor.qualification) {
-                this.updateDoctorStoreByDoctorId(doctor.userId, 'Qualification', { "qualification": doctor.qualification }, (doctorStore) => { log.info('Doctor store updated of Qualification for ' + doctor.userId) });
+                this.updateDoctorStoreByDoctorId(doctor.userId, 'Qualification', doctor.qualification, (doctorStore) => {
+                    log.info('Doctor store updated of Qualification');
+                });
             }
 
             //iterate for consultationMode
             if (doctor.consultationMode) {
-                this.updateDoctorStoreByDoctorId(doctor.userId, 'Consultation mode', { "consultationMode": doctor.consultationMode }, (doctorStore) => { log.info('Doctor store updated of Consultation mode for ' + doctor.userId) });
+                this.updateDoctorStoreByDoctorId(doctor.userId, 'Consultation mode', doctor.consultationMode, (doctorStore) => {
+                    log.info('Doctor store updated of Consultation mode');
+                });
             }
             callback(doctorUpdated);
         });
@@ -174,15 +183,14 @@ class DoctorService {
         var offset = ((size * page) - size);
         var condition = '';
         if (location) {
-            condition = condition + `dst.value = '${location}'`;
+            condition = condition + `dst.value LIKE CONCAT('%','${location}','%') AND `;
         }
         if (speciality) {
-            condition = condition + ` AND d.speciality LIKE CONCAT('%','${speciality}','%')`;
+            condition = condition + `d.speciality LIKE CONCAT('%','${speciality}','%') AND `;
         }
         if (time) {
-            condition = condition + ` AND ( '${time}' BETWEEN ds.startTime AND ds.endTime )`;
+            condition = condition + `('${time}' BETWEEN ds.startTime AND ds.endTime)`;
         }
-        console.log('condition ', condition);
         return sequelize
             .query(`
             SELECT
@@ -225,7 +233,9 @@ class DoctorService {
             LIMIT
                 ${offset},
                 ${size};
-                `, { type: sequelize.QueryTypes.SELECT })
+                `, {
+                type: sequelize.QueryTypes.SELECT
+            })
             .then((result, err) => {
                 if (err) {
                     log.error('Error while fetching doctors list ', err);
@@ -238,12 +248,18 @@ class DoctorService {
 
     getDoctorScheduleByDoctorId(doctorId, callback) {
         doctorScheduleModel.doctor_schedule
-            .findAll({ where: { doctorId: doctorId } })
+            .findAll({
+                where: {
+                    doctorId: doctorId
+                }
+            })
             .then((doctorSchedule) => {
                 callback(doctorSchedule);
             }).catch(err => {
                 log.error('Error while fetching doctor schedule in doctor service: ', err);
-                callback({ message: 'Doctor ID you have entered does not exist' });
+                callback({
+                    message: 'Doctor ID you have entered does not exist'
+                });
             });
     }
 
@@ -259,7 +275,9 @@ class DoctorService {
                 callback(updatedSchedule);
             }).catch(err => {
                 log.error('Error while updating a doctor schedule in doctor service: ', err);
-                callback({ message: 'Doctor ID you have entered does not exist' });
+                callback({
+                    message: 'Doctor ID you have entered does not exist'
+                });
             });
     }
 
@@ -296,24 +314,40 @@ class DoctorService {
 
     getMediaByDoctorId(doctorId, callback) {
         doctorMediaModel.doctor_media
-            .findAll({ where: { userId: doctorId } }) //fetch all records for this doctorId
+            .findAll({
+                where: {
+                    userId: doctorId
+                }
+            }) //fetch all records for this doctorId
             .then((doctorMedia) => {
                 callback(doctorMedia);
             }).catch(err => {
                 log.error('Error while fetching doctor medias in doctor service: ', err);
-                callback({ message: 'Doctor ID you have entered does not exist' });
+                callback({
+                    message: 'Doctor ID you have entered does not exist'
+                });
             });
     }
 
     getLimitedMediaByDoctorId(doctorId, page, size, callback) {
         var offset = ((size * page) - size);
         doctorMediaModel.doctor_media
-            .findAll({ where: [{ userId: doctorId }, { type: ['image', 'video'] }], offset: offset, limit: size })
+            .findAll({
+                where: [{
+                    userId: doctorId
+                }, {
+                    type: ['image', 'video']
+                }],
+                offset: offset,
+                limit: size
+            })
             .then((doctorMedia) => {
                 callback(doctorMedia);
             }).catch(err => {
                 log.error('Error while fetching doctor medias in doctor service: ', err);
-                callback({ message: 'Doctor ID you have entered does not exist' });
+                callback({
+                    message: 'Doctor ID you have entered does not exist'
+                });
             });
     }
 
@@ -330,20 +364,20 @@ class DoctorService {
         });
     }
 
-    /*getByIdDoctorStore(id, callback) {
-        return doctorStoreDao.readById(id, (doctorStore) => {
-            callback(doctorStore);
-        });
-    }*/
-
-    getByIdDoctorStore(doctorId, callback) {
+    getDoctorStoreById(doctorId, callback) {
         doctorStoreModel.doctor_store
-            .findAll({ where: { userId: doctorId } }) //fetch all records for this doctorId
+            .findAll({
+                where: {
+                    userId: doctorId
+                }
+            }) //fetch all records for this doctorId
             .then((doctorStores) => {
                 callback(doctorStores);
             }).catch(err => {
                 log.error('Error while fetching doctor stores in doctor service: ', err);
-                callback({ message: 'Doctor ID you have entered does not exist' });
+                callback({
+                    message: 'Doctor ID you have entered does not exist'
+                });
             });
     }
 
@@ -359,23 +393,44 @@ class DoctorService {
         });
     }
 
-    updateDoctorStoreByDoctorId(id, type1, value1, callback) {
-            doctorStoreModel.doctor_store.findAll({ where: { userId: id, type: type1 } }).then((doctorstore) => {
-                if (doctorstore.length === 0) {
-                    let doctorStore = { userId: id, type: type1, value: value1 }
-                    this.createDoctorStore(doctorStore, (e) => { log.info("Doctor store created for Doctor id " + id + " for" + type1) })
-                } else {
-                    return doctorStoreModel.doctor_store.update({ value: value1 }, { where: { userId: id, type: type1 } }, (doctorStoreDeleted) => {
-                        callback(doctorStoreDeleted);
-                    });
+    updateDoctorStoreByDoctorId(id, type, value, callback) {
+        doctorStoreModel.doctor_store.findAll({
+            where: {
+                userId: id,
+                type: type
+            }
+        }).then((doctorstore) => {
+            if (doctorstore.length === 0) {
+                var doctorStore = {
+                    userId: id,
+                    type: type,
+                    value: value
+                };
+                this.createDoctorStore(doctorStore, (doctorStoreCreated) => {
+                    callback(doctorStoreCreated)
+                });
+            } else {
+                doctorStoreModel.doctor_store.update({
+                    value: value
+                }, {
+                    where: {
+                        userId: id,
+                        type: type
+                    }
+                }).then((doctorStoreUpdated) => {
+                    callback(doctorStoreUpdated);
+                }).catch(err => {
+                    log.error("Error while updating doctor store ", err);
+                });
 
-                }
-            }).catch(err => {
-                log.error(err);
-            })
+            }
+        }).catch(err => {
+            log.error('Error while fetching doctor store ', err);
+        });
 
-        }
-        /* for doctor activity */
+    }
+
+    /* for doctor activity */
     createDoctorActivity(doctorActivity, callback) {
         return doctorActivityDao.insert(doctorActivity, (doctorActivityCreated) => {
             callback(doctorActivityCreated);
@@ -390,7 +445,6 @@ class DoctorService {
 
     getByIdDoctorActivity(doctorId, callback) {
         return doctorActivityDao.readById(doctorId, (doctorActivity) => {
-            //console.log('all activity: ' + JSON.stringify(doctorActivity));
             callback(doctorActivity);
         });
     }
@@ -422,7 +476,6 @@ class DoctorService {
 
     getByIdDoctorReview(doctorId, callback) {
         return doctorReviewDao.readById(doctorId, (doctorReview) => {
-            //console.log('all review: ' + JSON.stringify(doctorReview));
             callback(doctorReview);
         });
     }
@@ -437,6 +490,49 @@ class DoctorService {
         return doctorReviewDao.delete(id, (doctorReviewDeleted) => {
             callback(doctorReviewDeleted);
         });
+    }
+
+    async getConsutationDetails(doctorId, callback) {
+        var visitorAppointments = visitorModel.visitor_appointment.findAll({ where: { doctorId: doctorId } });
+        var consultationDetails = await this.consultationDetails(visitorAppointments);
+        callback(consultationDetails);
+    }
+
+    async consultationDetails(visitorAppointments) {
+        var daily = 0,
+            weekly = 0,
+            monthly = 0;
+        await visitorAppointments.map((visitorAppointment) => {
+            var month = moment(visitorAppointment.startTime).month();
+            var currentMonth = moment().month();
+            if (moment(visitorAppointment.startTime).year() === moment().year()) {
+                if (++month === ++currentMonth) {
+                    monthly = monthly + 1;
+                    if (moment(visitorAppointment.startTime).date() === moment().date()) {
+                        daily = daily + 1;
+                    }
+                    if (moment(visitorAppointment.startTime).week() === moment().week()) {
+                        weekly = weekly + 1;
+                    }
+                }
+            }
+        });
+        return ({ "today": daily, "week": weekly, "month": monthly });
+    }
+
+    generatePdf(pdfData, callback) {
+        var date = moment().utcOffset(330).format('DD-MM-YYYYTHH-mm-ss-SSS');
+        var fileName = pdfData.userId + '-' + date + '.pdf';
+        fs.writeFile('./tmp/' + fileName, pdfData.data, 'binary', (err) => {
+            if (err) {
+                log.info('Error writing pdf data to file ' + err);
+            }
+        });
+        fileService.pdfUpload(fileName, bucket, (fileName) => {
+            callback(fileName);
+        });
+
+
     }
 }
 

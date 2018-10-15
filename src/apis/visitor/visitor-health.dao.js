@@ -11,13 +11,17 @@ class VisitorHealthDao {
      * insert method
      */
     insert(visitorHealth, callback) {
-        sequelize.sync({ force: false }).then(() => {
-            sequelize.transaction().then(function(t) {
-                visitorHealthModel.visitor_health.create(visitorHealth, { transaction: t }).then(function(insertedVisitorHealth) {
+        sequelize.sync({
+            force: false
+        }).then(() => {
+            sequelize.transaction().then(function (t) {
+                visitorHealthModel.visitor_health.create(visitorHealth, {
+                    transaction: t
+                }).then(function (insertedVisitorHealth) {
                     callback(insertedVisitorHealth);
-                }).then(function() {
+                }).then(function () {
                     t.commit();
-                }).catch(function(error) {
+                }).catch(function (error) {
                     log.error('error in visitorHealthDao ', error);
                     t.rollback();
                 });
@@ -38,7 +42,11 @@ class VisitorHealthDao {
      * read method based on id
      */
     readById(id, callback) {
-        visitorHealthModel.visitor_health.find({ where: { visitorId: id } }).then((visitorHealth) => {
+        visitorHealthModel.visitor_health.findAll({
+            where: {
+                visitorId: id
+            }
+        }).then((visitorHealth) => {
             callback(visitorHealth);
         });
     }
@@ -47,16 +55,18 @@ class VisitorHealthDao {
      * Update method
      */
     update(visitorHealth, callback) {
-        sequelize.transaction().then(function(t) {
+        sequelize.transaction().then(function (t) {
             visitorHealthModel.visitor_health.update(visitorHealth, {
                 where: {
                     visitorId: visitorHealth.userId
                 }
-            }, { transaction: t }).then(function(visitorHealthUpdated) {
+            }, {
+                transaction: t
+            }).then(function (visitorHealthUpdated) {
                 callback(visitorHealthUpdated);
-            }).then(function() {
+            }).then(function () {
                 t.commit();
-            }).catch(function(error) {
+            }).catch(function (error) {
                 t.rollback();
             });
         });
@@ -66,16 +76,16 @@ class VisitorHealthDao {
      * Delete method
      */
     delete(id, callback) {
-        sequelize.transaction().then(function(t) {
+        sequelize.transaction().then(function (t) {
             visitorHealthModel.visitor_health.destroy({
                 where: {
                     id: id
                 }
-            }).then(function(visitorHealth) {
+            }).then(function (visitorHealth) {
                 callback(visitorHealth);
-            }).then(function() {
+            }).then(function () {
                 t.commit();
-            }).catch(function(error) {
+            }).catch(function (error) {
                 t.rollback();
             });
         });
