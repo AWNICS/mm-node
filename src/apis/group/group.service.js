@@ -13,6 +13,8 @@ import AuditModel from '../audit/audit.model';
 import AuditService from '../audit/audit.service';
 import NotificationService from '../notification/notification.service';
 import VisitorService from '../visitor/visitor.service';
+import emailConfig from '../../config/email.config';
+import messageConfig from '../../config/message.config';
 
 const Promise = require('bluebird');
 const moment = require('moment');
@@ -441,7 +443,7 @@ class GroupService {
                         userService.getById(doctorId, (doctor) => {
                             var groupName = '';
                             userService.getById(patientId, (user) => {
-                                groupName = 'Dr. ' + doctor.firstname + ' ' + doctor.lastname + ', ' + user.firstname + user.lastname;
+                                groupName = 'Dr. ' + doctor.firstname + ' ' + doctor.lastname + ', ' + user.firstname + ' ' + user.lastname;
                                 var group = {
                                     name: groupName,
                                     url: `consultation/${patientId}`,
@@ -514,22 +516,56 @@ class GroupService {
                                     messageService.sendMessage(msg, (result) => {});
                                     //create notification for the doctor
                                     doctorService.getById(doctorId, (doctor) => {
-                                        userService.getById(patientId, (user) => {
-                                            var notification = {
-                                                userId: doctorId,
-                                                type: 'consultation',
-                                                title: `Consultation with ${user.firstname} ${user.lastname}`,
-                                                content: `Speciality chosen: ${doctor.speciality}`,
-                                                status: 'created',
-                                                channel: 'web',
-                                                priority: 1,
-                                                template: '',
-                                                triggerTime: moment().add(2, 'm'),
-                                                createdBy: user.id,
-                                                updatedBy: user.id
-                                            };
-                                            notificationService.create(notification, (notificationCreated) => {});
-                                        });
+                                        if (doctor) {
+                                            userService.getById(patientId, (user) => {
+                                                if (user) {
+                                                    var notification = {
+                                                        userId: doctorId,
+                                                        type: 'consultation',
+                                                        title: `Consultation with ${user.firstname} ${user.lastname}`,
+                                                        content: `Speciality chosen: ${doctor.doctorDetails.speciality}`,
+                                                        status: 'created',
+                                                        channel: 'web',
+                                                        priority: 1,
+                                                        template: '',
+                                                        triggerTime: moment().add(2, 'm'),
+                                                        createdBy: user.id,
+                                                        updatedBy: user.id
+                                                    };
+                                                    notificationService.create(notification, (notificationCreated) => {
+                                                        if (notificationCreated) {
+                                                            userService.getById(doctorId, (doctorDetails) => {
+                                                                //code for sending notification as email and SMS also
+                                                                emailConfig
+                                                                    .send({
+                                                                        template: 'notification-doctor',
+                                                                        message: {
+                                                                            to: 'nilu.kumari@awnics.com' //doctor email
+                                                                        },
+                                                                        locals: {
+                                                                            subject: notificationCreated.title,
+                                                                            patientName: user.firstname + ' ' + user.lastname,
+                                                                            patientEmail: user.email, //user email id
+                                                                            doctorName: 'Dr.' + ' ' + doctorDetails.firstname + ' ' + doctorDetails.lastname,
+                                                                            priority: notificationCreated.priority,
+                                                                            triggerTime: notificationCreated.triggerTime,
+                                                                            type: notificationCreated.type
+                                                                        }
+                                                                    })
+                                                                    .then(res => {
+                                                                        log.info('Email sent successfully to doctor for user email id: ' + user.email);
+                                                                    })
+                                                                    .catch(error =>
+                                                                        log.error('Error while sending notification to doctor', error)
+                                                                    );
+                                                                //for SMS notification message
+                                                                userService.sendTextMessage(doctorId, doctorDetails.phoneNo, messageConfig.authkey, messageConfig.country, messageConfig.notificationMessage, doctorDetails.firstname + ' ' + doctorDetails.lastname, 'notification', 'Notification Message sent');
+                                                            });
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        }
                                     });
                                 }
                             }));
@@ -559,22 +595,24 @@ class GroupService {
                      */
                     doctorService.getById(doctorId, (doctorDetails) => {
                         userService.getById(doctorDetails.userId, (userDetails) => {
-                            var visitorTimeline = {
-                                visitorId: patientId,
-                                timestamp: visitorAppointmentCreated.startTime,
-                                consultations: {
-                                    "appointmentId": visitorAppointmentCreated.id,
-                                    "doctorName": `Dr. ${userDetails.firstname} ${userDetails.lastname}`,
-                                    "time": visitorAppointmentCreated.startTime,
-                                    "speciality": doctorDetails.speciality,
-                                    "description": "Consultation for pre check-up info"
-                                },
-                                reminders: null,
-                                events: null,
-                                createdBy: patientId,
-                                updatedBy: patientId
-                            };
-                            visitorService.createVisitorTimeline(visitorTimeline, () => {});
+                            if (userDetails) {
+                                var visitorTimeline = {
+                                    visitorId: patientId,
+                                    timestamp: visitorAppointmentCreated.startTime,
+                                    consultations: {
+                                        "appointmentId": visitorAppointmentCreated.id,
+                                        "doctorName": `Dr. ${userDetails.firstname} ${userDetails.lastname}`,
+                                        "time": visitorAppointmentCreated.startTime,
+                                        "speciality": doctorDetails.speciality,
+                                        "description": "Consultation for pre check-up info"
+                                    },
+                                    reminders: null,
+                                    events: null,
+                                    createdBy: patientId,
+                                    updatedBy: patientId
+                                };
+                                visitorService.createVisitorTimeline(visitorTimeline, () => {});
+                            }
                         });
                     });
                 });

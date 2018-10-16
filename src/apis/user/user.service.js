@@ -466,7 +466,7 @@ class UserService {
                     );
 
                 //send text message to user upon request for password reset
-                this.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, msgconfig.passwordresetmessage, user.firstname + ' ' + user.lastname, 'passwordreset', 'Reset Message sent')
+                this.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, msgconfig.passwordresetmessage, user.firstname + ' ' + user.lastname, 'passwordreset', 'Reset Message sent');
             } else {
                 callback({
                     message: 'Email ID you have entered does not exist'
