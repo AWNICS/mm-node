@@ -89,6 +89,12 @@ class GroupService {
         });
     }
 
+    updateGroupStatus(groupId, status, callback) {
+        return groupDao.updateGroupStatus(groupId, status, (result) => {
+            callback(result)
+        })
+    }
+
     deleteGroupUserMap(userId, groupId, callback) {
         return groupUserMapDao.delete(userId, groupId, (groupUserMapDeleted) => {
             callback(groupUserMapDeleted);
@@ -108,6 +114,42 @@ class GroupService {
                 return groupModel.consultation_group.findById(groupUserMap.groupId);
             });
         });
+    }
+
+    getAllGroupMapsByUserId(userId, callback) {
+            groupUserMapModel.consultation_group_user_map.findAll({
+                where: {
+                    userId: userId
+                }
+            }).then((usermaps) => {
+                callback(usermaps);
+            })
+
+        }
+        //returns all user details in a group taking group id as input
+    getAllUsersInGroup(groupId) {
+        return new Promise((res, rej) => {
+            groupUserMapModel.consultation_group_user_map.findAll({
+                where: {
+                    groupId: groupId
+                }
+            }).then((users) => {
+                return Promise.map(users, (user) => {
+                    return new Promise((res, rej) => {
+                        userModel.user.findById(user.userId).then((userDetails) => {
+                                res(userDetails);
+                            })
+                            .catch((error) => {
+                                rej(error)
+                            })
+                    })
+                }).then((allUsers) => {
+                    res(allUsers);
+                }).catch((error) => {
+                    rej(error)
+                })
+            })
+        })
     }
 
     /**

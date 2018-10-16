@@ -63,6 +63,22 @@ class GroupDao {
         });
     }
 
+    updateGroupStatus(groupId, status, callback) {
+        sequelize.transaction().then(function(t) {
+            consultationGroupModel.consultation_group.update({ status: status }, {
+                where: {
+                    id: groupId
+                }
+            }, { transaction: t }).then(function(groupUpdated) {
+                callback(groupUpdated);
+            }).then(function() {
+                t.commit();
+            }).catch(function(error) {
+                t.rollback();
+            });
+        });
+    }
+
     /**
      * Delete method
      */
