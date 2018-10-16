@@ -8,6 +8,7 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import lodash from 'lodash';
 import https from 'https';
+import fs from 'fs';
 import socket from 'socket.io';
 
 /**

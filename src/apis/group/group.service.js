@@ -110,6 +110,38 @@ class GroupService {
         });
     }
 
+    getAllUsersInGroup(userId) {
+        return new Promise((res, rej) => {
+            groupUserMapModel.consultation_group_user_map.findAll({
+                where: {
+                    userId: userId
+                }
+            }).then((groups) => {
+                groups.map((group) => {
+                    groupUserMapModel.consultation_group_user_map.findAll({
+                        where: {
+                            groupId: group.groupId
+                        }
+                    }).then((users) => {
+                        return Promise.map(users, (user) => {
+                            return new Promise((res, rej) => {
+                                userModel.user.findById(user.userId).then((a) => {
+                                    res(a);
+                                })
+                            })
+                        }).then((result) => {
+                            res(result)
+                        }).catch((err) => {
+                            console.log(err)
+                        })
+
+                    }).catch((err) => { console.log(err) })
+                })
+
+            })
+        })
+    }
+
     /**
      * fetching all the group's status for particular userId
      */
@@ -546,9 +578,9 @@ class GroupService {
                                     });
                                     //create notification for the doctor
                                     doctorService.getById(doctorId, (doctor) => {
-                                        if(doctor.doctorDetails.speciality) {
+                                        if (doctor.doctorDetails.speciality) {
                                             userService.getById(patientId, (user) => {
-                                                if(user) {
+                                                if (user) {
                                                     var notification = {
                                                         userId: doctorId,
                                                         type: 'consultation',
