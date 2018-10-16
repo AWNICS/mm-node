@@ -7,7 +7,7 @@ import flash from 'express-flash';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import lodash from 'lodash';
-import http from 'http';
+import https from 'https';
 import socket from 'socket.io';
 
 /**
@@ -48,8 +48,12 @@ class Config {
         this.app = express();
         this.flash = flash;
         this.socket = socket;
-        this.http = http.Server(this.app);
-        this.io = this.socket.listen(this.http);
+        this.https = https.Server({
+            key: fs.readFileSync('/etc/letsencrypt/live/mesomeds.com/privkey.pem', 'utf8'),
+            cert: fs.readFileSync('/etc/letsencrypt/live/mesomeds.com/cert.pem', 'utf8'),
+            ca: fs.readFileSync('/etc/letsencrypt/live/mesomeds.com/chain.pem', 'utf8')
+        }, this.app);
+        this.io = this.socket.listen(this.https);
         this.dotenv = dotenv;
         this.lodash = lodash;
         this.dotenv.config({ path: '.env.dev' });
@@ -124,8 +128,8 @@ class Config {
 
     listen(port) {
         // start server at port
-        this.http.listen(port, () => {
-            log.info(`Server started: http://localhost:${port}/`);
+        this.https.listen(port, () => {
+            log.info(`Server started: https://localhost:${port}/`);
         });
     }
 
