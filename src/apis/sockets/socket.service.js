@@ -23,9 +23,9 @@ const auditService = new AuditService();
 const notificationService = new NotificationService();
 
 exports.connectSocket = (io) => {
-    io.use(function (socket, next) {
+    io.use(function(socket, next) {
             if (socket.handshake.query && socket.handshake.query.token) {
-                jwt.verify(socket.handshake.query.token, process.env.JWT_SECRET, function (err, decoded) {
+                jwt.verify(socket.handshake.query.token, process.env.JWT_SECRET, function(err, decoded) {
                     if (err) return next(new Error('Authentication error'));
                     socket.decoded = decoded;
                     next();
@@ -34,7 +34,7 @@ exports.connectSocket = (io) => {
                 next(new Error('Authentication error'));
             }
         })
-        .on('connection', function (socket) {
+        .on('connection', function(socket) {
             // get userId from client
             socket.on('user-connected', userId => {
                 log.info('a user connected with ID: ' + userId);
