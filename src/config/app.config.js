@@ -49,7 +49,7 @@ class Config {
         this.app = express();
         this.flash = flash;
         this.socket = socket;
-        this.https = https.Server({
+        this.https = https.createServer({
             key: fs.readFileSync('/etc/letsencrypt/live/mesomeds.com/privkey.pem', 'utf8'),
             cert: fs.readFileSync('/etc/letsencrypt/live/mesomeds.com/cert.pem', 'utf8'),
             ca: fs.readFileSync('/etc/letsencrypt/live/mesomeds.com/chain.pem', 'utf8')
