@@ -415,18 +415,20 @@ class GroupService {
     }
 
     consultNow(doctorId, patientId, callback) {
+        /**
+         * Changed the logic to fetch the groups in which doctor and patient is present
+         * DoctorId is being stored in the group URL which makes it easy to fetch the group details
+         */
         return sequelize
             .query(`
             SELECT
-                ga.groupId
+                *
             FROM
-            consultation_group_user_map AS ga, consultation_group_user_map AS gb
+            consultation_group
             WHERE
-                ga.userId=${doctorId}
+                userId=${patientId}
             AND
-                gb.userId=${patientId}
-            AND
-                ga.groupId=gb.groupId;
+                url="consultation/${doctorId}";
                 `, {
                 type: sequelize.QueryTypes.SELECT
             })
@@ -436,9 +438,37 @@ class GroupService {
                     callback(err);
                 } else {
                     if (result.length >= 1) {
-                        this.getById(result[0].groupId, (existingGroup) => {
-                            callback(existingGroup);
-                        });
+                        var existingGroup = result[0];
+                        callback(existingGroup);
+                        // mapping doctor to the group
+                        // var groupUserMap = {
+                        //     groupId: existingGroup.id,
+                        //     userId: doctorId,
+                        //     createdBy: existingGroup.createdBy,
+                        //     updatedBy: existingGroup.updatedBy
+                        // };
+                        // this.createGroupUserMap(groupUserMap, (doctorMapped) => {
+                        // });
+                        //create notification for the doctor
+                        // doctorService.getById(doctorId, (doctor) => {
+                        //     userService.getById(patientId, (user) => {
+                        //         var notification = {
+                        //             userId: doctorId,
+                        //             type: 'follow up',
+                        //             title: `Follow up with ${user.firstname} ${user.lastname}`,
+                        //             content: `Speciality chosen: ${doctor.doctorDetails.speciality}`,
+                        //             status: 'created',
+                        //             channel: 'web',
+                        //             priority: 1,
+                        //             template: '',
+                        //             triggerTime: moment().add(2, 'm'),
+                        //             createdBy: user.id,
+                        //             updatedBy: user.id
+                        //         };
+                        //         notificationService.create(notification, (notificationCreated) => {
+                        //         });
+                        //     });
+                        // });
                     } else {
                         userService.getById(doctorId, (doctor) => {
                             var groupName = '';
@@ -467,7 +497,6 @@ class GroupService {
 
     createGroupForConsultation(group, doctorId, patientId, callback) {
         this.create(group, (createdGroup) => {
-            callback(createdGroup);
             // mapping patient to the group
             var groupUserMap = {
                 groupId: createdGroup.id,
@@ -513,10 +542,13 @@ class GroupService {
                                         createdTime: Date.now(),
                                         updatedTime: Date.now()
                                     };
-                                    messageService.sendMessage(msg, (result) => {});
+                                    messageService.sendMessage(msg, (result) => {
+                                        log.info('new message created by bot and sent ', result);
+                                        callback(createdGroup);
+                                    });
                                     //create notification for the doctor
                                     doctorService.getById(doctorId, (doctor) => {
-                                        if (doctor) {
+                                        if (doctor.doctorDetails.speciality) {
                                             userService.getById(patientId, (user) => {
                                                 if (user) {
                                                     var notification = {
@@ -594,25 +626,23 @@ class GroupService {
                      * create consultation entry details inside the visitor-timeline table
                      */
                     doctorService.getById(doctorId, (doctorDetails) => {
-                        userService.getById(doctorDetails.userId, (userDetails) => {
-                            if (userDetails) {
-                                var visitorTimeline = {
-                                    visitorId: patientId,
-                                    timestamp: visitorAppointmentCreated.startTime,
-                                    consultations: {
-                                        "appointmentId": visitorAppointmentCreated.id,
-                                        "doctorName": `Dr. ${userDetails.firstname} ${userDetails.lastname}`,
-                                        "time": visitorAppointmentCreated.startTime,
-                                        "speciality": doctorDetails.speciality,
-                                        "description": "Consultation for pre check-up info"
-                                    },
-                                    reminders: null,
-                                    events: null,
-                                    createdBy: patientId,
-                                    updatedBy: patientId
-                                };
-                                visitorService.createVisitorTimeline(visitorTimeline, () => {});
-                            }
+                        userService.getById(doctorDetails.doctorDetails.userId, (userDetails) => {
+                            var visitorTimeline = {
+                                visitorId: patientId,
+                                timestamp: visitorAppointmentCreated.startTime,
+                                consultations: {
+                                    "appointmentId": visitorAppointmentCreated.id,
+                                    "doctorName": `Dr. ${userDetails.firstname} ${userDetails.lastname}`,
+                                    "time": visitorAppointmentCreated.startTime,
+                                    "speciality": doctorDetails.doctorDetails.speciality,
+                                    "description": "Consultation for pre check-up info"
+                                },
+                                reminders: null,
+                                events: null,
+                                createdBy: patientId,
+                                updatedBy: patientId
+                            };
+                            visitorService.createVisitorTimeline(visitorTimeline, () => {});
                         });
                     });
                 });
@@ -647,7 +677,6 @@ class GroupService {
                         });
                     }));
                     i = ++i;
-                    console.log('count: ' + JSON.stringify(count[0]));
                     if (count[0] < 2) {
                         groupService.update({
                             id: group.id,
