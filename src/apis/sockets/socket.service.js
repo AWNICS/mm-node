@@ -35,6 +35,46 @@ exports.connectSocket = (io) => {
             }
         })
         .on('connection', function(socket) {
+
+            socket.on('disconnect', (type) => {
+                if (type === 'transport error') {
+                    let userId = socket.decoded.data.id;
+                    userService.getById(userId, (user) => {
+                        if (user.id === userId) {
+                            userService.updateRegisteredUser({
+                                'id': userId,
+                                'socketId': socket.id,
+                                'status': 'offline'
+                            }, (user) => {});
+                        }
+                    })
+                    log.info('User disconnected with ID: ' + userId);
+                    groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
+                        gumaps.map((gumap) => {
+                            groupService.getAllUsersInGroup(gumap.groupId).then((allUsers) => {
+                                let count = 0;
+                                allUsers.map((user) => {
+                                    if (user.role !== 'bot' && user.status === 'online') {
+                                        count++;
+                                    }
+                                })
+                                if (count < 2) {
+                                    log.info('Group Status Update with ID: ' + gumap.groupId + ' offline');
+                                    allUsers.map((user) => {
+                                        if (user.role !== 'bot' && user.id !== userId) {
+                                            io.in(user.socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'offline' });
+                                        }
+                                    })
+                                    groupService.updateGroupStatus(gumap.groupId, 'offline', (result) => {
+                                        result === 1 ? log.info("Group status updated in DB for ID: " + gumap.groupId + ' to offline') : null;
+                                    })
+                                }
+                            })
+                        })
+                    })
+                }
+            })
+
             // get userId from client
             socket.on('user-connected', userId => {
                 log.info('a user connected with ID: ' + userId);
@@ -45,24 +85,30 @@ exports.connectSocket = (io) => {
                             'socketId': socket.id,
                             'status': 'online'
                         }, (user) => {});
-                        groupService.getGroupStatus(userId, (res) => {
-                            groupService.getAllGroupsByUserId(userId)
-                                .then((groups) => {
-                                    groups.map((group) => {
-                                        consultationGroupModel.consultation_group_user_map.findAll({
-                                            where: {
-                                                userId: group.userId
+
+                        groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
+                            gumaps.map((gumap) => {
+                                groupService.getAllUsersInGroup(gumap.groupId).then((allUsers) => {
+                                    let count = 0;
+                                    allUsers.map((user) => {
+                                        if (user.role !== 'bot' && user.status === 'online') {
+                                            count++;
+                                        }
+                                    })
+                                    if (count > 1) {
+                                        log.info('Group status Update with ID: ' + gumap.groupId + ' online');
+                                        allUsers.map((user) => {
+                                            if (user.role !== 'bot') {
+                                                io.in(user.socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'online' });
                                             }
-                                        }).then((gUMaps) => {
-                                            gUMaps.map((gumap) => {
-                                                userService.getById(gumap.userId, (user) => {
-                                                    io.in(user.socketId).emit('received-group-status', res);
-                                                });
-                                            });
                                         })
-                                    });
-                                });
-                        });
+                                        groupService.updateGroupStatus(gumap.groupId, 'online', (result) => {
+                                            result === 1 ? log.info("Group status updated in DB for ID: " + gumap.groupId + ' to online') : null;
+                                        })
+                                    }
+                                })
+                            })
+                        })
                     }
                 });
                 var audit = new AuditModel({
@@ -274,27 +320,29 @@ exports.connectSocket = (io) => {
                         }, (user) => {
                             log.info('User logged out: ', userId);
                             if (user) {
-                                //we will need this code to review for updating the group status on logout
-                                groupService.groupStatusUpdate(userId, (result) => {
-                                    groupService.getGroupStatus(userId, (res) => {
-                                        groupService.getAllGroupsByUserId(userId)
-                                            .then((groups) => {
-                                                groups.map((group) => {
-                                                    consultationGroupModel.consultation_group_user_map.findAll({
-                                                        where: {
-                                                            userId: group.userId
-                                                        }
-                                                    }).then((gUMaps) => {
-                                                        gUMaps.map((gumap) => {
-                                                            userService.getById(gumap.userId, (user) => {
-                                                                io.in(user.socketId).emit('received-group-status', res);
-                                                            });
-                                                        });
-                                                    })
-                                                });
-                                            });
-                                    });
-                                });
+                                groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
+                                    gumaps.map((gumap) => {
+                                        groupService.getAllUsersInGroup(gumap.groupId).then((allUsers) => {
+                                            let count = 0;
+                                            allUsers.map((user) => {
+                                                if (user.role !== 'bot' && user.status === 'online') {
+                                                    count++;
+                                                }
+                                            })
+                                            if (count < 2) {
+                                                log.info('Group status update with ID: ' + gumap.groupId + ' offline');
+                                                allUsers.map((user) => {
+                                                    if (user.role !== 'bot' && user.id !== userId) {
+                                                        io.in(user.socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'offline' });
+                                                    }
+                                                })
+                                                groupService.updateGroupStatus(gumap.groupId, 'offline', (result) => {
+                                                    result === 1 ? log.info("Group status updated in DB for ID: " + gumap.groupId + ' to offline') : null;
+                                                })
+                                            }
+                                        })
+                                    })
+                                })
                             } else {
                                 return;
                             }
@@ -317,7 +365,7 @@ exports.connectSocket = (io) => {
             });
 
             function scheduler() {
-                log.info('Scheduler called at ', moment(Date.now()).format());
+                // log.info('Scheduler called at ', moment(Date.now()).format());
                 notificationService.readByTime((allNotifications) => {
                     allNotifications.map((notification) => {
                         visitorAppointmentModel.visitor_appointment.findAll({
@@ -336,7 +384,7 @@ exports.connectSocket = (io) => {
                             }).then((group) => {
                                 userService.getById(notification.userId, (user) => {
                                     if (notification.status === 'created') {
-                                        log.info('group ' + JSON.stringify(group) + ' notification ' + JSON.stringify(notification));
+                                         log.info('group ' + JSON.stringify(group) + ' notification ' + JSON.stringify(notification));
                                         io.in(user.socketId).emit('consult-notification', {
                                             notification: notification,
                                             group: group
