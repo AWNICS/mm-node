@@ -384,7 +384,7 @@ exports.connectSocket = (io) => {
                             }).then((group) => {
                                 userService.getById(notification.userId, (user) => {
                                     if (notification.status === 'created') {
-                                        // log.info('group ' + JSON.stringify(group) + ' notification ' + JSON.stringify(notification));
+                                         log.info('group ' + JSON.stringify(group) + ' notification ' + JSON.stringify(notification));
                                         io.in(user.socketId).emit('consult-notification', {
                                             notification: notification,
                                             group: group
