@@ -13,6 +13,8 @@ import AuditModel from '../audit/audit.model';
 import AuditService from '../audit/audit.service';
 import NotificationService from '../notification/notification.service';
 import VisitorService from '../visitor/visitor.service';
+import emailConfig from '../../config/email.config';
+import messageConfig from '../../config/message.config';
 
 const Promise = require('bluebird');
 const moment = require('moment');
@@ -471,7 +473,7 @@ class GroupService {
                         userService.getById(doctorId, (doctor) => {
                             var groupName = '';
                             userService.getById(patientId, (user) => {
-                                groupName = 'Dr. ' + doctor.firstname + ' ' + doctor.lastname + ', ' + user.firstname + user.lastname;
+                                groupName = 'Dr. ' + doctor.firstname + ' ' + doctor.lastname + ', ' + user.firstname + ' ' + user.lastname;
                                 var group = {
                                     name: groupName,
                                     url: `consultation/${patientId}`,
@@ -546,9 +548,9 @@ class GroupService {
                                     });
                                     //create notification for the doctor
                                     doctorService.getById(doctorId, (doctor) => {
-                                        if(doctor.doctorDetails.speciality) {
+                                        if (doctor.doctorDetails.speciality) {
                                             userService.getById(patientId, (user) => {
-                                                if(user) {
+                                                if (user) {
                                                     var notification = {
                                                         userId: doctorId,
                                                         type: 'consultation',
@@ -562,11 +564,39 @@ class GroupService {
                                                         createdBy: user.id,
                                                         updatedBy: user.id
                                                     };
-                                                    notificationService.create(notification, (notificationCreated) => {});
+                                                    notificationService.create(notification, (notificationCreated) => {
+                                                        if (notificationCreated) {
+                                                            userService.getById(doctorId, (doctorDetails) => {
+                                                                //code for sending notification as email and SMS also
+                                                                emailConfig
+                                                                    .send({
+                                                                        template: 'notification-doctor',
+                                                                        message: {
+                                                                            to: 'nilu.kumari@awnics.com' //doctor email
+                                                                        },
+                                                                        locals: {
+                                                                            subject: notificationCreated.title,
+                                                                            patientName: user.firstname + ' ' + user.lastname,
+                                                                            patientEmail: user.email, //user email id
+                                                                            doctorName: 'Dr.' + ' ' + doctorDetails.firstname + ' ' + doctorDetails.lastname,
+                                                                            priority: notificationCreated.priority,
+                                                                            triggerTime: notificationCreated.triggerTime,
+                                                                            type: notificationCreated.type
+                                                                        }
+                                                                    })
+                                                                    .then(res => {
+                                                                        log.info('Email sent successfully to doctor for user email id: ' + user.email);
+                                                                    })
+                                                                    .catch(error =>
+                                                                        log.error('Error while sending notification to doctor', error)
+                                                                    );
+                                                                //for SMS notification message
+                                                                userService.sendTextMessage(doctorId, doctorDetails.phoneNo, messageConfig.authkey, messageConfig.country, messageConfig.notificationMessage, doctorDetails.firstname + ' ' + doctorDetails.lastname, 'notification', 'Notification Message sent');
+                                                            });
+                                                        }
+                                                    });
                                                 }
                                             });
-                                        } else {
-                                            log.error('Error in group service: doctor does not exist ', doctor.doctorDetails.speciality);
                                         }
                                     });
                                 }
