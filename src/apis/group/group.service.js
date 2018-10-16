@@ -546,9 +546,9 @@ class GroupService {
                                     });
                                     //create notification for the doctor
                                     doctorService.getById(doctorId, (doctor) => {
-                                        if(doctor.doctorDetails.speciality) {
+                                        if (doctor.doctorDetails.speciality) {
                                             userService.getById(patientId, (user) => {
-                                                if(user) {
+                                                if (user) {
                                                     var notification = {
                                                         userId: doctorId,
                                                         type: 'consultation',
