@@ -59,7 +59,7 @@ class Config {
         } else {
             this.http = http.Server(this.app);
         }
-        this.io = this.socket.listen(this.http), { pingTimeout: 5000 };
+        this.io = this.socket.listen(this.http);
         this.dotenv = dotenv;
         this.lodash = lodash;
         this.dotenv.config({ path: '.env.dev' });
