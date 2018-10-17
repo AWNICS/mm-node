@@ -1,6 +1,7 @@
 import GroupDao from './group.dao';
 import log from '../../config/log4js.config';
 import GroupUserMapDao from '../../apis/group/groupUserMap.dao';
+import consultationGroupModel from './index';
 import sequelize from '../../util/conn.mysql';
 import groupUserMapModel from './index';
 import groupModel from './index';
@@ -92,9 +93,19 @@ class GroupService {
     }
 
     updateGroupStatus(groupId, status, callback) {
-        return groupDao.updateGroupStatus(groupId, status, (result) => {
-            callback(result)
-        })
+        return sequelize.transaction().then(function(t) {
+            consultationGroupModel.consultation_group.update({ status: status }, {
+                where: {
+                    id: groupId
+                }
+            }, { transaction: t }).then(function(groupUpdated) {
+                callback(groupUpdated);
+            }).then(function() {
+                t.commit();
+            }).catch(function(error) {
+                t.rollback();
+            });
+        });
     }
 
     deleteGroupUserMap(userId, groupId, callback) {

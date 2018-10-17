@@ -523,7 +523,7 @@ class DoctorService {
     generatePdf(pdfData, callback) {
         var date = moment().utcOffset(330).format('DD-MM-YYYYTHH-mm-ss-SSS');
         var fileName = pdfData.userId + '-' + date + '.pdf';
-        fs.writeFile('./tmp/' + fileName, pdfData.data, 'binary', (err) => {
+        fs.writeFileSync('./tmp/' + fileName, pdfData.data, 'binary', (err) => {
             if (err) {
                 log.info('Error writing pdf data to file ' + err);
             }
