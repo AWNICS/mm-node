@@ -1,6 +1,7 @@
 import GroupDao from './group.dao';
 import log from '../../config/log4js.config';
 import GroupUserMapDao from '../../apis/group/groupUserMap.dao';
+import consultationGroupModel from './index';
 import sequelize from '../../util/conn.mysql';
 import groupUserMapModel from './index';
 import groupModel from './index';
@@ -91,6 +92,22 @@ class GroupService {
         });
     }
 
+    updateGroupStatus(groupId, status, callback) {
+        return sequelize.transaction().then(function(t) {
+            consultationGroupModel.consultation_group.update({ status: status }, {
+                where: {
+                    id: groupId
+                }
+            }, { transaction: t }).then(function(groupUpdated) {
+                callback(groupUpdated);
+            }).then(function() {
+                t.commit();
+            }).catch(function(error) {
+                t.rollback();
+            });
+        });
+    }
+
     deleteGroupUserMap(userId, groupId, callback) {
         return groupUserMapDao.delete(userId, groupId, (groupUserMapDeleted) => {
             callback(groupUserMapDeleted);
@@ -110,6 +127,42 @@ class GroupService {
                 return groupModel.consultation_group.findById(groupUserMap.groupId);
             });
         });
+    }
+
+    getAllGroupMapsByUserId(userId, callback) {
+            groupUserMapModel.consultation_group_user_map.findAll({
+                where: {
+                    userId: userId
+                }
+            }).then((usermaps) => {
+                callback(usermaps);
+            })
+
+        }
+        //returns all user details in a group taking group id as input
+    getAllUsersInGroup(groupId) {
+        return new Promise((res, rej) => {
+            groupUserMapModel.consultation_group_user_map.findAll({
+                where: {
+                    groupId: groupId
+                }
+            }).then((users) => {
+                return Promise.map(users, (user) => {
+                    return new Promise((res, rej) => {
+                        userModel.user.findById(user.userId).then((userDetails) => {
+                                res(userDetails);
+                            })
+                            .catch((error) => {
+                                rej(error)
+                            })
+                    })
+                }).then((allUsers) => {
+                    res(allUsers);
+                }).catch((error) => {
+                    rej(error)
+                })
+            })
+        })
     }
 
     /**
