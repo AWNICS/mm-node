@@ -244,18 +244,50 @@ exports.connectSocket = (io) => {
             /**
              * user or doctor added to consultation group
              */
-            socket.on('user-added', (doctor, groupId) => {
-                var groupUserMap = {
-                    groupId: groupId,
-                    userId: doctor.id,
-                    createdBy: doctor.id,
-                    updatedBy: doctor.id
-                }
-                groupService.createGroupUserMap(groupUserMap, () => {
+            socket.on('user-added', (doctor, groupId, notification) => {
+                if (notification.status === 'sent') {
+                    notification.status = 'read';
+                    notificationService.update(notification, (updatedNotification) => {
+                        log.info('updated notification status to read', updatedNotification);
+                        var groupUserMap = {
+                            groupId: groupId,
+                            userId: doctor.id,
+                            createdBy: doctor.id,
+                            updatedBy: doctor.id
+                        };
+                        groupService.createGroupUserMap(groupUserMap, () => {
+                            var group = {
+                                id: groupId,
+                                phase: 'inactive'
+                            };
+                            groupService.update(group, () => {
+                                groupService.getUsersByGroupId(groupId, (user) => {
+                                    io.in(user.socketId).emit('receive-user-added', {
+                                        message: `${doctor.firstname} ${doctor.lastname} joined the group`,
+                                        doctorId: doctor.id
+                                    }); //emit one-by-one for all users
+                                });
+                            });
+                            var audit = new AuditModel({
+                                senderId: doctor.id,
+                                receiverId: groupId,
+                                receiverType: 'group',
+                                mode: 'doctor',
+                                entityName: 'doctor',
+                                entityEvent: 'add',
+                                createdBy: doctor.id,
+                                updatedBy: doctor.id,
+                                createdTime: Date.now(),
+                                updatedTime: Date.now()
+                            });
+                            auditService.create(audit, (auditCreated) => {});
+                        });
+                    });
+                } else if (notification.status === 'read') {
                     var group = {
                         id: groupId,
                         phase: 'inactive'
-                    }
+                    };
                     groupService.update(group, () => {
                         groupService.getUsersByGroupId(groupId, (user) => {
                             io.in(user.socketId).emit('receive-user-added', {
@@ -277,7 +309,9 @@ exports.connectSocket = (io) => {
                         updatedTime: Date.now()
                     });
                     auditService.create(audit, (auditCreated) => {});
-                });
+                } else {
+                    return;
+                }
             });
 
             /**
@@ -365,7 +399,7 @@ exports.connectSocket = (io) => {
             });
 
             function scheduler() {
-                // log.info('Scheduler called at ', moment(Date.now()).format());
+                log.info('Scheduler called at ', moment(Date.now()).format());
                 notificationService.readByTime((allNotifications) => {
                     allNotifications.map((notification) => {
                         visitorAppointmentModel.visitor_appointment.findAll({
@@ -384,7 +418,6 @@ exports.connectSocket = (io) => {
                             }).then((group) => {
                                 userService.getById(notification.userId, (user) => {
                                     if (notification.status === 'created') {
-                                        // log.info('group ' + JSON.stringify(group) + ' notification ' + JSON.stringify(notification));
                                         io.in(user.socketId).emit('consult-notification', {
                                             notification: notification,
                                             group: group
@@ -402,19 +435,27 @@ exports.connectSocket = (io) => {
                                             triggerTime: notification.triggerTime,
                                             createdBy: notification.createdBy,
                                             updatedBy: notification.updatedBy
-                                        }
+                                        };
                                         notificationModel.notification.update(updateNotification, {
                                                 where: {
                                                     id: updateNotification.id
                                                 }
                                             })
                                             .then((res) => {
-                                                if (res) {
-                                                    log.info('Notification sent');
-                                                }
+                                                notificationService.readById(notification.id, (updatedNotification) => {
+                                                    if (res) {
+                                                        io.in(user.socketId).emit('consult-notification', {
+                                                            notification: updatedNotification,
+                                                            group: group
+                                                        });
+                                                        log.info('Notification sent');
+                                                    }
+                                                });
                                             }).catch((err) => {
                                                 log.error('error' + err);
                                             });
+                                    } else {
+                                        return;
                                     }
                                 });
                             });

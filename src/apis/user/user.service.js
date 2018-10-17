@@ -292,7 +292,7 @@ class UserService {
                 log.info('Email sent to user ' + user.email + ' for ' + title);
             })
             .catch(error => log.error('Error while sending activation link to ' + user.email + ' ' + error));
-        const message = user.role === "patient" ? msgconfig.usermessage : msgconfig.doctormessage;
+        const message = user.role === "patient" ? msgconfig.userMessage : msgconfig.doctorMessage;
         this.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, message, user.firstname + ' ' + user.lastname, 'registration', "Message sent for " + title)
     }
 

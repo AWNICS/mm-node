@@ -529,7 +529,7 @@ class GroupService {
                                 groupName = 'Dr. ' + doctor.firstname + ' ' + doctor.lastname + ', ' + user.firstname + ' ' + user.lastname;
                                 var group = {
                                     name: groupName,
-                                    url: `consultation/${patientId}`,
+                                    url: `consultation/${doctorId}`,
                                     userId: patientId,
                                     description: 'Consultation for registered patients',
                                     picture: null,
@@ -596,7 +596,6 @@ class GroupService {
                                         updatedTime: Date.now()
                                     };
                                     messageService.sendMessage(msg, (result) => {
-                                        log.info('new message created by bot and sent ', result);
                                         callback(createdGroup);
                                     });
                                     //create notification for the doctor
