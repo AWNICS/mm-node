@@ -23,19 +23,24 @@ module.exports = (sequelize, DataTypes) => {
             unique: true
         },
         aadhaarNo: {
-            type: DataTypes.BIGINT
+            type: DataTypes.BIGINT,
+            defaultValue: null
         },
         picUrl: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
+            defaultValue: null
         },
         description: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
+            defaultValue: null
         },
         status: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
+            defaultValue: 'offline'
         },
         token: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
+            defaultValue: null
         },
         activate: {
             type: DataTypes.NUMERIC,
@@ -48,6 +53,10 @@ module.exports = (sequelize, DataTypes) => {
         socketId: {
             type: DataTypes.STRING,
             defaultValue: null
+        },
+        termsAccepted: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
         },
         createdBy: {
             type: DataTypes.INTEGER,
