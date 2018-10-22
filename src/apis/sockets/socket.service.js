@@ -35,9 +35,8 @@ exports.connectSocket = (io) => {
             }
         })
         .on('connection', function(socket) {
-
             socket.on('disconnect', (type) => {
-                if (type === 'transport error') {
+                if (type === 'transport close') {
                     let userId = socket.decoded.data.id;
                     userService.getById(userId, (user) => {
                         if (user.id === userId) {
@@ -196,7 +195,7 @@ exports.connectSocket = (io) => {
             socket.on('send-typing', (groupId, userName) => {
                 groupService.getAllUsersByGroupId(groupId, (users) => {
                     users.map(user => {
-                        user.firstname + ' ' + user.lastname === userName ? null : socket.to(user.socketId).emit('receive-typing', groupId, userName); //emit one-by-one for all users
+                        user.firstname + ' ' + user.lastname === userName ? null : socket.to(user.socketId).emit('receive-typing',{'groupId':groupId, 'userName':userName}); //emit one-by-one for all users
                     });
                 });
             });
