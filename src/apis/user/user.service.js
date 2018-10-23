@@ -171,7 +171,7 @@ class UserService {
                             userId: userInserted.id,
                             description: 'Med help',
                             phase: 'active',
-                            status: 'offline',
+                            status: 'online',
                             createdBy: userInserted.id,
                             updatedBy: userInserted.id
                         };
