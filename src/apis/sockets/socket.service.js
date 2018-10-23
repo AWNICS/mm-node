@@ -243,24 +243,24 @@ exports.connectSocket = (io) => {
             /**
              * user or doctor added to consultation group
              */
-            socket.on('user-added', (doctor, groupId, notification) => {
-                if (notification.status === 'sent') {
+            socket.on('user-added', (doctor, notification) => {
+                if (notification.status === 'created' || notification.status === 'sent') {
                     notification.status = 'read';
                     notificationService.update(notification, (updatedNotification) => {
                         log.info('updated notification status to read', updatedNotification);
                         var groupUserMap = {
-                            groupId: groupId,
+                            groupId: notification.content.consultationId,
                             userId: doctor.id,
                             createdBy: doctor.id,
                             updatedBy: doctor.id
                         };
                         groupService.createGroupUserMap(groupUserMap, () => {
                             var group = {
-                                id: groupId,
+                                id: notification.content.consultationId,
                                 phase: 'inactive'
                             };
                             groupService.update(group, () => {
-                                groupService.getUsersByGroupId(groupId, (user) => {
+                                groupService.getUsersByGroupId(notification.content.consultationId, (user) => {
                                     io.in(user.socketId).emit('receive-user-added', {
                                         message: `${doctor.firstname} ${doctor.lastname} joined the group`,
                                         doctorId: doctor.id
@@ -269,7 +269,7 @@ exports.connectSocket = (io) => {
                             });
                             var audit = new AuditModel({
                                 senderId: doctor.id,
-                                receiverId: groupId,
+                                receiverId: notification.content.consultationId,
                                 receiverType: 'group',
                                 mode: 'doctor',
                                 entityName: 'doctor',
@@ -284,11 +284,11 @@ exports.connectSocket = (io) => {
                     });
                 } else if (notification.status === 'read') {
                     var group = {
-                        id: groupId,
+                        id: notification.content.consultationId,
                         phase: 'inactive'
                     };
                     groupService.update(group, () => {
-                        groupService.getUsersByGroupId(groupId, (user) => {
+                        groupService.getUsersByGroupId(notification.content.consultationId, (user) => {
                             io.in(user.socketId).emit('receive-user-added', {
                                 message: `${doctor.firstname} ${doctor.lastname} joined the group`,
                                 doctorId: doctor.id
@@ -297,7 +297,7 @@ exports.connectSocket = (io) => {
                     });
                     var audit = new AuditModel({
                         senderId: doctor.id,
-                        receiverId: groupId,
+                        receiverId: notification.content.consultationId,
                         receiverType: 'group',
                         mode: 'doctor',
                         entityName: 'doctor',
@@ -401,63 +401,38 @@ exports.connectSocket = (io) => {
                 log.info('Scheduler called at ', moment(Date.now()).format());
                 notificationService.readByTime((allNotifications) => {
                     allNotifications.map((notification) => {
-                        visitorAppointmentModel.visitor_appointment.findAll({
-                            where: {
-                                doctorId: notification.userId,
-                                startTime: {
-                                    [Op.gt]: Date.now()
-                                }
-                            }
-                        }).then((visitorAppointment) => {
-                            consultationGroupModel.consultation_group.findAll({
-                                where: {
-                                    userId: visitorAppointment[0].visitorId,
-                                    url: `consultation/${notification.userId}`
-                                }
-                            }).then((group) => {
-                                userService.getById(notification.userId, (user) => {
-                                    if (notification.status === 'created') {
-                                        io.in(user.socketId).emit('consult-notification', {
-                                            notification: notification,
-                                            group: group
-                                        });
-                                        var updateNotification = {
-                                            id: notification.id,
-                                            template: notification.template,
-                                            userId: notification.userId,
-                                            type: notification.type,
-                                            title: notification.title,
-                                            content: notification.content,
-                                            status: "sent",
-                                            channel: notification.channel,
-                                            priority: 1,
-                                            triggerTime: notification.triggerTime,
-                                            createdBy: notification.createdBy,
-                                            updatedBy: notification.updatedBy
-                                        };
-                                        notificationModel.notification.update(updateNotification, {
-                                                where: {
-                                                    id: updateNotification.id
-                                                }
-                                            })
-                                            .then((res) => {
-                                                notificationService.readById(notification.id, (updatedNotification) => {
-                                                    if (res) {
-                                                        io.in(user.socketId).emit('consult-notification', {
-                                                            notification: updatedNotification,
-                                                            group: group
-                                                        });
-                                                        log.info('Notification sent');
-                                                    }
-                                                });
-                                            }).catch((err) => {
-                                                log.error('error' + err);
-                                            });
-                                    } else {
-                                        return;
-                                    }
+                        userService.getById(notification.userId, (user) => {
+                            if (notification.status === 'created') {
+                                io.in(user.socketId).emit('consult-notification', {
+                                    notification: notification
                                 });
-                            });
+                                var updateNotification = {
+                                    id: notification.id,
+                                    template: notification.template,
+                                    userId: notification.userId,
+                                    type: notification.type,
+                                    title: notification.title,
+                                    content: notification.content,
+                                    status: "sent",
+                                    channel: notification.channel,
+                                    priority: 1,
+                                    triggerTime: notification.triggerTime,
+                                    createdBy: notification.createdBy,
+                                    updatedBy: notification.updatedBy
+                                };
+                                notificationModel.notification.update(updateNotification, {
+                                        where: {
+                                            id: updateNotification.id
+                                        }
+                                    })
+                                    .then((res) => {
+                                        log.info('notification updated.');
+                                    }).catch((err) => {
+                                        log.error('error' + err);
+                                    });
+                            } else {
+                                return;
+                            }
                         });
                     });
                 });

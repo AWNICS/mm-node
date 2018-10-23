@@ -14,8 +14,14 @@ module.exports = (sequelize, DataTypes) => {
         title: {
             type: DataTypes.STRING //title of the notification
         },
-        content: {
-            type: DataTypes.STRING //content of the notification
+        content: { //content of the notification
+            type: DataTypes.TEXT,
+            get: function() {
+                return JSON.parse(this.getDataValue('content'));
+            },
+            set: function(content) {
+                this.setDataValue('content', JSON.stringify(content));
+            }
         },
         status: {
             type: DataTypes.STRING //created, sent, read
