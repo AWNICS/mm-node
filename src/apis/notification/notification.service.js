@@ -26,7 +26,8 @@ class NotificationService {
                     triggerTime: {
                         [Op.gt]: lowerLimit,
                         [Op.lt]: upperLimit
-                    }
+                    },
+                    channel: 'web'
                 }
             })
             .then(notifications => {
@@ -79,14 +80,14 @@ class NotificationService {
             "path": `/api/sendotp.php?otp_length=${process.env.OTP_LENGTH}&authkey=${process.env.MES91_KEY}&message=${message}&sender=${process.env.MES91_SENDER}&mobile=${mobileNo}&otp_expiry=${process.env.OTP_EXPIRY}`,
             "headers": {}
         };
-        var req = https.request(options, function (res) {
+        var req = https.request(options, function(res) {
             var chunks = [];
 
-            res.on("data", function (chunk) {
+            res.on("data", function(chunk) {
                 chunks.push(chunk);
             });
 
-            res.on("end", function () {
+            res.on("end", function() {
                 var body = Buffer.concat(chunks);
                 log.info('OTP sent to ' + mobileNo + ' res: ' + body.toString());
                 callback(JSON.parse(body));
@@ -107,14 +108,14 @@ class NotificationService {
             }
         };
 
-        var req = https.request(options, function (res) {
+        var req = https.request(options, function(res) {
             var chunks = [];
 
-            res.on("data", function (chunk) {
+            res.on("data", function(chunk) {
                 chunks.push(chunk);
             });
 
-            res.on("end", function () {
+            res.on("end", function() {
                 var body = Buffer.concat(chunks);
                 log.info('OTP resent to ' + mobileNo + ' res: ' + body.toString());
                 callback(JSON.parse(body));
@@ -135,14 +136,14 @@ class NotificationService {
             }
         };
 
-        var req = https.request(options, function (res) {
+        var req = https.request(options, function(res) {
             var chunks = [];
 
-            res.on("data", function (chunk) {
+            res.on("data", function(chunk) {
                 chunks.push(chunk);
             });
 
-            res.on("end", function () {
+            res.on("end", function() {
                 var body = Buffer.concat(chunks);
                 log.info('OTP verified for ' + mobileNo + ' res: ' + body.toString());
                 callback(JSON.parse(body));

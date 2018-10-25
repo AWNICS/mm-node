@@ -523,24 +523,31 @@ class GroupService {
                         //     });
                         // });
                     } else {
-                        userService.getById(doctorId, (doctor) => {
+                        userService.getById(doctorId, (doctor) => { //doctor details from user table
                             if (doctor) {
                                 var groupName = '';
                                 userService.getById(patientId, (user) => {
-                                    groupName = 'Dr. ' + doctor.firstname + ' ' + doctor.lastname + ', ' + user.firstname + ' ' + user.lastname;
-                                    var group = {
-                                        name: groupName,
-                                        url: `consultation/${doctorId}`,
-                                        userId: patientId,
-                                        description: 'Consultation for registered patients',
-                                        picture: null,
-                                        phase: 'active',
-                                        status: 'offline',
-                                        createdBy: patientId,
-                                        updatedBy: patientId
-                                    };
-                                    this.createGroupForConsultation(group, doctorId, patientId, (newGroup) => {
-                                        callback(newGroup);
+                                    doctorService.getById(doctorId, (result) => { //doctor from doctor table
+                                        if (result.doctorDetails) {
+                                            groupName = 'Dr. ' + doctor.firstname + ' ' + doctor.lastname + ', ' + user.firstname + ' ' + user.lastname;
+                                            var group = {
+                                                name: groupName,
+                                                url: `consultation/${doctorId}`,
+                                                userId: patientId,
+                                                details: {
+                                                    description: 'Consultation for registered patients',
+                                                    speciality: result.doctorDetails.speciality
+                                                },
+                                                picture: null,
+                                                phase: 'active',
+                                                status: 'offline',
+                                                createdBy: patientId,
+                                                updatedBy: patientId
+                                            };
+                                            this.createGroupForConsultation(group, doctorId, patientId, (newGroup) => {
+                                                callback(newGroup);
+                                            });
+                                        }
                                     });
                                 });
                             } else {

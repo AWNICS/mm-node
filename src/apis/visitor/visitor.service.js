@@ -351,13 +351,22 @@ class VisitorService {
 
     async getAppointmentsByDoctorId(doctorId, page, size, callback) {
         var offset = ((size * page) - size);
+        var lowerLimit;
+        var upperLimit;
+        if (process.env.NODE_ENV === 'dev') {
+            lowerLimit = moment().startOf('day').add({ hours: 5, minutes: 30 });
+            upperLimit = moment().endOf('day').add({ hours: 5, minutes: 30 });
+        } else { //for prod env
+            lowerLimit = moment().startOf('day');
+            upperLimit = moment().endOf('day');
+        }
         var visitorAppointments = await visitorAppointmentModel.visitor_appointment
             .findAll({
                 where: {
                     doctorId: doctorId,
                     startTime: {
-                        [Op.gte]: moment().add({ hours: 5, minutes: 30 }),
-                        [Op.lt]: moment().endOf('day').add({ hours: 5, minutes: 30 })
+                        [Op.gte]: lowerLimit,
+                        [Op.lt]: upperLimit
                     }
                 },
                 offset: offset,
