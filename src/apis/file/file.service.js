@@ -42,7 +42,9 @@ class FileService {
                 .jpeg()
                 .toBuffer({ resolveWithObject: true })
                 .then(({ data, info }) => {
-                    let thumbFileName = fileName + '-thumb'
+                    let imageExtension = fileName.match(/\.\S+$/);
+                    let thumbFileName = fileName.replace(imageExtension[0],'') + '-thumb'+'.jpeg';
+                    fileName = fileName.replace(imageExtension[0],'.jpeg')
                     log.info('Resized file info: ', info);
                     const file = bucket.file(thumbFileName);
 
@@ -74,6 +76,7 @@ class FileService {
     }
 
     upload(req, bucket, fileName, callback) {
+        console.log(fileName);
         if (!req.file) {
             return next();
         }

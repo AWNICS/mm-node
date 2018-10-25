@@ -12,6 +12,7 @@ import NotificationService from '../notification/notification.service';
 import visitorAppointmentModel from '../visitor/index';
 import notificationModel from '../notification/index';
 import sequelize from '../../util/conn.mysql';
+import VisitorService from '../visitor/visitor.service';
 
 const moment = require('moment');
 const Op = require('sequelize').Op;
@@ -48,7 +49,10 @@ exports.connectSocket = (io) => {
                         }
                     })
                     log.info('User disconnected with ID: ' + userId);
+                    consultationGroupModel.consultation_group.findAll({where:{userId:userId,name:'MedHelp'}}).then((result)=>{
+                        if(result){
                     groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
+                        if(result.id !== gumap.groupId){
                         gumaps.map((gumap) => {
                             groupService.getAllUsersInGroup(gumap.groupId).then((allUsers) => {
                                 let count = 0;
@@ -70,7 +74,10 @@ exports.connectSocket = (io) => {
                                 }
                             })
                         })
+                    }
                     })
+                }
+            })
                 }
             })
 
@@ -84,9 +91,12 @@ exports.connectSocket = (io) => {
                             'socketId': socket.id,
                             'status': 'online'
                         }, (user) => {});
-
+                
+                consultationGroupModel.consultation_group.findAll({where:{userId:userId,name:'MedHelp'}}).then((result)=>{
+                    if(result){
                         groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
                             gumaps.map((gumap) => {
+                                if(result.id !== gumap.groupId){
                                 groupService.getAllUsersInGroup(gumap.groupId).then((allUsers) => {
                                     let count = 0;
                                     allUsers.map((user) => {
@@ -106,8 +116,11 @@ exports.connectSocket = (io) => {
                                         })
                                     }
                                 })
+                            }
                             })
-                        })
+                        })      
+                    }
+                })
                     }
                 });
                 var audit = new AuditModel({
@@ -214,6 +227,53 @@ exports.connectSocket = (io) => {
                 });
             });
 
+            socket.on('doctor-status', (userId, status) => {
+                userService.updateRegisteredUser({
+                    'id': userId,
+                    'status': status
+                }, (user) => {
+                    userService.getById(userId,(result)=>{
+                        io.in(result.socketId).emit('doctor-status',status);    
+                    })
+                    
+                });
+                groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
+                    gumaps.map((gumap) => {
+                        groupService.getAllUsersInGroup(gumap.groupId).then((allUsers) => {
+                            let count = 0;
+                            allUsers.map((user) => {
+                                if (user.role !== 'bot' && user.status === 'online') {
+                                    count++;
+                                }
+                            })
+                            if (count > 1) {
+                                log.info('Group status Update with ID: ' + gumap.groupId + ' online');
+                                allUsers.map((user) => {
+                                    if (user.role !== 'bot') {
+                                        io.in(user.socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'online' });
+                                    }
+                                })
+                                groupService.updateGroupStatus(gumap.groupId, 'online', (result) => {
+                                    result === 1 ? log.info("Group status updated in DB for ID: " + gumap.groupId + ' to online') : null;
+                                })
+                            }else{
+                                log.info('Group status Update with ID: ' + gumap.groupId + ' offline');
+                                allUsers.map((user) => {
+                                    if (user.role !== 'bot') {
+                                        io.in(user.socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'offline' });
+                                    }
+                                })
+                                groupService.updateGroupStatus(gumap.groupId, 'offline', (result) => {
+                                    result === 1 ? log.info("Group status updated in DB for ID: " + gumap.groupId + ' to offline') : null;
+                                })
+
+                            }
+                        })
+                    })
+                })
+
+            });
+
             /**
              * delete message
              */
@@ -259,6 +319,27 @@ exports.connectSocket = (io) => {
                                 id: groupId,
                                 phase: 'inactive'
                             };
+
+                        groupService.getAllUsersInGroup(groupId).then((allUsers) => {
+                            let count = 0;
+                            allUsers.map((user) => {
+                                if (user.role !== 'bot' && user.status === 'online') {
+                                    count++;
+                                }
+                            })
+                            if (count > 1) {
+                                log.info('Group status Update with ID: ' + groupId + ' online');
+                                allUsers.map((user) => {
+                                    if (user.role !== 'bot') {
+                                        io.in(user.socketId).emit('received-group-status', { 'groupId': groupId, 'groupStatus': 'online' });
+                                    }
+                                })
+                                groupService.updateGroupStatus(groupId, 'online', (result) => {
+                                    result === 1 ? log.info("Group status updated in DB for ID: " + groupId + ' to online') : null;
+                                })
+                            }
+                        })
+
                             groupService.update(group, () => {
                                 groupService.getUsersByGroupId(groupId, (user) => {
                                     io.in(user.socketId).emit('receive-user-added', {
@@ -326,6 +407,26 @@ exports.connectSocket = (io) => {
                                 group: group
                             }); //emit one-by-one for all users
                         });
+                        groupService.getAllUsersInGroup(groupId).then((allUsers) => {
+                            let count = 0;
+                            allUsers.map((user) => {
+                                if (user.role !== 'bot' && user.status === 'online') {
+                                    count++;
+                                }
+                            })
+                            if (count < 2) {
+                                log.info('Group status Update with ID: ' + groupId + ' offline');
+                                allUsers.map((user) => {
+                                    if (user.role !== 'bot') {
+                                        io.in(user.socketId).emit('received-group-status', { 'groupId': groupId, 'groupStatus': 'offline' });
+                                    }
+                                })
+                                groupService.updateGroupStatus(groupId, 'offline', (result) => {
+                                    result === 1 ? log.info("Group status updated in DB for ID: " + groupId + ' to offline') : null;
+                                })
+                            }
+                        })
+
                     });
                     var audit = new AuditModel({
                         senderId: doctor.id,
@@ -353,8 +454,12 @@ exports.connectSocket = (io) => {
                         }, (user) => {
                             log.info('User logged out: ', userId);
                             if (user) {
+                                consultationGroupModel.consultation_group.findAll({where:{userId:userId,name:'MedHelp'}}).then((result)=>{
+                                    if(result){
                                 groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
+                                    
                                     gumaps.map((gumap) => {
+                                        if(result.id !== gumap.groupId){
                                         groupService.getAllUsersInGroup(gumap.groupId).then((allUsers) => {
                                             let count = 0;
                                             allUsers.map((user) => {
@@ -374,8 +479,11 @@ exports.connectSocket = (io) => {
                                                 })
                                             }
                                         })
+                                    }
                                     })
                                 })
+                            }
+                        })
                             } else {
                                 return;
                             }
