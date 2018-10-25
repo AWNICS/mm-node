@@ -76,7 +76,6 @@ class FileService {
     }
 
     upload(req, bucket, fileName, callback) {
-        console.log(fileName);
         if (!req.file) {
             return next();
         }
