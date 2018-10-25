@@ -1,4 +1,4 @@
 {
-    "activation": "http://35.231.46.114/activates",
-    "resetPassword": "http://35.231.46.114/resetPassword"
+    "activation": "https://mesomeds.com/activates",
+    "resetPassword": "https://mesomeds.com/resetPassword"
 }
