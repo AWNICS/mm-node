@@ -14,8 +14,14 @@ module.exports = (sequelize, DataTypes) => {
         userId: {
             type: DataTypes.INTEGER
         },
-        description: {
-            type: DataTypes.STRING
+        details: {
+            type: DataTypes.TEXT,
+            get: function() {
+                return JSON.parse(this.getDataValue('details'));
+            },
+            set: function(details) {
+                this.setDataValue('details', JSON.stringify(details));
+            }
         },
         picture: {
             type: DataTypes.STRING

@@ -111,7 +111,11 @@ class UserService {
                             name: 'MedHelp',
                             url: `/medhelp/${userInserted.id}`,
                             userId: userInserted.id,
-                            description: 'Med help',
+                            phase: 'active',
+                            details: {
+                                description: 'General enquiry available 24x7',
+                                speciality: 'General enquiry'
+                            },
                             createdBy: userInserted.id,
                             updatedBy: userInserted.id
                         };
@@ -169,7 +173,10 @@ class UserService {
                             name: 'MedHelp',
                             url: `/medhelp/${userInserted.id}`,
                             userId: userInserted.id,
-                            description: 'Med help',
+                            details: {
+                                description: 'General enquiry available 24x7',
+                                speciality: 'General enquiry'
+                            },
                             phase: 'active',
                             status: 'online',
                             createdBy: userInserted.id,
