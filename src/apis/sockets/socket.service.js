@@ -150,7 +150,7 @@ exports.connectSocket = (io) => {
                         });
                     });
                     groupService.getById(group.id, (group) => {
-                        if (group.phase === 'active') {
+                        if (group.phase === 'active' && msg.type !=='notification') {
                             consultationGroupModel.consultation_group_user_map.findAll({
                                 where: {
                                     groupId: group.id
@@ -319,35 +319,34 @@ exports.connectSocket = (io) => {
                                 id: notification.content.consultationId,
                                 phase: 'inactive'
                             };
-
-                        groupService.getAllUsersInGroup(groupId).then((allUsers) => {
-                            let count = 0;
-                            allUsers.map((user) => {
-                                if (user.role !== 'bot' && user.status === 'online') {
-                                    count++;
-                                }
-                            })
-                            if (count > 1) {
-                                log.info('Group status Update with ID: ' + groupId + ' online');
-                                allUsers.map((user) => {
-                                    if (user.role !== 'bot') {
-                                        io.in(user.socketId).emit('received-group-status', { 'groupId': groupId, 'groupStatus': 'online' });
-                                    }
-                                })
-                                groupService.updateGroupStatus(groupId, 'online', (result) => {
-                                    result === 1 ? log.info("Group status updated in DB for ID: " + groupId + ' to online') : null;
-                                })
-                            }
-                        })
-
-                            groupService.update(group, () => {
-                                groupService.getUsersByGroupId(notification.content.consultationId, (user) => {
-                                    io.in(user.socketId).emit('receive-user-added', {
-                                        message: `${doctor.firstname} ${doctor.lastname} joined the group`,
-                                        doctorId: doctor.id
-                                    }); //emit one-by-one for all users
-                                });
-                            });
+                        //will have to check this in the prod
+                        // groupService.update(group, () => {
+                        //         groupService.getUsersByGroupId(notification.content.consultationId, (user) => {
+                        //             io.in(user.socketId).emit('receive-user-added', {
+                        //                 message: `Dr. ${doctor.firstname} ${doctor.lastname} joined the group`,
+                        //                 doctorId: doctor.id
+                        //             }); //emit one-by-one for all users
+                        //         });
+                        //     });
+                        // groupService.getAllUsersInGroup(groupId).then((allUsers) => {
+                        //     let count = 0;
+                        //     allUsers.map((user) => {
+                        //         if (user.role !== 'bot' && user.status === 'online') {
+                        //             count++;
+                        //         }
+                        //     })
+                        //     if (count > 1) {
+                        //         log.info('Group status Update with ID: ' + groupId + ' online');
+                        //         allUsers.map((user) => {
+                        //             if (user.role !== 'bot') {
+                        //                 io.in(user.socketId).emit('received-group-status', { 'groupId': groupId, 'groupStatus': 'online' });
+                        //             }
+                        //         })
+                        //         groupService.updateGroupStatus(groupId, 'online', (result) => {
+                        //             result === 1 ? log.info("Group status updated in DB for ID: " + groupId + ' to online') : null;
+                        //         })
+                        //     }
+                        // })
                             var audit = new AuditModel({
                                 senderId: doctor.id,
                                 receiverId: notification.content.consultationId,
@@ -398,15 +397,18 @@ exports.connectSocket = (io) => {
              * user or doctor added to consultation group
              */
             socket.on('user-deleted', (doctor, group) => {
-                groupService.deleteGroupUserMap(doctor.id, group.id, () => {
+                groupService.getUsersByGroupId(group.id, (user) => {
+                    if(user.id===doctor.id){
+                    io.in(user.socketId).emit('receive-user-deleted', {
+                        message: `Dr. ${doctor.firstname} ${doctor.lastname} ended the consultation`,
+                        group: group
+                    }); //emit one-by-one for all users
+                }
+                });
+                //commenting it for the timebeing to avoid group deletionr
+                // groupService.deleteGroupUserMap(doctor.id, group.id, () => {
                     group.phase = 'active';
-                    groupService.update(group, () => {
-                        groupService.getUsersByGroupId(group.id, (user) => {
-                            io.in(user.socketId).emit('receive-user-deleted', {
-                                message: `${doctor.firstname} ${doctor.lastname} left the group`,
-                                group: group
-                            }); //emit one-by-one for all users
-                        });
+                    groupService.update(group, () => {     
                         groupService.getAllUsersInGroup(groupId).then((allUsers) => {
                             let count = 0;
                             allUsers.map((user) => {
@@ -425,8 +427,7 @@ exports.connectSocket = (io) => {
                                     result === 1 ? log.info("Group status updated in DB for ID: " + groupId + ' to offline') : null;
                                 })
                             }
-                        })
-
+                        });
                     });
                     var audit = new AuditModel({
                         senderId: doctor.id,
@@ -441,7 +442,7 @@ exports.connectSocket = (io) => {
                         updatedTime: Date.now()
                     });
                     auditService.create(audit, (auditCreated) => {});
-                });
+                // });
             });
 
             socket.on('user-disconnect', (userId) => {
