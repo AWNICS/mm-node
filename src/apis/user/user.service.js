@@ -269,9 +269,9 @@ class UserService {
                     signature: '',
                     attachment: '',
                 },
-                triggerTime: null,
-                createdBy: null,
-                updatedBy: null,
+                triggerTime: Date.now(),
+                createdBy: userId,
+                updatedBy: userId,
             };
             notificationService.create(notification, (res) => {
                 res ? log.info('Notification created ' + channel + ' to ' + templateTo) : log.error('Error in creating notification for ' + type + ' through ' + channel);

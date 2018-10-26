@@ -540,7 +540,7 @@ class GroupService {
                                                 },
                                                 picture: null,
                                                 phase: 'active',
-                                                status: 'offline',
+                                                status: 'online',
                                                 createdBy: patientId,
                                                 updatedBy: patientId
                                             };
@@ -679,27 +679,6 @@ class GroupService {
                                                                         );
                                                                 });
                                                                 //for SMS notification message
-                                                                var messageNotification = {
-                                                                    userId: doctorId,
-                                                                    type: 'consultation',
-                                                                    title: `Consultation with ${user.firstname} ${user.lastname}`,
-                                                                    content: {
-                                                                        speciality: doctor.doctorDetails.speciality,
-                                                                        consultationId: createdGroup.id
-                                                                    },
-                                                                    status: 'created',
-                                                                    channel: 'message',
-                                                                    priority: 0,
-                                                                    template: {
-                                                                        from: "test.arung@gmail.com",
-                                                                        to: doctorDetails.email,
-                                                                        body: `You have a consultation with ${user.firstname} ${user.lastname} at ${notificationCreated.triggerTime}.`
-                                                                    },
-                                                                    triggerTime: moment().add(1, 'm'),
-                                                                    createdBy: user.id,
-                                                                    updatedBy: user.id
-                                                                };
-                                                                notificationService.create(messageNotification, (messageNotificationCreated) => {});
                                                                 userService.sendTextMessage(doctorId, doctorDetails.phoneNo, messageConfig.authkey, messageConfig.country, messageConfig.notificationMessage, doctorDetails.firstname + ' ' + doctorDetails.lastname, 'Message Notification', 'Notification Message sent');
                                                             });
                                                         }
