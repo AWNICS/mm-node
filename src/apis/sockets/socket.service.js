@@ -306,8 +306,13 @@ exports.connectSocket = (io) => {
             socket.on('user-added', (doctor, notification) => {
                 groupService.getById(notification.content.consultationId, (group) => {
                     if (notification.status === 'created' || notification.status === 'sent') {
-                        notification.status = 'read';
-                        notificationService.update(notification, (updatedNotification) => {
+                        var newNotification = {
+                            id: notification.id,
+                            template: notification.template,
+                            status: 'read',
+                            content: notification.content
+                        };
+                        notificationService.update(newNotification, (updatedNotification) => {
                             log.info('updated notification status to read', updatedNotification);
                             var groupUserMap = {
                                 groupId: group.id,
@@ -315,6 +320,42 @@ exports.connectSocket = (io) => {
                                 createdBy: doctor.id,
                                 updatedBy: doctor.id
                             };
+                            groupService.createGroupUserMap(groupUserMap, () => {
+                                var newGroup = {
+                                    id: group.id,
+                                    phase: 'inactive',
+                                    details: group.details
+                                };
+                                groupService.update(newGroup, () => {
+                                    groupService.getUsersByGroupId(group.id, (user) => {
+                                        io.in(user.socketId).emit('receive-user-added', {
+                                            message: `${doctor.firstname} ${doctor.lastname} joined the group`,
+                                            doctorId: doctor.id
+                                        }); //emit one-by-one for all users
+                                    });
+                                });
+                                var audit = new AuditModel({
+                                    senderId: doctor.id,
+                                    receiverId: group.id,
+                                    receiverType: 'group',
+                                    mode: 'doctor',
+                                    entityName: 'doctor',
+                                    entityEvent: 'add',
+                                    createdBy: doctor.id,
+                                    updatedBy: doctor.id,
+                                    createdTime: Date.now(),
+                                    updatedTime: Date.now()
+                                });
+                                auditService.create(audit, (auditCreated) => {});
+                            });
+                        });
+                    // } else if (notification.status === 'read') {
+                        // var group = {
+                        //     id: group.id,
+                        //     phase: 'inactive',
+                        //     details: group.details
+                        // };
+                        //emit one-by-one for all users
                         //will have to check this in the prod
                         // groupService.update(group, () => {
                         //         groupService.getUsersByGroupId(notification.content.consultationId, (user) => {
@@ -343,32 +384,19 @@ exports.connectSocket = (io) => {
                         //         })
                         //     }
                         // })
-                            var audit = new AuditModel({
-                                senderId: doctor.id,
-                                receiverId: notification.content.consultationId,
-                                receiverType: 'group',
-                                mode: 'doctor',
-                                entityName: 'doctor',
-                                entityEvent: 'add',
-                                createdBy: doctor.id,
-                                updatedBy: doctor.id,
-                                createdTime: Date.now(),
-                                updatedTime: Date.now()
-                            });
-                        });
-                        var audit = new AuditModel({
-                            senderId: doctor.id,
-                            receiverId: notification.content.consultationId,
-                            receiverType: 'group',
-                            mode: 'doctor',
-                            entityName: 'doctor',
-                            entityEvent: 'add',
-                            createdBy: doctor.id,
-                            updatedBy: doctor.id,
-                            createdTime: Date.now(),
-                            updatedTime: Date.now()
-                        });
-                        auditService.create(audit, (auditCreated) => {});
+                        // var audit = new AuditModel({
+                        //     senderId: doctor.id,
+                        //     receiverId: group.id,
+                        //     receiverType: 'group',
+                        //     mode: 'doctor',
+                        //     entityName: 'doctor',
+                        //     entityEvent: 'add',
+                        //     createdBy: doctor.id,
+                        //     updatedBy: doctor.id,
+                        //     createdTime: Date.now(),
+                        //     updatedTime: Date.now()
+                        // });
+                        // auditService.create(audit, (auditCreated) => {});
                     } else {
                         return;
                     }
