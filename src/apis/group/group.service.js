@@ -118,13 +118,87 @@ class GroupService {
      * fetching all the groups for particular userId from group-user-map
      */
     getAllGroupsByUserId(userId) {
-        return groupUserMapModel.consultation_group_user_map.findAll({
-            where: {
-                userId: userId
-            }
-        }).then((allGroupsByUserId) => {
-            return Promise.map(allGroupsByUserId, groupUserMap => {
-                return groupModel.consultation_group.findById(groupUserMap.groupId);
+        return new Promise((resolve, reject) => {
+            return groupUserMapModel.consultation_group_user_map.findAll({
+                where: {
+                    userId: userId
+                }
+            }).then((allGroupUserMapByUserId) => {
+                return Promise.map(allGroupUserMapByUserId, groupUserMap => {
+                    return new Promise((resolve, reject) => {
+                        groupModel.consultation_group.findById(groupUserMap.groupId)
+                            .then((group) => {
+                                resolve(group);
+                            }).catch((error) => {
+                                reject(error);
+                            });
+                    });
+                    //return groupModel.consultation_group.findById(groupUserMap.groupId);
+                }).then((groups) => {
+                    var activeGroups = [];
+                    var inactiveGroups = [];
+                    groups.map((group) => {
+                        let inactiveGroupTime = moment(moment(group.createdAt).utc().format()).add(3, 'd');
+                        if (group.phase === 'active' || group.name === 'MedHelp') { //MedHelp and all active groups
+                            activeGroups.push(group);
+                        } else {
+                            if (inactiveGroupTime >= moment()) { //doctor is not active but for some query he will be available
+                                inactiveGroups.push(group);
+                            } else if (inactiveGroupTime <= moment() && group.name !== 'MedHelp') {
+                                var updated = {
+                                    phase: 'archive',
+                                    details: group.details
+                                };
+                                consultationGroupModel.consultation_group.update(updated, {
+                                    where: {
+                                        id: group.id
+                                    }
+                                });
+                            } else {
+                                return;
+                            }
+                        }
+                    });
+                    resolve({ activeGroups: activeGroups, inactiveGroups: inactiveGroups });
+                }).catch((error) => {
+                    reject(error);
+                });
+            });
+        });
+    }
+
+    /**
+     * archived groups by userId
+     */
+    getArchivedGroupsByUserId(userId) {
+        return new Promise((resolve, reject) => {
+            return groupUserMapModel.consultation_group_user_map.findAll({
+                where: {
+                    userId: userId
+                }
+            }).then((allGroupUserMapByUserId) => {
+                return Promise.map(allGroupUserMapByUserId, groupUserMap => {
+                    return new Promise((resolve, reject) => {
+                        groupModel.consultation_group.findById(groupUserMap.groupId)
+                            .then((group) => {
+                                resolve(group);
+                            }).catch((error) => {
+                                reject(error);
+                            });
+                    });
+                }).then((groups) => {
+                    var archiveGroups = [];
+                    groups.map((group) => {
+                        if (group.phase === 'archive') {
+                            archiveGroups.push(group);
+                        } else {
+                            return;
+                        }
+                    });
+                    resolve(archiveGroups);
+                }).catch((error) => {
+                    reject(error);
+                });
             });
         });
     }

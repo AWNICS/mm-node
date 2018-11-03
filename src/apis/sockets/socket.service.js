@@ -137,7 +137,7 @@ exports.connectSocket = (io) => {
                         });
                     });
                     groupService.getById(group.id, (group) => {
-                        if (group.phase === 'active') {
+                        if (group.phase === 'inactive') {
                             consultationGroupModel.consultation_group_user_map.findAll({
                                 where: {
                                     groupId: group.id
@@ -188,6 +188,15 @@ exports.connectSocket = (io) => {
                         socket.to(result.socketId).emit('receive-message', {
                             "text": 'Select a group or an user to chat with.'
                         }); //only to sender
+                    });
+                }
+
+                //for media files emit event
+                if (msg.type === 'image' || msg.type === 'video' || msg.type === 'doc') {
+                    messageService.media(msg.receiverId, 1, 5, (media) => {
+                        userService.getById(msg.senderId, (user) => {
+                            io.in(user.socketId).emit('media-file', media);
+                        });
                     });
                 }
             });
@@ -258,7 +267,7 @@ exports.connectSocket = (io) => {
                             groupService.createGroupUserMap(groupUserMap, () => {
                                 var group = {
                                     id: group.id,
-                                    phase: 'inactive',
+                                    phase: 'active',
                                     details: group.details
                                 };
                                 groupService.update(group, () => {
@@ -322,7 +331,7 @@ exports.connectSocket = (io) => {
              */
             socket.on('user-deleted', (doctor, group) => {
                 groupService.deleteGroupUserMap(doctor.id, group.id, () => {
-                    group.phase = 'active';
+                    group.phase = 'inactive';
                     groupService.update(group, () => {
                         groupService.getUsersByGroupId(group.id, (user) => {
                             io.in(user.socketId).emit('receive-user-deleted', {

@@ -471,4 +471,12 @@ router.get('/groups/:groupId/users', function(req, res) {
     });
 });
 
+/* fetch the archived groups */
+router.get('/groups/archived/users/:userId', (req, res) => {
+    groupService.getArchivedGroupsByUserId((req.params.userId))
+        .then((result) => {
+            res.send(result);
+        });
+});
+
 module.exports = router;
