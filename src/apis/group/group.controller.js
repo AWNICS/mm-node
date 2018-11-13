@@ -48,7 +48,20 @@ var groupService = new GroupService();
  *         description: Successfully created in MySql db
  */
 router.post('/groups', function(req, res) {
-    var group = req.body;
+    var group = {
+        name: req.body.name,
+        url: req.body.url,
+        userId: req.body.userId,
+        details: {
+            description: req.body.description,
+            speciality: req.body.speciality
+        },
+        picture: req.body.picture,
+        status: req.body.status,
+        phase: req.body.status,
+        createdBy: req.body.userId,
+        updatedBy: req.body.userId
+    };
     groupService.create(group, (result) => {
         res.send(result);
     });
@@ -125,7 +138,9 @@ router.get('/groups/:id', function(req, res) {
  */
 router.put('/groups', function(req, res) {
     var group = req.body;
-    groupService.update(group, (result) => {
+    console.log('data: ' + JSON.stringify(req.body));
+    groupService.updateGroup(group, (result) => {
+        console.log('updated: ' + result);
         res.send(result);
     });
 });
@@ -152,7 +167,8 @@ router.put('/groups', function(req, res) {
 router.delete('/groups/:id', function(req, res) {
     var id = req.params.id;
     groupService.delete(id, (result) => {
-        res.send('Number of groups deleted: ' + result);
+        //res.send('Number of groups deleted: ' + result);
+        res.send({ message: 'Group deleted successfully' });
     });
 });
 
@@ -298,6 +314,14 @@ router.delete('/groupUserMaps/:userId/:groupId', function(req, res) {
     var id = req.params.id;
     groupService.deleteGroupUserMap(req.params.userId, req.params.groupId, (result) => {
         res.send('Number of groupUserMap deleted: ' + result);
+    });
+});
+
+//map users for newly created group
+router.post('/groups/:groupId/users/map', function(req, res) {
+    var users = req.body;
+    groupService.mapUsers(users, req.params.groupId, (result) => {
+        res.send(result);
     });
 });
 

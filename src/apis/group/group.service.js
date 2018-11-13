@@ -16,6 +16,7 @@ import NotificationService from '../notification/notification.service';
 import VisitorService from '../visitor/visitor.service';
 import emailConfig from '../../config/email.config';
 import messageConfig from '../../config/message.config';
+import lodash from 'lodash';
 
 const Promise = require('bluebird');
 const moment = require('moment');
@@ -54,7 +55,7 @@ class GroupService {
     }
 
     update(group, callback) {
-        return groupDao.update(group, (groupUpdated) => {
+        groupDao.update(group, (groupUpdated) => {
             callback(groupUpdated);
         });
     }
@@ -63,6 +64,60 @@ class GroupService {
         return groupDao.delete(id, (groupDeleted) => {
             callback(groupDeleted);
         });
+    }
+
+    //create mapping for the users for newly created group
+    mapUsers(users, groupId, callback) {
+        users.map((user) => {
+            var groupUserMap = {
+                groupId: groupId,
+                userId: user.id,
+                createdBy: user.id,
+                updatedBy: user.id
+            };
+            this.createGroupUserMap(groupUserMap, () => {});
+        });
+        callback({ message: 'Users mapped successfully.' });
+    }
+
+    //updating the group by the admin
+    async updateGroup(group, callback) {
+        //update the group details by dao and update the mappingof users in consultation_group_user_map
+        groupDao.update(group, (groupUpdated) => {
+            callback(groupUpdated);
+        });
+        var gUMaps = groupModel.consultation_group_user_map.findAll({
+            where: {
+                groupId: group.id
+            }
+        });
+        var idList = await this.userIds(gUMaps, group.users);
+        var remove = lodash.xor(lodash.union(idList.oldList, idList.newList), idList.newList);
+        var add = lodash.xor(lodash.union(idList.oldList, idList.newList), idList.oldList);
+        var groupUserMap = {
+            userId: add,
+            groupId: group.id,
+            createdBy: add,
+            updatedBy: add
+        };
+        if (add) {
+            this.createGroupUserMap(groupUserMap, () => {});
+        } else { return; }
+        if (remove) {
+            this.deleteGroupUserMap(remove, group.id, () => {});
+        } else { return; }
+    }
+
+    async userIds(gUMaps, users) {
+        var oldList = [];
+        var newList = [];
+        await gUMaps.map((gUMap) => {
+            oldList.push(gUMap.userId);
+        });
+        await users.map((user) => {
+            newList.push(user.id);
+        });
+        return ({ oldList: oldList, newList: newList });
     }
 
     /**
