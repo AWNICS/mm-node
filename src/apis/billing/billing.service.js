@@ -18,13 +18,13 @@ class BillingService {
         billingDao.insert(billing, (billingCreated) => {
             //create audit for this created bill
             var audit = new AuditModel({
-                senderId: billingCreated.targetId,
-                receiverId: billingCreated.consultationId,
+                senderId: billingCreated.visitorId,
+                receiverId: billingCreated.doctorId,
                 receiverType: 'group',
                 entityName: 'Bill',
                 entityEvent: 'Created',
-                createdBy: billingCreated.targetId,
-                updatedBy: billingCreated.targetId,
+                createdBy: billingCreated.visitorId,
+                updatedBy: billingCreated.visitorId,
                 createdTime: Date.now(),
                 updatedTime: Date.now()
             });
@@ -50,13 +50,13 @@ class BillingService {
             if (result.length > 0) {
                 //create audit for this updated bill
                 var audit = new AuditModel({
-                    senderId: billing.targetId,
+                    senderId: billing.visitorId,
                     receiverId: billing.consultationId,
                     receiverType: 'group',
                     entityName: 'Bill',
                     entityEvent: 'Updated',
-                    createdBy: billing.targetId,
-                    updatedBy: billing.targetId,
+                    createdBy: billing.visitorId,
+                    updatedBy: billing.visitorId,
                     createdTime: Date.now(),
                     updatedTime: Date.now()
                 });
@@ -105,14 +105,14 @@ class BillingService {
 
     //billing by visitorId
     getAllBillingByVisitorId(visitorId, callback) {
-        billingModel.billing.findAll({ where: { targetId: visitorId } }).then((billings) => {
+        billingModel.billing.findAll({ where: { visitorId: visitorId } }).then((billings) => {
             callback(billings);
         });
     }
 
     //billing by doctorId
     getAllBillingByDoctorId(doctorId, callback) {
-        billingModel.billing.findAll({ where: { requestedId: doctorId } }).then((billings) => {
+        billingModel.billing.findAll({ where: { doctorId: doctorId } }).then((billings) => {
             callback(billings);
         });
     }
