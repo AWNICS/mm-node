@@ -16,16 +16,15 @@ class PaymentService {
                 encRequest = '',
                 formbody = '',
                 encRequest = '',
-                merchantId = '';
+                merchantId = 192155;
             let postData='';
             request.on('data',(data)=>{
                 postData+= data;
             })
             request.on('end',()=>{
-                console.log(postData);
+                log.info(postData);
                 encRequest = ccav.encrypt(postData.toString(), workingKey)
-                merchantId = request.body.merchantId;
-                formbody = '<html><head><title>Sub-merchant checkout page</title><script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script></head><body><center><!-- width required mininmum 482px --><iframe  width="482" height="500" scrolling="yes" frameborder="0"  id="paymentFrame" src="https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction&merchant_id=' + merchantId + '&encRequest=' + encRequest + '&access_code=' + accessCode + '"></iframe></center><script type="text/javascript">$(document).ready(function(){$("iframe#paymentFrame").load(function() {window.addEventListener("message", function(e) {$("#paymentFrame").css("height",e.data["newHeight"]+"px"); }, false);}); });</script></body></html>';
+                formbody = '<html><head><title>Sub-merchant checkout page</title><script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script></head><body><center><!-- width required mininmum 482px --><iframe  width="600" height="600" scrolling="Yes" frameborder="0"  id="paymentFrame" src="https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction&merchant_id=' + merchantId + '&encRequest=' + encRequest + '&access_code=' + accessCode + '"></iframe></center><script type="text/javascript">$(document).ready(function(){$("iframe#paymentFrame").load(function() {window.addEventListener("message", function(e) {$("#paymentFrame").css("height",e.data["newHeight"]+"px"); }, false);}); });</script></body></html>';
     
                 if (formbody) {
                     response.writeHeader(200, {
@@ -47,7 +46,7 @@ class PaymentService {
 
             ccavPOST = request.body;
             var encryption = ccavPOST.encResp.toString();
-            console.log(encryption);
+            log.info(encryption);
             ccavResponse = ccav.decrypt(encryption, workingKey);
             if (ccavResponse) {
                 var pData = '';
@@ -66,9 +65,9 @@ class PaymentService {
                         referenceNumber:ccavResponse.match(/bank_ref_no=[a-zA-Z]+/)[0].substring(12),
                         modeOfPayment:ccavResponse.match(/payment_mode=[a-zA-Z]+/)[0].substring(13),
                     }
-                console.log(bill);
+              log.info(bill);
                 billingModel.billing.update(bill,{where:{orderId:ccavResponse.order_id}}).then((res)=>{
-                    console.log(res);
+                    log.info(res);
                     log.info("Billing entry updated");
                 })
             }
