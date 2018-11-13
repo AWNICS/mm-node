@@ -16,6 +16,7 @@ import NotificationService from '../notification/notification.service';
 import VisitorService from '../visitor/visitor.service';
 import emailConfig from '../../config/email.config';
 import messageConfig from '../../config/message.config';
+import lodash from 'lodash';
 
 const Promise = require('bluebird');
 const moment = require('moment');
@@ -54,7 +55,7 @@ class GroupService {
     }
 
     update(group, callback) {
-        return groupDao.update(group, (groupUpdated) => {
+        groupDao.update(group, (groupUpdated) => {
             callback(groupUpdated);
         });
     }
@@ -63,6 +64,60 @@ class GroupService {
         return groupDao.delete(id, (groupDeleted) => {
             callback(groupDeleted);
         });
+    }
+
+    //create mapping for the users for newly created group
+    mapUsers(users, groupId, callback) {
+        users.map((user) => {
+            var groupUserMap = {
+                groupId: groupId,
+                userId: user.id,
+                createdBy: user.id,
+                updatedBy: user.id
+            };
+            this.createGroupUserMap(groupUserMap, () => {});
+        });
+        callback({ message: 'Users mapped successfully.' });
+    }
+
+    //updating the group by the admin
+    async updateGroup(group, callback) {
+        //update the group details by dao and update the mappingof users in consultation_group_user_map
+        groupDao.update(group, (groupUpdated) => {
+            callback(groupUpdated);
+        });
+        var gUMaps = groupModel.consultation_group_user_map.findAll({
+            where: {
+                groupId: group.id
+            }
+        });
+        var idList = await this.userIds(gUMaps, group.users);
+        var remove = lodash.xor(lodash.union(idList.oldList, idList.newList), idList.newList);
+        var add = lodash.xor(lodash.union(idList.oldList, idList.newList), idList.oldList);
+        var groupUserMap = {
+            userId: add,
+            groupId: group.id,
+            createdBy: add,
+            updatedBy: add
+        };
+        if (add) {
+            this.createGroupUserMap(groupUserMap, () => {});
+        } else { return; }
+        if (remove) {
+            this.deleteGroupUserMap(remove, group.id, () => {});
+        } else { return; }
+    }
+
+    async userIds(gUMaps, users) {
+        var oldList = [];
+        var newList = [];
+        await gUMaps.map((gUMap) => {
+            oldList.push(gUMap.userId);
+        });
+        await users.map((user) => {
+            newList.push(user.id);
+        });
+        return ({ oldList: oldList, newList: newList });
     }
 
     /**
@@ -118,13 +173,87 @@ class GroupService {
      * fetching all the groups for particular userId from group-user-map
      */
     getAllGroupsByUserId(userId) {
-        return groupUserMapModel.consultation_group_user_map.findAll({
-            where: {
-                userId: userId
-            }
-        }).then((allGroupsByUserId) => {
-            return Promise.map(allGroupsByUserId, groupUserMap => {
-                return groupModel.consultation_group.findById(groupUserMap.groupId);
+        return new Promise((resolve, reject) => {
+            return groupUserMapModel.consultation_group_user_map.findAll({
+                where: {
+                    userId: userId
+                }
+            }).then((allGroupUserMapByUserId) => {
+                return Promise.map(allGroupUserMapByUserId, groupUserMap => {
+                    return new Promise((resolve, reject) => {
+                        groupModel.consultation_group.findById(groupUserMap.groupId)
+                            .then((group) => {
+                                resolve(group);
+                            }).catch((error) => {
+                                reject(error);
+                            });
+                    });
+                    //return groupModel.consultation_group.findById(groupUserMap.groupId);
+                }).then((groups) => {
+                    var activeGroups = [];
+                    var inactiveGroups = [];
+                    groups.map((group) => {
+                        let inactiveGroupTime = moment(moment(group.createdAt).utc().format()).add(3, 'd');
+                        if (group.phase === 'active' || group.name === 'MedHelp') { //MedHelp and all active groups
+                            activeGroups.push(group);
+                        } else {
+                            if (inactiveGroupTime >= moment()) { //doctor is not active but for some query he will be available
+                                inactiveGroups.push(group);
+                            } else if (inactiveGroupTime <= moment() && group.name !== 'MedHelp') {
+                                var updated = {
+                                    phase: 'archive',
+                                    details: group.details
+                                };
+                                consultationGroupModel.consultation_group.update(updated, {
+                                    where: {
+                                        id: group.id
+                                    }
+                                });
+                            } else {
+                                return;
+                            }
+                        }
+                    });
+                    resolve({ activeGroups: activeGroups, inactiveGroups: inactiveGroups });
+                }).catch((error) => {
+                    reject(error);
+                });
+            });
+        });
+    }
+
+    /**
+     * archived groups by userId
+     */
+    getArchivedGroupsByUserId(userId) {
+        return new Promise((resolve, reject) => {
+            return groupUserMapModel.consultation_group_user_map.findAll({
+                where: {
+                    userId: userId
+                }
+            }).then((allGroupUserMapByUserId) => {
+                return Promise.map(allGroupUserMapByUserId, groupUserMap => {
+                    return new Promise((resolve, reject) => {
+                        groupModel.consultation_group.findById(groupUserMap.groupId)
+                            .then((group) => {
+                                resolve(group);
+                            }).catch((error) => {
+                                reject(error);
+                            });
+                    });
+                }).then((groups) => {
+                    var archiveGroups = [];
+                    groups.map((group) => {
+                        if (group.phase === 'archive') {
+                            archiveGroups.push(group);
+                        } else {
+                            return;
+                        }
+                    });
+                    resolve(archiveGroups);
+                }).catch((error) => {
+                    reject(error);
+                });
             });
         });
     }
