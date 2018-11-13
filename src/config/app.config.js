@@ -119,7 +119,7 @@ class Config {
         this.app.use('/', dialogFlow);
         this.app.use('/', audit);
         this.app.use('/', notification);
-        this.app.use('/', passport.authenticate('jwt', { session: false }), payments);
+        this.app.use('/', payments);
         this.app.use('/', passport.authenticate('jwt', { session: false }), visitor);
         this.app.use('/', passport.authenticate('jwt', { session: false }), doctor);
         this.app.use('/', passport.authenticate('jwt', { session: false }), user);
