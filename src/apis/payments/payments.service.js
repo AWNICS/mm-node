@@ -1,11 +1,10 @@
 import Dotenv from 'dotenv';
-import Billing from '../billing/billing.model';
+import billingModel from '../billing/index';
+import log from '../../config/log4js.config';
 const ccav = require('./payments.util');
 const dotenv = Dotenv.config({
     path: '.env.dev'
 });
-
-const billingModel = Billing;
 
 class PaymentService {
 
@@ -46,8 +45,9 @@ class PaymentService {
 
             ccavPOST = request.body;
             var encryption = ccavPOST.encResp.toString();
-            log.info(encryption);
             ccavResponse = ccav.decrypt(encryption, workingKey);
+            log.info("The below is the response from ccavenue for the orderNo "+ccavResponse.orderNo);
+            log.info(ccavResponse);
             if (ccavResponse) {
                 var pData = '';
                 pData = '<table border=1 cellspacing=2 cellpadding=2><tr><td>'
@@ -63,12 +63,16 @@ class PaymentService {
                     let bill = {
                         status:ccavResponse.match(/order_status=[a-zA-Z]+/)[0].substring(13),
                         referenceNumber:ccavResponse.match(/bank_ref_no=[a-zA-Z]+/)[0].substring(12),
-                        modeOfPayment:ccavResponse.match(/payment_mode=[a-zA-Z]+/)[0].substring(13),
+                        modeOfPayment:ccavResponse.match(/payment_mode=[a-zA-Z ]+/)[0].substring(13),
                     }
               log.info(bill);
-                billingModel.billing.update(bill,{where:{orderId:ccavResponse.order_id}}).then((res)=>{
-                    log.info(res);
-                    log.info("Billing entry updated");
+                billingModel.billing.update(bill,{where:{orderId:ccavPOST.orderNo}}).then((res)=>{
+                    if(res===1){
+                        log.info("Billing entry updated");
+                    }else{
+                        log.info('Something went wrong in updating bill');
+                    }
+                    
                 })
             }
         }
