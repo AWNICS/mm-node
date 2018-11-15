@@ -19,6 +19,7 @@ class BillingDao {
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
+                    log.info(error);
                     t.rollback();
                 });
             });

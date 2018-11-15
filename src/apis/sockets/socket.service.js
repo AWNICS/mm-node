@@ -339,11 +339,14 @@ exports.connectSocket = (io) => {
                                 };
                                 groupService.update(newGroup, () => {
                                     groupService.getUsersByGroupId(group.id, (user) => {
-                                        console.log(user);
-                                        io.in(user.socketId).emit('receive-user-added', {
-                                            message: `${doctor.firstname} ${doctor.lastname} joined the group`,
-                                            doctorId: doctor.id
-                                        }); //emit one-by-one for all users
+                                        setTimeout(()=>{
+                                            log.info(user.firstname+' Emitted receive-user-added event')
+                                            io.in(user.socketId).emit('receive-user-added', {
+                                                message: `${doctor.firstname} ${doctor.lastname} joined the consultation`,
+                                                doctorId: doctor.id,
+                                                groupId: group.id
+                                            }); //emit one-by-one for all users    
+                                        },2000)
                                     //this is to create billing entry for the user
                                       if(user.role==='patient'){
                                         let date = Date.now().toString();
@@ -361,7 +364,8 @@ exports.connectSocket = (io) => {
                                         }
                                         billingDao.insert(bill,(result)=>{
                                             console.log(result);
-                                            log.info('Created Billing entry for user');
+                                            log.info(result.dataValues);
+                                            log.info('Created Billing entry for user: '+user.firstname+' '+user.lastname);
                                         })
                                       }  
                                     });
@@ -551,7 +555,7 @@ exports.connectSocket = (io) => {
         });
 
         function scheduler() {
-            log.info('Scheduler called at ', moment(Date.now()).format());
+            // log.info('Scheduler called at ', moment(Date.now()).format());
             notificationService.readByTime((allNotifications) => {
                 allNotifications.map((notification) => {
                     userService.getById(notification.userId, (user) => {
@@ -577,7 +581,7 @@ exports.connectSocket = (io) => {
                                     where: {
                                         id: updateNotification.id
                                     }
-                                    
+
                                 })
                                 .then((res) => {
                                     log.info('notification updated.');
@@ -591,5 +595,5 @@ exports.connectSocket = (io) => {
                 });
             });
         }
-        setInterval(()=>{scheduler();console.log('done')}, 3000);
+        setInterval(scheduler, 30000);
     }
