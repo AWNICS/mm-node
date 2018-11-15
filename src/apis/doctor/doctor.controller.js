@@ -643,7 +643,7 @@ router.delete('/doctors/:doctorId/reviews/:id', function(req, res) {
 
 router.get('/doctors/:doctorId/history', function(req, res) {
     var doctorId = req.params.doctorId;
-    doctorService.getConsutationDetails(doctorId, (result) => {
+    doctorService.getConsultationDetails(doctorId, (result) => {
         res.send(result);
     });
 });
