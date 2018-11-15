@@ -57,6 +57,7 @@
         "passport-jwt": "^3.0.1",
         "passport-local": "^1.0.0",
         "passport-oauth": "^1.0.0",
+        "pdfmake": "^0.1.39",
         "pug": "^2.0.3",
         "random-token-generator": "^1.0.2",
         "sequelize": "^4.33.4",
