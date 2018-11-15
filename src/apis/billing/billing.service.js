@@ -128,15 +128,8 @@ class BillingService {
         });
     }
 
-    //billing by doctorId
-    getAllBillingByDoctorId(doctorId, callback) {
-        billingModel.billing.findAll({ where: { doctorId: doctorId } }).then((billings) => {
-            callback(billings);
-        });
-    }
-
     /**
-     * expenditures made by patient
+     * expenditures made by patient (need to modify this based on amount column structure(inside billing table))
      */
     moneySpentByVisitor(visitorId, callback) {
         this.getAllBillingByVisitorId(visitorId, (billings) => {
@@ -145,19 +138,6 @@ class BillingService {
                 money = money + billing.amount.consultationCharges + billing.amount.taxes.cgst + billing.amount.taxes.sgst + billing.amount.taxes.igst;
             }));
             callback(money);
-        });
-    }
-
-    /**
-     * money earned by doctor
-     */
-    moneyEarnedByDoctor(doctorId, callback) {
-        this.getAllBillingByDoctorId(doctorId, (billings) => {
-            var earned = 0;
-            Promise.all(billings.map((billing) => { //only 75% will have to give to the doctor
-                earned = earned + billing.amount.consultationCharges * 0.75;
-            }));
-            callback(earned);
         });
     }
 

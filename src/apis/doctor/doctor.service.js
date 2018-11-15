@@ -1,3 +1,4 @@
+import fs from 'fs';
 import DoctorDao from './doctor.dao';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
@@ -15,9 +16,7 @@ import moment from 'moment';
 import visitorModel from '../visitor/index';
 import FileService from '../file/file.service';
 import bucket from '../../config/gcp.config';
-import fs from 'fs';
-
-
+import billingModel from '../billing/index';
 
 var doctorDao = new DoctorDao();
 var visitorAppoinmentDao = new VisitorAppointmentDao();
@@ -492,32 +491,67 @@ class DoctorService {
         });
     }
 
-    async getConsutationDetails(doctorId, callback) {
+    async getConsultationDetails(doctorId, callback) {
         var visitorAppointments = visitorModel.visitor_appointment.findAll({ where: { doctorId: doctorId } });
-        var consultationDetails = await this.consultationDetails(visitorAppointments);
-        callback(consultationDetails);
+        var billings = billingModel.billing.findAll({ where: { doctorId: doctorId } });
+        var noOfPatients = await this.consultationDetails(visitorAppointments);
+        var earning = await this.moneyEarnedByDoctor(billings);
+        callback({ noOfPatients: noOfPatients, earning: earning });
+    }
+
+    /**
+     * money earned by doctor (need to modify based on the amount column structure(inside billing table))
+     */
+    async moneyEarnedByDoctor(billings) {
+        var daily = 0,
+            weekly = 0,
+            monthly = 0;
+        if (billings) {
+            await billings.map((billing) => {
+                var month = moment(billing.createdAt).month();
+                var currentMonth = moment().month();
+                if (moment(billing.createdAt).year() === moment().year()) {
+                    if (++month === ++currentMonth) {
+                        monthly = monthly + billing.amount;
+                        if (moment(billing.createdAt).date() === moment().date()) {
+                            daily = daily + billing.amount;
+                        }
+                        if (moment(billing.createdAt).week() === moment().week()) {
+                            weekly = weekly + billing.amount;
+                        }
+                    }
+                }
+            });
+            return ({ "today": daily, "week": weekly, "month": monthly });
+        } else {
+            return ({ "today": daily, "week": weekly, "month": monthly });
+        }
     }
 
     async consultationDetails(visitorAppointments) {
         var daily = 0,
             weekly = 0,
             monthly = 0;
-        await visitorAppointments.map((visitorAppointment) => {
-            var month = moment(visitorAppointment.startTime).month();
-            var currentMonth = moment().month();
-            if (moment(visitorAppointment.startTime).year() === moment().year()) {
-                if (++month === ++currentMonth) {
-                    monthly = monthly + 1;
-                    if (moment(visitorAppointment.startTime).date() === moment().date()) {
-                        daily = daily + 1;
-                    }
-                    if (moment(visitorAppointment.startTime).week() === moment().week()) {
-                        weekly = weekly + 1;
+        if (visitorAppointments) {
+            await visitorAppointments.map((visitorAppointment) => {
+                var month = moment(visitorAppointment.startTime).month();
+                var currentMonth = moment().month();
+                if (moment(visitorAppointment.startTime).year() === moment().year()) {
+                    if (++month === ++currentMonth) {
+                        monthly = monthly + 1;
+                        if (moment(visitorAppointment.startTime).date() === moment().date()) {
+                            daily = daily + 1;
+                        }
+                        if (moment(visitorAppointment.startTime).week() === moment().week()) {
+                            weekly = weekly + 1;
+                        }
                     }
                 }
-            }
-        });
-        return ({ "today": daily, "week": weekly, "month": monthly });
+            });
+            return ({ "today": daily, "week": weekly, "month": monthly });
+        } else {
+            return ({ "today": daily, "week": weekly, "month": monthly });
+        }
     }
 
     generatePdf(pdfData, callback) {

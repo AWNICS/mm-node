@@ -367,35 +367,6 @@ router.get('/billing/visitors/:visitorId/expenditures', (req, res) => {
 
 /**
  * @swagger
- * /billing/doctors/{doctorId}/earning:
- *   get:
- *     tags:
- *       - Billing
- *     description: Returns money earned by doctor from MySql db
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: doctorId
- *         in: path
- *         description: doctorId for appointments to return
- *         required: true
- *         type: string
- *         schema:
- *           $ref: '#/definitions/Billing'
- *     responses:
- *       200:
- *         description: Returns money earned by doctor from MySql db
- *         schema:
- *           $ref: '#/definitions/Billing'
- */
-router.get('/billing/doctors/:doctorId/earning', (req, res) => {
-    billingService.moneyEarnedByDoctor(req.params.doctorId, (result) => {
-        res.send({ "Earned:": result });
-    });
-});
-
-/**
- * @swagger
  * /doctors/{doctorId}/duration:
  *   get:
  *     tags:

@@ -190,31 +190,43 @@ class GroupService {
                     });
                     //return groupModel.consultation_group.findById(groupUserMap.groupId);
                 }).then((groups) => {
-                    var activeGroups = [];
-                    var inactiveGroups = [];
-                    groups.map((group) => {
-                        let inactiveGroupTime = moment(moment(group.createdAt).utc().format()).add(3, 'd');
-                        if (group.phase === 'active' || group.name === 'MedHelp') { //MedHelp and all active groups
-                            activeGroups.push(group);
-                        } else {
-                            if (inactiveGroupTime >= moment()) { //doctor is not active but for some query he will be available
-                                inactiveGroups.push(group);
-                            } else if (inactiveGroupTime <= moment() && group.name !== 'MedHelp') {
-                                var updated = {
-                                    phase: 'archive',
-                                    details: group.details
-                                };
-                                consultationGroupModel.consultation_group.update(updated, {
-                                    where: {
-                                        id: group.id
-                                    }
-                                });
-                            } else {
-                                return;
+                    userService.getById(userId, (result) => {
+                        var activeGroups = [];
+                        var inactiveGroups = [];
+                        groups.map((group) => {
+                            if (result.role === 'doctor' && group.name !== 'MedHelp') {
+                                var groupName = [];
+                                groupName = group.name.split(',');
+                                group.name = '';
+                                var temp = groupName[0];
+                                for (let i = 1; i < groupName.length; i++) {
+                                    group.name = group.name + groupName[i];
+                                }
+                                group.name = group.name + ',' + temp;
                             }
-                        }
+                            let inactiveGroupTime = moment(moment(group.createdAt).utc().format()).add(3, 'd');
+                            if (group.phase === 'active' || group.name === 'MedHelp') { //MedHelp and all active groups
+                                activeGroups.push(group);
+                            } else {
+                                if (inactiveGroupTime >= moment()) { //doctor is not active but for some query he will be available
+                                    inactiveGroups.push(group);
+                                } else if (inactiveGroupTime <= moment() && group.name !== 'MedHelp') {
+                                    var updated = {
+                                        phase: 'archive',
+                                        details: group.details
+                                    };
+                                    consultationGroupModel.consultation_group.update(updated, {
+                                        where: {
+                                            id: group.id
+                                        }
+                                    });
+                                } else {
+                                    return;
+                                }
+                            }
+                        });
+                        resolve({ activeGroups: activeGroups, inactiveGroups: inactiveGroups });
                     });
-                    resolve({ activeGroups: activeGroups, inactiveGroups: inactiveGroups });
                 }).catch((error) => {
                     reject(error);
                 });

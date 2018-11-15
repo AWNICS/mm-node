@@ -51,35 +51,35 @@ exports.connectSocket = (io) => {
                         }
                     })
                     log.info('User disconnected with ID: ' + userId);
-            //         consultationGroupModel.consultation_group.findAll({where:{userId:userId,name:'MedHelp'}}).then((result)=>{
-            //             if(result){
-            //         groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
-            //             if(result.id !== gumap.groupId){
-            //             gumaps.map((gumap) => {
-            //                 groupService.getAllUsersInGroup(gumap.groupId).then((allUsers) => {
-            //                     let count = 0;
-            //                     allUsers.map((user) => {
-            //                         if (user.role !== 'bot' && user.status === 'online') {
-            //                             count++;
-            //                         }
-            //                     })
-            //                     if (count < 2) {
-            //                         log.info('Group Status Update with ID: ' + gumap.groupId + ' offline');
-            //                         allUsers.map((user) => {
-            //                             if (user.role !== 'bot' && user.id !== userId) {
-            //                                 io.in(user.socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'offline' });
-            //                             }
-            //                         })
-            //                         groupService.updateGroupStatus(gumap.groupId, 'offline', (result) => {
-            //                             result === 1 ? log.info("Group status updated in DB for ID: " + gumap.groupId + ' to offline') : null;
-            //                         })
-            //                     }
-            //                 })
-            //             })
-            //         }
-            //         })
-            //     }
-            // })
+                    //         consultationGroupModel.consultation_group.findAll({where:{userId:userId,name:'MedHelp'}}).then((result)=>{
+                    //             if(result){
+                    //         groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
+                    //             if(result.id !== gumap.groupId){
+                    //             gumaps.map((gumap) => {
+                    //                 groupService.getAllUsersInGroup(gumap.groupId).then((allUsers) => {
+                    //                     let count = 0;
+                    //                     allUsers.map((user) => {
+                    //                         if (user.role !== 'bot' && user.status === 'online') {
+                    //                             count++;
+                    //                         }
+                    //                     })
+                    //                     if (count < 2) {
+                    //                         log.info('Group Status Update with ID: ' + gumap.groupId + ' offline');
+                    //                         allUsers.map((user) => {
+                    //                             if (user.role !== 'bot' && user.id !== userId) {
+                    //                                 io.in(user.socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'offline' });
+                    //                             }
+                    //                         })
+                    //                         groupService.updateGroupStatus(gumap.groupId, 'offline', (result) => {
+                    //                             result === 1 ? log.info("Group status updated in DB for ID: " + gumap.groupId + ' to offline') : null;
+                    //                         })
+                    //                     }
+                    //                 })
+                    //             })
+                    //         }
+                    //         })
+                    //     }
+                    // })
                 }
             })
 
@@ -93,36 +93,36 @@ exports.connectSocket = (io) => {
                             'socketId': socket.id,
                             'status': 'online'
                         }, (user) => {});
-                
-                // consultationGroupModel.consultation_group.findAll({where:{userId:userId,name:'MedHelp'}}).then((result)=>{
-                //     if(result){
-                //         groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
-                //             gumaps.map((gumap) => {
-                //                 if(result.id !== gumap.groupId){
-                //                 groupService.getAllUsersInGroup(gumap.groupId).then((allUsers) => {
-                //                     let count = 0;
-                //                     allUsers.map((user) => {
-                //                         if (user.role !== 'bot' && user.status === 'online') {
-                //                             count++;
-                //                         }
-                //                     })
-                //                     if (count > 1) {
-                //                         log.info('Group status Update with ID: ' + gumap.groupId + ' online');
-                //                         allUsers.map((user) => {
-                //                             if (user.role !== 'bot') {
-                //                                 io.in(user.socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'online' });
-                //                             }
-                //                         })
-                //                         groupService.updateGroupStatus(gumap.groupId, 'online', (result) => {
-                //                             result === 1 ? log.info("Group status updated in DB for ID: " + gumap.groupId + ' to online') : null;
-                //                         })
-                //                     }
-                //                 })
-                //             }
-                //             })
-                //         })      
-                //     }
-                // })
+
+                        // consultationGroupModel.consultation_group.findAll({where:{userId:userId,name:'MedHelp'}}).then((result)=>{
+                        //     if(result){
+                        //         groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
+                        //             gumaps.map((gumap) => {
+                        //                 if(result.id !== gumap.groupId){
+                        //                 groupService.getAllUsersInGroup(gumap.groupId).then((allUsers) => {
+                        //                     let count = 0;
+                        //                     allUsers.map((user) => {
+                        //                         if (user.role !== 'bot' && user.status === 'online') {
+                        //                             count++;
+                        //                         }
+                        //                     })
+                        //                     if (count > 1) {
+                        //                         log.info('Group status Update with ID: ' + gumap.groupId + ' online');
+                        //                         allUsers.map((user) => {
+                        //                             if (user.role !== 'bot') {
+                        //                                 io.in(user.socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'online' });
+                        //                             }
+                        //                         })
+                        //                         groupService.updateGroupStatus(gumap.groupId, 'online', (result) => {
+                        //                             result === 1 ? log.info("Group status updated in DB for ID: " + gumap.groupId + ' to online') : null;
+                        //                         })
+                        //                     }
+                        //                 })
+                        //             }
+                        //             })
+                        //         })      
+                        //     }
+                        // })
                     }
                 });
                 var audit = new AuditModel({
@@ -501,36 +501,36 @@ exports.connectSocket = (io) => {
                         }, (user) => {
                             log.info('User logged out: ', userId);
                             if (user) {
-                        //         consultationGroupModel.consultation_group.findAll({where:{userId:userId,name:'MedHelp'}}).then((result)=>{
-                        //             if(result){
-                        //         groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
-                                    
-                        //             gumaps.map((gumap) => {
-                        //                 if(result.id !== gumap.groupId){
-                        //                 groupService.getAllUsersInGroup(gumap.groupId).then((allUsers) => {
-                        //                     let count = 0;
-                        //                     allUsers.map((user) => {
-                        //                         if (user.role !== 'bot' && user.status === 'online') {
-                        //                             count++;
-                        //                         }
-                        //                     })
-                        //                     if (count < 2) {
-                        //                         log.info('Group status update with ID: ' + gumap.groupId + ' offline');
-                        //                         allUsers.map((user) => {
-                        //                             if (user.role !== 'bot' && user.id !== userId) {
-                        //                                 io.in(user.socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'offline' });
-                        //                             }
-                        //                         })
-                        //                         groupService.updateGroupStatus(gumap.groupId, 'offline', (result) => {
-                        //                             result === 1 ? log.info("Group status updated in DB for ID: " + gumap.groupId + ' to offline') : null;
-                        //                         })
-                        //                     }
-                        //                 })
-                        //             }
-                        //             })
-                        //         })
-                        //     }
-                        // })
+                                //         consultationGroupModel.consultation_group.findAll({where:{userId:userId,name:'MedHelp'}}).then((result)=>{
+                                //             if(result){
+                                //         groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
+
+                                //             gumaps.map((gumap) => {
+                                //                 if(result.id !== gumap.groupId){
+                                //                 groupService.getAllUsersInGroup(gumap.groupId).then((allUsers) => {
+                                //                     let count = 0;
+                                //                     allUsers.map((user) => {
+                                //                         if (user.role !== 'bot' && user.status === 'online') {
+                                //                             count++;
+                                //                         }
+                                //                     })
+                                //                     if (count < 2) {
+                                //                         log.info('Group status update with ID: ' + gumap.groupId + ' offline');
+                                //                         allUsers.map((user) => {
+                                //                             if (user.role !== 'bot' && user.id !== userId) {
+                                //                                 io.in(user.socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'offline' });
+                                //                             }
+                                //                         })
+                                //                         groupService.updateGroupStatus(gumap.groupId, 'offline', (result) => {
+                                //                             result === 1 ? log.info("Group status updated in DB for ID: " + gumap.groupId + ' to offline') : null;
+                                //                         })
+                                //                     }
+                                //                 })
+                                //             }
+                                //             })
+                                //         })
+                                //     }
+                                // })
                             } else {
                                 return;
                             }
