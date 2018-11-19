@@ -14,11 +14,7 @@ import notificationModel from '../notification/index';
 import sequelize from '../../util/conn.mysql';
 import VisitorService from '../visitor/visitor.service';
 import BillingDao from '../billing/billing.dao';
-<<<<<<< HEAD
 import GroupDao from '../group/group.dao';
-=======
-import userModel from '../user/index';
->>>>>>> b63a1b0047c185ee033aae7ac2b15ae9bc3ce9db
 
 const moment = require('moment');
 const Op = require('sequelize').Op;
@@ -348,7 +344,6 @@ exports.connectSocket = (io) => {
                                 };
                                 groupService.update(newGroup, () => {
                                     groupService.getUsersByGroupId(group.id, (user) => {
-<<<<<<< HEAD
                                         // setTimeout(()=>{
                                             log.info(user.firstname+' Emitted receive-user-added event')
                                             io.in(user.socketId).emit('receive-user-added', {
@@ -371,37 +366,13 @@ exports.connectSocket = (io) => {
                                             amount:'1',
                                             date:Date.now(),
                                             description: `Consultation with Dr. ${doctor.firstname} ${doctor.lastname}`
-=======
-                                        setTimeout(() => {
-                                                log.info(user.firstname + ' Emitted receive-user-added event')
-                                                io.in(user.socketId).emit('receive-user-added', {
-                                                    message: `${doctor.firstname} ${doctor.lastname} joined the consultation`,
-                                                    doctorId: doctor.id,
-                                                    groupId: group.id
-                                                }); //emit one-by-one for all users    
-                                            }, 2000)
-                                            //this is to create billing entry for the user
-                                        if (user.role === 'patient') {
-                                            let date = Date.now().toString();
-                                            let date1 = date.slice(date.length - 4, date.length);
-                                            let orderId = (date1 + (1 * 369)).replace('.', '1').slice(0, 6);
-                                            let bill = {
-                                                doctorId: doctor.id,
-                                                visitorId: user.id,
-                                                consultationId: group.id,
-                                                orderId: orderId,
-                                                status: 'due',
-                                                amount: '1',
-                                                date: Date.now(),
-                                                description: `Consultation with Dr. ${doctor.firstname} ${doctor.lastname}`
-                                            }
-                                            billingDao.insert(bill, (result) => {
-                                                console.log(result);
-                                                log.info(result.dataValues);
-                                                log.info('Created Billing entry for user: ' + user.firstname + ' ' + user.lastname);
-                                            })
->>>>>>> b63a1b0047c185ee033aae7ac2b15ae9bc3ce9db
                                         }
+                                        billingDao.insert(bill,(result)=>{
+                                            console.log(result);
+                                            log.info(result.dataValues);
+                                            log.info('Created Billing entry for user: '+user.firstname+' '+user.lastname);
+                                        })
+                                      }  
                                     });
                                 });
                                 var audit = new AuditModel({
@@ -629,18 +600,18 @@ exports.connectSocket = (io) => {
                                         id: updateNotification.id
                                     }
 
-                            })
-                            .then((res) => {
-                                log.info('notification updated.');
-                            }).catch((err) => {
-                                log.error('error' + err);
-                            });
-                    } else {
-                        return;
-                    }
+                                })
+                                .then((res) => {
+                                    log.info('notification updated.');
+                                }).catch((err) => {
+                                    log.error('error' + err);
+                                });
+                        } else {
+                            return;
+                        }
+                    });
                 });
             });
-        })
-    }
+        }
         setInterval(scheduler, 10000);
     }
