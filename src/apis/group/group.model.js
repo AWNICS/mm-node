@@ -30,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING
         },
         phase: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING //active,inactive,archive,botInactive
         },
         createdBy: {
             type: DataTypes.INTEGER,

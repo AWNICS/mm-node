@@ -193,7 +193,7 @@ class GroupService {
                     userService.getById(userId, (result) => {
                         var activeGroups = [];
                         var inactiveGroups = [];
-                        groups.map((group) => {
+                        groups.reverse().map((group) => {
                             if (result.role === 'doctor' && group.name !== 'MedHelp') {
                                 var groupName = [];
                                 groupName = group.name.split(',');
@@ -680,7 +680,7 @@ class GroupService {
                                                     speciality: result.doctorDetails.speciality
                                                 },
                                                 picture: null,
-                                                phase: 'active',
+                                                phase: 'inactive',
                                                 status: 'online',
                                                 createdBy: patientId,
                                                 updatedBy: patientId
@@ -767,12 +767,13 @@ class GroupService {
                                                         channel: 'web',
                                                         priority: 1,
                                                         template: '',
-                                                        triggerTime: moment().add(2, 'm'),
+                                                        triggerTime: moment().add(1 , 'm'),
                                                         createdBy: user.id,
                                                         updatedBy: user.id
                                                     };
                                                     notificationService.create(notification, (notificationCreated) => {
                                                         if (notificationCreated) {
+                                                            console.log(Date.now());
                                                             userService.getById(doctorId, (doctorDetails) => {
                                                                 //code for sending notification as email and SMS also
                                                                 var emailNotification = {
