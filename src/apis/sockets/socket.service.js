@@ -340,12 +340,15 @@ exports.connectSocket = (io) => {
                                 };
                                 groupService.update(newGroup, () => {
                                     groupService.getUsersByGroupId(group.id, (user) => {
-                                        console.log(user);
-                                        io.in(user.socketId).emit('receive-user-added', {
-                                            message: `${doctor.firstname} ${doctor.lastname} joined the group`,
-                                            doctorId: doctor.id
-                                        }); //emit one-by-one for all users
-                                        //this is to create billing entry for the user
+                                        setTimeout(() => {
+                                                log.info(user.firstname + ' Emitted receive-user-added event')
+                                                io.in(user.socketId).emit('receive-user-added', {
+                                                    message: `${doctor.firstname} ${doctor.lastname} joined the consultation`,
+                                                    doctorId: doctor.id,
+                                                    groupId: group.id
+                                                }); //emit one-by-one for all users    
+                                            }, 2000)
+                                            //this is to create billing entry for the user
                                         if (user.role === 'patient') {
                                             let date = Date.now().toString();
                                             let date1 = date.slice(date.length - 4, date.length);
@@ -362,7 +365,8 @@ exports.connectSocket = (io) => {
                                             }
                                             billingDao.insert(bill, (result) => {
                                                 console.log(result);
-                                                log.info('Created Billing entry for user');
+                                                log.info(result.dataValues);
+                                                log.info('Created Billing entry for user: ' + user.firstname + ' ' + user.lastname);
                                             })
                                         }
                                     });
@@ -552,7 +556,7 @@ exports.connectSocket = (io) => {
         });
 
     function scheduler() {
-        log.info('Scheduler called at ', moment(Date.now()).format());
+        // log.info('Scheduler called at ', moment(Date.now()).format());
         notificationService.readByTime((allNotifications) => {
             allNotifications.map((notification) => {
                 userService.getById(notification.userId, (user) => {
@@ -592,7 +596,5 @@ exports.connectSocket = (io) => {
             });
         });
     }
-    setInterval(() => {
-        scheduler();
-    }, 3000);
+    setInterval(scheduler, 30000);
 }
