@@ -14,6 +14,7 @@ import notificationModel from '../notification/index';
 import sequelize from '../../util/conn.mysql';
 import VisitorService from '../visitor/visitor.service';
 import BillingDao from '../billing/billing.dao';
+import userModel from '../user/index';
 
 const moment = require('moment');
 const Op = require('sequelize').Op;
@@ -339,35 +340,35 @@ exports.connectSocket = (io) => {
                                 };
                                 groupService.update(newGroup, () => {
                                     groupService.getUsersByGroupId(group.id, (user) => {
-                                        setTimeout(()=>{
-                                            log.info(user.firstname+' Emitted receive-user-added event')
-                                            io.in(user.socketId).emit('receive-user-added', {
-                                                message: `${doctor.firstname} ${doctor.lastname} joined the consultation`,
+                                        setTimeout(() => {
+                                                log.info(user.firstname + ' Emitted receive-user-added event')
+                                                io.in(user.socketId).emit('receive-user-added', {
+                                                    message: `${doctor.firstname} ${doctor.lastname} joined the consultation`,
+                                                    doctorId: doctor.id,
+                                                    groupId: group.id
+                                                }); //emit one-by-one for all users    
+                                            }, 2000)
+                                            //this is to create billing entry for the user
+                                        if (user.role === 'patient') {
+                                            let date = Date.now().toString();
+                                            let date1 = date.slice(date.length - 4, date.length);
+                                            let orderId = (date1 + (1 * 369)).replace('.', '1').slice(0, 6);
+                                            let bill = {
                                                 doctorId: doctor.id,
-                                                groupId: group.id
-                                            }); //emit one-by-one for all users    
-                                        },2000)
-                                    //this is to create billing entry for the user
-                                      if(user.role==='patient'){
-                                        let date = Date.now().toString();
-                                        let date1 = date.slice(date.length-4,date.length);
-                                        let orderId= (date1+(1*369)).replace('.','1').slice(0,6);
-                                        let bill={
-                                            doctorId:doctor.id,
-                                            visitorId:user.id,
-                                            consultationId:group.id,
-                                            orderId:orderId,
-                                            status:'due',
-                                            amount:'1',
-                                            date:Date.now(),
-                                            description: `Consultation with Dr. ${doctor.firstname} ${doctor.lastname}`
+                                                visitorId: user.id,
+                                                consultationId: group.id,
+                                                orderId: orderId,
+                                                status: 'due',
+                                                amount: '1',
+                                                date: Date.now(),
+                                                description: `Consultation with Dr. ${doctor.firstname} ${doctor.lastname}`
+                                            }
+                                            billingDao.insert(bill, (result) => {
+                                                console.log(result);
+                                                log.info(result.dataValues);
+                                                log.info('Created Billing entry for user: ' + user.firstname + ' ' + user.lastname);
+                                            })
                                         }
-                                        billingDao.insert(bill,(result)=>{
-                                            console.log(result);
-                                            log.info(result.dataValues);
-                                            log.info('Created Billing entry for user: '+user.firstname+' '+user.lastname);
-                                        })
-                                      }  
                                     });
                                 });
                                 var audit = new AuditModel({
@@ -554,46 +555,46 @@ exports.connectSocket = (io) => {
 
         });
 
-        function scheduler() {
-            // log.info('Scheduler called at ', moment(Date.now()).format());
-            notificationService.readByTime((allNotifications) => {
-                allNotifications.map((notification) => {
-                    userService.getById(notification.userId, (user) => {
-                        if (notification.status === 'created') {
-                            io.in(user.socketId).emit('consult-notification', {
-                                notification: notification
-                            });
-                            var updateNotification = {
-                                id: notification.id,
-                                template: notification.template,
-                                userId: notification.userId,
-                                type: notification.type,
-                                title: notification.title,
-                                content: notification.content,
-                                status: "sent",
-                                channel: notification.channel,
-                                priority: 1,
-                                triggerTime: notification.triggerTime,
-                                createdBy: notification.createdBy,
-                                updatedBy: notification.updatedBy
-                            };
-                            notificationModel.notification.update(updateNotification, {
-                                    where: {
-                                        id: updateNotification.id
-                                    }
+    function scheduler() {
+        // log.info('Scheduler called at ', moment(Date.now()).format());
+        notificationService.readByTime((allNotifications) => {
+            allNotifications.map((notification) => {
+                userService.getById(notification.userId, (user) => {
+                    if (notification.status === 'created') {
+                        io.in(user.socketId).emit('consult-notification', {
+                            notification: notification
+                        });
+                        var updateNotification = {
+                            id: notification.id,
+                            template: notification.template,
+                            userId: notification.userId,
+                            type: notification.type,
+                            title: notification.title,
+                            content: notification.content,
+                            status: "sent",
+                            channel: notification.channel,
+                            priority: 1,
+                            triggerTime: notification.triggerTime,
+                            createdBy: notification.createdBy,
+                            updatedBy: notification.updatedBy
+                        };
+                        notificationModel.notification.update(updateNotification, {
+                                where: {
+                                    id: updateNotification.id
+                                }
 
-                                })
-                                .then((res) => {
-                                    log.info('notification updated.');
-                                }).catch((err) => {
-                                    log.error('error' + err);
-                                });
-                        } else {
-                            return;
-                        }
-                    });
+                            })
+                            .then((res) => {
+                                log.info('notification updated.');
+                            }).catch((err) => {
+                                log.error('error' + err);
+                            });
+                    } else {
+                        return;
+                    }
                 });
             });
-        }
-        setInterval(scheduler, 30000);
+        });
     }
+    setInterval(scheduler, 30000);
+}
