@@ -14,6 +14,7 @@ import notificationModel from '../notification/index';
 import sequelize from '../../util/conn.mysql';
 import VisitorService from '../visitor/visitor.service';
 import BillingDao from '../billing/billing.dao';
+import GroupDao from '../group/group.dao';
 
 const moment = require('moment');
 const Op = require('sequelize').Op;
@@ -24,6 +25,7 @@ const dialogFlowService = new DialogFlowService();
 const auditService = new AuditService();
 const notificationService = new NotificationService();
 const billingDao = new BillingDao();
+const groupDao = new GroupDao();
 
 exports.connectSocket = (io) => {
     io.use(function(socket, next) {
@@ -39,6 +41,8 @@ exports.connectSocket = (io) => {
         })
         .on('connection', function(socket) {
             socket.on('disconnect', (type) => {
+                console.log('disc');
+                console.log(type);
                 if (type === 'transport close') {
                     let userId = socket.decoded.data.id;
                     userService.getById(userId, (user) => {
@@ -170,7 +174,8 @@ exports.connectSocket = (io) => {
                                                     msg.senderName = user.firstname + ' ' + user.lastname;
                                                     messageService.sendMessage(msg, (result) => {
                                                         groupService.getUsersByGroupId(msg.receiverId, (user) => {
-                                                            io.in(user.socketId).emit('receive-message', result); //emit one-by-one for all users
+                                                                io.in(user.socketId).emit('receive-message', result);
+                                                            //emit one-by-one for all users
                                                         });
                                                     });
                                                 });
@@ -216,10 +221,10 @@ exports.connectSocket = (io) => {
                 }
             });
 
-            socket.on('send-typing', (groupId, userName) => {
+            socket.on('send-typing', (groupId, userName, prescription) => {
                 groupService.getAllUsersByGroupId(groupId, (users) => {
                     users.map(user => {
-                        user.firstname + ' ' + user.lastname === userName ? null : socket.to(user.socketId).emit('receive-typing', { 'groupId': groupId, 'userName': userName }); //emit one-by-one for all users
+                        user.firstname + ' ' + user.lastname === userName ? null : socket.to(user.socketId).emit('receive-typing', { 'groupId': groupId, 'userName': userName, 'prescription':  prescription}); //emit one-by-one for all users
                     });
                 });
             });
@@ -339,14 +344,14 @@ exports.connectSocket = (io) => {
                                 };
                                 groupService.update(newGroup, () => {
                                     groupService.getUsersByGroupId(group.id, (user) => {
-                                        setTimeout(()=>{
+                                        // setTimeout(()=>{
                                             log.info(user.firstname+' Emitted receive-user-added event')
                                             io.in(user.socketId).emit('receive-user-added', {
-                                                message: `${doctor.firstname} ${doctor.lastname} joined the consultation`,
+                                                message: `Dr. ${doctor.firstname} ${doctor.lastname} joined the consultation`,
                                                 doctorId: doctor.id,
-                                                groupId: group.id
+                                                group: group
                                             }); //emit one-by-one for all users    
-                                        },2000)
+                                        // },2000)
                                     //this is to create billing entry for the user
                                       if(user.role==='patient'){
                                         let date = Date.now().toString();
@@ -442,39 +447,52 @@ exports.connectSocket = (io) => {
             /**
              * user or doctor added to consultation group
              */
-            socket.on('user-deleted', (doctor, group) => {
+            socket.on('end-consultation', (doctor, group) => {
                 groupService.getUsersByGroupId(group.id, (user) => {
-                    if (user.id === doctor.id) {
-                        io.in(user.socketId).emit('receive-user-deleted', {
-                            message: `Dr. ${doctor.firstname} ${doctor.lastname} ended the consultation`,
-                            group: group
+                    // if (user.id === doctor.id) {
+                        io.in(user.socketId).emit('receive-end-consultation', {
+                            message: `Dr. ${doctor.firstname} ${doctor.lastname} left the conversation`,
+                            groupId: group.id
                         }); //emit one-by-one for all users
-                    }
+                    // }
                 });
-                //commenting it for the timebeing to avoid group deletionr
+                groupDao.readById(group.id,(result)=>{
+                    var newGroup = {
+                        id: group.id,
+                        phase: 'botInactive',
+                        details: result.details
+                    };  
+                console.log(newGroup)
+                groupService.update(newGroup, (res) => {
+                    console.log(res);
+                })
+                })
+                //group phase = notArchived;    
+
+                // commenting it for the timebeing to avoid group deletionr
                 // groupService.deleteGroupUserMap(doctor.id, group.id, () => {
-                group.phase = 'inactive';
-                groupService.update(group, () => {
-                    groupService.getAllUsersInGroup(groupId).then((allUsers) => {
-                        let count = 0;
-                        allUsers.map((user) => {
-                            if (user.role !== 'bot' && user.status === 'online') {
-                                count++;
-                            }
-                        })
-                        if (count < 2) {
-                            log.info('Group status Update with ID: ' + groupId + ' offline');
-                            allUsers.map((user) => {
-                                if (user.role !== 'bot') {
-                                    io.in(user.socketId).emit('received-group-status', { 'groupId': groupId, 'groupStatus': 'offline' });
-                                }
-                            })
-                            groupService.updateGroupStatus(groupId, 'offline', (result) => {
-                                result === 1 ? log.info("Group status updated in DB for ID: " + groupId + ' to offline') : null;
-                            })
-                        }
-                    });
-                });
+                // group.phase = 'inactive';
+                // groupService.update(group, () => {
+                    // groupService.getAllUsersInGroup(groupId).then((allUsers) => {
+                    //     let count = 0;
+                    //     allUsers.map((user) => {
+                    //         if (user.role !== 'bot' && user.status === 'online') {
+                    //             count++;
+                    //         }
+                    //     })
+                    //     if (count < 2) {
+                    //         log.info('Group status Update with ID: ' + groupId + ' offline');
+                    //         allUsers.map((user) => {
+                    //             if (user.role !== 'bot') {
+                    //                 io.in(user.socketId).emit('received-group-status', { 'groupId': groupId, 'groupStatus': 'offline' });
+                    //             }
+                    //         })
+                    //         groupService.updateGroupStatus(groupId, 'offline', (result) => {
+                    //             result === 1 ? log.info("Group status updated in DB for ID: " + groupId + ' to offline') : null;
+                    //         })
+                    //     }
+                    // });
+                // });
                 var audit = new AuditModel({
                     senderId: doctor.id,
                     receiverId: group.id,
@@ -555,7 +573,7 @@ exports.connectSocket = (io) => {
         });
 
         function scheduler() {
-            // log.info('Scheduler called at ', moment(Date.now()).format());
+            log.info('Scheduler called at ', moment(Date.now()).format());
             notificationService.readByTime((allNotifications) => {
                 allNotifications.map((notification) => {
                     userService.getById(notification.userId, (user) => {
@@ -595,5 +613,5 @@ exports.connectSocket = (io) => {
                 });
             });
         }
-        setInterval(scheduler, 30000);
+        setInterval(scheduler, 10000);
     }
