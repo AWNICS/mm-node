@@ -65,6 +65,10 @@ module.exports = (sequelize, DataTypes) => {
         instructions: {
             type: DataTypes.STRING //special instructions provided in prescription pdf
         },
+        url: {
+            type: DataTypes.STRING,
+            defaultValue: null
+        },
         createdBy: {
             type: DataTypes.INTEGER,
             defaultValue: null

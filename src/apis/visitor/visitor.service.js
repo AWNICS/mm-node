@@ -156,9 +156,10 @@ class VisitorService {
     }
 
     getAppointmentDetails(visitorId, doctorId, callback) {
-        visitorModel.visitor_appointment.find({ where: { visitorId: visitorId, doctorId: doctorId } }).then((appointmentDetails) => {
-            callback(appointmentDetails);
-        });
+        visitorModel.visitor_appointment.find({ where: { visitorId: visitorId, doctorId: doctorId } })
+            .then((appointmentDetails) => {
+                callback(appointmentDetails);
+            });
     }
 
     async readAppointmentHistory(visitorId, callback) {
@@ -305,45 +306,21 @@ class VisitorService {
                 ]
             });
         var result = await this.getDoctorDetail(visitorPrescriptions, visitorId);
-        callback(result);;
+        callback(result);
     }
 
     async getDoctorDetail(visitorPrescriptions, visitorId) {
         return Promise.map(visitorPrescriptions, prescription => {
             return new Promise((resolve, reject) => {
                 userDao.readById(prescription.doctorId, (user) => {
-                    //find the fileName of prescription from message details
-                    var time = moment(new Date(prescription.createdAt)).add(10, 'm').toDate();
-                    time = moment(new Date(time)).subtract({ hours: 5, minutes: 30 }).toDate();
-                    messageModel.find({
-                            $and: [{
-                                    senderId: prescription.doctorId
-                                },
-                                {
-                                    receiverId: prescription.consultationId
-                                },
-                                {
-                                    type: 'doc'
-                                },
-                                {
-                                    createdTime: { $lte: time }
-                                }
-                            ]
-                        })
-                        .then((message) => {
-                            if (message.length >= 1) {
-                                resolve({ prescription: prescription, user: user, urlFileName: message[0].contentData.data[0] });
-                                //find the billing fileName from billing details
-                                //we will need this code for displaying the billings
-                                /*billingModel.billing.find({
-                                        where: { consultationId: prescription.consultationId }
-                                    })
-                                    .then((billing) => {
-                                        console.log('billing: ' + JSON.stringify(billing));
-                                        resolve({ prescription: prescription, user: user, urlFileName: message[0].contentData.data[0], billingDetails: billing });
-                                    });*/
-                            }
-                        });
+                    billingModel.billing.find({
+                        where: {
+                            consultationId: prescription.consultationId,
+                            doctorId: prescription.doctorId
+                        }
+                    }).then((billing) => {
+                        resolve({ prescription: prescription, user: user, billing: billing });
+                    });
                 });
             });
         });
@@ -532,6 +509,32 @@ class VisitorService {
             } else {
                 return;
             }
+        });
+    }
+
+    //update visitorPrescription url
+    updatePrescription(groupId, doctorId, fileName, callback) {
+        visitorModel.visitor_prescription.find({
+            where: {
+                consultationId: groupId,
+                doctorId: doctorId
+            }
+        }).then((prescription) => {
+            var prescription = {
+                url: fileName.fileName,
+                analysis: prescription.analysis,
+                medication: prescription.medication,
+                diagnostic: prescription.diagnostic,
+                prescription: prescription.prescription
+            }
+            visitorModel.visitor_prescription.update(prescription, {
+                where: {
+                    consultationId: groupId,
+                    doctorId: doctorId
+                }
+            }).then((updated) => {
+                callback(updated);
+            });
         });
     }
 }

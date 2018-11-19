@@ -914,4 +914,13 @@ router.get('/appointments/doctors/:doctorId', (req, res) => {
     });
 });
 
+//prescription url update
+router.put('/groups/:groupId/doctors/:doctorId/prescriptions', (req, res) => {
+    var groupId = req.params.groupId;
+    var doctorId = req.params.doctorId;
+    visitorService.updatePrescription(groupId, doctorId, req.body, (result) => {
+        res.send(result);
+    });
+});
+
 module.exports = router;
