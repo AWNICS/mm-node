@@ -14,6 +14,7 @@ import notificationModel from '../notification/index';
 import sequelize from '../../util/conn.mysql';
 import VisitorService from '../visitor/visitor.service';
 import BillingDao from '../billing/billing.dao';
+import userModel from '../user/index';
 
 const moment = require('moment');
 const Op = require('sequelize').Op;
@@ -550,46 +551,48 @@ exports.connectSocket = (io) => {
 
         });
 
-        function scheduler() {
-            log.info('Scheduler called at ', moment(Date.now()).format());
-            notificationService.readByTime((allNotifications) => {
-                allNotifications.map((notification) => {
-                    userService.getById(notification.userId, (user) => {
-                        if (notification.status === 'created') {
-                            io.in(user.socketId).emit('consult-notification', {
-                                notification: notification
+    function scheduler() {
+        log.info('Scheduler called at ', moment(Date.now()).format());
+        notificationService.readByTime((allNotifications) => {
+            allNotifications.map((notification) => {
+                userService.getById(notification.userId, (user) => {
+                    if (notification.status === 'created') {
+                        io.in(user.socketId).emit('consult-notification', {
+                            notification: notification
+                        });
+                        var updateNotification = {
+                            id: notification.id,
+                            template: notification.template,
+                            userId: notification.userId,
+                            type: notification.type,
+                            title: notification.title,
+                            content: notification.content,
+                            status: "sent",
+                            channel: notification.channel,
+                            priority: 1,
+                            triggerTime: notification.triggerTime,
+                            createdBy: notification.createdBy,
+                            updatedBy: notification.updatedBy
+                        };
+                        notificationModel.notification.update(updateNotification, {
+                                where: {
+                                    id: updateNotification.id
+                                }
+
+                            })
+                            .then((res) => {
+                                log.info('notification updated.');
+                            }).catch((err) => {
+                                log.error('error' + err);
                             });
-                            var updateNotification = {
-                                id: notification.id,
-                                template: notification.template,
-                                userId: notification.userId,
-                                type: notification.type,
-                                title: notification.title,
-                                content: notification.content,
-                                status: "sent",
-                                channel: notification.channel,
-                                priority: 1,
-                                triggerTime: notification.triggerTime,
-                                createdBy: notification.createdBy,
-                                updatedBy: notification.updatedBy
-                            };
-                            notificationModel.notification.update(updateNotification, {
-                                    where: {
-                                        id: updateNotification.id
-                                    }
-                                    
-                                })
-                                .then((res) => {
-                                    log.info('notification updated.');
-                                }).catch((err) => {
-                                    log.error('error' + err);
-                                });
-                        } else {
-                            return;
-                        }
-                    });
+                    } else {
+                        return;
+                    }
                 });
             });
-        }
-        setInterval(()=>{scheduler();console.log('done')}, 3000);
+        });
     }
+    setInterval(() => {
+        scheduler();
+    }, 3000);
+}
