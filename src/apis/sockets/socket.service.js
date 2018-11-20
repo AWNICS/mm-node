@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken');
 import AuditService from '../audit/audit.service';
 import AuditModel from '../audit/audit.model';
 import NotificationService from '../notification/notification.service';
-import visitorAppointmentModel from '../visitor/index';
+import visitorModel from '../visitor/index';
 import notificationModel from '../notification/index';
 import sequelize from '../../util/conn.mysql';
 import VisitorService from '../visitor/visitor.service';
@@ -444,6 +444,12 @@ exports.connectSocket = (io) => {
              * user or doctor added to consultation group
              */
             socket.on('user-deleted', (doctor, group) => {
+                visitorModel.visitor_appointment.update({ status: 'Completed' }, {
+                    where: {
+                        consultationId: group.id,
+                        doctorId: doctor.id
+                    }
+                }).then(() => {});
                 groupService.getUsersByGroupId(group.id, (user) => {
                     if (user.id === doctor.id) {
                         io.in(user.socketId).emit('receive-user-deleted', {
