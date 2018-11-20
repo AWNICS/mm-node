@@ -58,6 +58,7 @@ class GroupDao {
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
+                log.error(error);
                 t.rollback();
             });
         });

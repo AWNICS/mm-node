@@ -2,6 +2,7 @@ import Dotenv from 'dotenv';
 import billingModel from '../billing/index';
 import BillingService from '../billing/billing.service';
 import log from '../../config/log4js.config';
+import moment from 'moment';
 import fs from 'fs';
 const ccav = require('./payments.util');
 const dotenv = Dotenv.config({
@@ -117,8 +118,8 @@ class PaymentService {
                 }else{
                     log.info('Billing new status detected status: '+status);
                 }
-                let transactionDateAndTime=ccavResponse.match(/trans_date=[0-9/: ]+/)[0].substring(11);
-                let transactionDate = transactionDateAndTime.substring(0,10);
+                let transactionDateAndTime=moment(ccavResponse.match(/trans_date=[0-9/: ]+/)[0].substring(11),'DD/MM/YYYY HH:mm:ss').format('YYYY-MM-DD HH:mm:ss');
+                let transactionDate = transactionDateAndTime.substring(0,10);                
                 let customerName = ccavResponse.match(/billing_name=[a-zA-Z ]+/)[0].substring(13);
                 let failureMessage = ccavResponse.match(/failure_message=[a-zA-Z0-9 ]+/)!==null?ccavResponse.match(/failure_message=[a-zA-Z0-9 ]+/)[0].substring(16) : null;
                 let trackingId = ccavResponse.match(/tracking_id=[0-9]+/)!==null?ccavResponse.match(/tracking_id=[0-9]+/)[0].substring(12):null;

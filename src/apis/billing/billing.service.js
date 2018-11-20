@@ -175,6 +175,7 @@ class BillingService {
     }
 
     generateBillingPdf(userId,invoiceNumber, invoiceDate, customerName,price,tax,coupon,discount,doctorName,callback){
+        let validDate = invoiceDate.replace(invoiceDate.substring(8,10),parseInt(invoiceDate.substring(8,10))+3);
         let documentData = {
             pageSize: 'A4',
             pageOrientation: 'portrait',
@@ -206,7 +207,7 @@ class BillingService {
                         widths: ['60%', '10%', '10%', '10%', '10%'],
                         body: [
                             [{ text: 'Description', style: 'tableHead' }, { text: 'Qty', style: 'tableHead' }, { text: 'Price', style: 'tableHead' }, { text: 'Tax', style: 'tableHead' }, { text: 'Amount', style: 'tableHead' }],
-                            [{ text: 'Health and Wellness Consultation Charges \n (Includes Free text followup until (36/25/1232))', style: 'tableBody' },
+                            [{ text: `Health and Wellness Consultation Charges \n (Includes Free text followup until (${validDate}))`, style: 'tableBody' },
                                 { text: '1', style: 'tableBody' },
                                 { text: price, style: 'tableBody' },
                                 { text: tax, style: 'tableBody' },
@@ -238,7 +239,7 @@ class BillingService {
                 {
                     text: ['Note: ',
                         { text: 'Issued on behalf of Consulting Physician', bold: false },
-                        { text: ' Dr. '+doctorName, bold: true }
+                        { text: doctorName, bold: true }
                     ],
                     marginTop: 40,
                     bold: true,
