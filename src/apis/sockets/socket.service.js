@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken');
 import AuditService from '../audit/audit.service';
 import AuditModel from '../audit/audit.model';
 import NotificationService from '../notification/notification.service';
-import visitorAppointmentModel from '../visitor/index';
+import visitorModel from '../visitor/index';
 import notificationModel from '../notification/index';
 import sequelize from '../../util/conn.mysql';
 import VisitorService from '../visitor/visitor.service';
@@ -174,7 +174,7 @@ exports.connectSocket = (io) => {
                                                     msg.senderName = user.firstname + ' ' + user.lastname;
                                                     messageService.sendMessage(msg, (result) => {
                                                         groupService.getUsersByGroupId(msg.receiverId, (user) => {
-                                                                io.in(user.socketId).emit('receive-message', result);
+                                                            io.in(user.socketId).emit('receive-message', result);
                                                             //emit one-by-one for all users
                                                         });
                                                     });
@@ -224,7 +224,7 @@ exports.connectSocket = (io) => {
             socket.on('send-typing', (groupId, userName, prescription) => {
                 groupService.getAllUsersByGroupId(groupId, (users) => {
                     users.map(user => {
-                        user.firstname + ' ' + user.lastname === userName ? null : socket.to(user.socketId).emit('receive-typing', { 'groupId': groupId, 'userName': userName, 'prescription':  prescription}); //emit one-by-one for all users
+                        user.firstname + ' ' + user.lastname === userName ? null : socket.to(user.socketId).emit('receive-typing', { 'groupId': groupId, 'userName': userName, 'prescription': prescription }); //emit one-by-one for all users
                     });
                 });
             });
@@ -345,34 +345,34 @@ exports.connectSocket = (io) => {
                                 groupService.update(newGroup, () => {
                                     groupService.getUsersByGroupId(group.id, (user) => {
                                         // setTimeout(()=>{
-                                            log.info(user.firstname+' Emitted receive-user-added event')
-                                            io.in(user.socketId).emit('receive-user-added', {
-                                                message: `Dr. ${doctor.firstname} ${doctor.lastname} joined the consultation`,
-                                                doctorId: doctor.id,
-                                                group: group
-                                            }); //emit one-by-one for all users    
+                                        log.info(user.firstname + ' Emitted receive-user-added event')
+                                        io.in(user.socketId).emit('receive-user-added', {
+                                            message: `Dr. ${doctor.firstname} ${doctor.lastname} joined the consultation`,
+                                            doctorId: doctor.id,
+                                            group: group
+                                        }); //emit one-by-one for all users    
                                         // },2000)
-                                    //this is to create billing entry for the user
-                                      if(user.role==='patient'){
-                                        let date = Date.now().toString();
-                                        let date1 = date.slice(date.length-4,date.length);
-                                        let orderId= (date1+(1*369)).replace('.','1').slice(0,6);
-                                        let bill={
-                                            doctorId:doctor.id,
-                                            visitorId:user.id,
-                                            consultationId:group.id,
-                                            orderId:orderId,
-                                            status:'due',
-                                            amount:'1',
-                                            date:Date.now(),
-                                            description: `Consultation with Dr. ${doctor.firstname} ${doctor.lastname}`
+                                        //this is to create billing entry for the user
+                                        if (user.role === 'patient') {
+                                            let date = Date.now().toString();
+                                            let date1 = date.slice(date.length - 4, date.length);
+                                            let orderId = (date1 + (1 * 369)).replace('.', '1').slice(0, 6);
+                                            let bill = {
+                                                doctorId: doctor.id,
+                                                visitorId: user.id,
+                                                consultationId: group.id,
+                                                orderId: orderId,
+                                                status: 'due',
+                                                amount: '1',
+                                                date: Date.now(),
+                                                description: `Consultation with Dr. ${doctor.firstname} ${doctor.lastname}`
+                                            }
+                                            billingDao.insert(bill, (result) => {
+                                                console.log(result);
+                                                log.info(result.dataValues);
+                                                log.info('Created Billing entry for user: ' + user.firstname + ' ' + user.lastname);
+                                            })
                                         }
-                                        billingDao.insert(bill,(result)=>{
-                                            console.log(result);
-                                            log.info(result.dataValues);
-                                            log.info('Created Billing entry for user: '+user.firstname+' '+user.lastname);
-                                        })
-                                      }  
                                     });
                                 });
                                 var audit = new AuditModel({
@@ -448,50 +448,56 @@ exports.connectSocket = (io) => {
              * user or doctor added to consultation group
              */
             socket.on('end-consultation', (doctor, group) => {
+                visitorModel.visitor_appointment.update({ status: 'Completed' }, {
+                    where: {
+                        consultationId: group.id,
+                        doctorId: doctor.id
+                    }
+                }).then(() => {});
                 groupService.getUsersByGroupId(group.id, (user) => {
                     // if (user.id === doctor.id) {
-                        io.in(user.socketId).emit('receive-end-consultation', {
-                            message: `Dr. ${doctor.firstname} ${doctor.lastname} left the conversation`,
-                            groupId: group.id
-                        }); //emit one-by-one for all users
+                    io.in(user.socketId).emit('receive-end-consultation', {
+                        message: `Dr. ${doctor.firstname} ${doctor.lastname} left the conversation`,
+                        groupId: group.id
+                    }); //emit one-by-one for all users
                     // }
                 });
-                groupDao.readById(group.id,(result)=>{
-                    var newGroup = {
-                        id: group.id,
-                        phase: 'botInactive',
-                        details: result.details
-                    };  
-                console.log(newGroup)
-                groupService.update(newGroup, (res) => {
-                    console.log(res);
-                })
-                })
-                //group phase = notArchived;    
+                groupDao.readById(group.id, (result) => {
+                        var newGroup = {
+                            id: group.id,
+                            phase: 'botInactive',
+                            details: result.details
+                        };
+                        console.log(newGroup)
+                        groupService.update(newGroup, (res) => {
+                            console.log(res);
+                        })
+                    })
+                    //group phase = notArchived;    
 
                 // commenting it for the timebeing to avoid group deletionr
                 // groupService.deleteGroupUserMap(doctor.id, group.id, () => {
                 // group.phase = 'inactive';
                 // groupService.update(group, () => {
-                    // groupService.getAllUsersInGroup(groupId).then((allUsers) => {
-                    //     let count = 0;
-                    //     allUsers.map((user) => {
-                    //         if (user.role !== 'bot' && user.status === 'online') {
-                    //             count++;
-                    //         }
-                    //     })
-                    //     if (count < 2) {
-                    //         log.info('Group status Update with ID: ' + groupId + ' offline');
-                    //         allUsers.map((user) => {
-                    //             if (user.role !== 'bot') {
-                    //                 io.in(user.socketId).emit('received-group-status', { 'groupId': groupId, 'groupStatus': 'offline' });
-                    //             }
-                    //         })
-                    //         groupService.updateGroupStatus(groupId, 'offline', (result) => {
-                    //             result === 1 ? log.info("Group status updated in DB for ID: " + groupId + ' to offline') : null;
-                    //         })
-                    //     }
-                    // });
+                // groupService.getAllUsersInGroup(groupId).then((allUsers) => {
+                //     let count = 0;
+                //     allUsers.map((user) => {
+                //         if (user.role !== 'bot' && user.status === 'online') {
+                //             count++;
+                //         }
+                //     })
+                //     if (count < 2) {
+                //         log.info('Group status Update with ID: ' + groupId + ' offline');
+                //         allUsers.map((user) => {
+                //             if (user.role !== 'bot') {
+                //                 io.in(user.socketId).emit('received-group-status', { 'groupId': groupId, 'groupStatus': 'offline' });
+                //             }
+                //         })
+                //         groupService.updateGroupStatus(groupId, 'offline', (result) => {
+                //             result === 1 ? log.info("Group status updated in DB for ID: " + groupId + ' to offline') : null;
+                //         })
+                //     }
+                // });
                 // });
                 var audit = new AuditModel({
                     senderId: doctor.id,
@@ -572,46 +578,46 @@ exports.connectSocket = (io) => {
 
         });
 
-        function scheduler() {
-            log.info('Scheduler called at ', moment(Date.now()).format());
-            notificationService.readByTime((allNotifications) => {
-                allNotifications.map((notification) => {
-                    userService.getById(notification.userId, (user) => {
-                        if (notification.status === 'created') {
-                            io.in(user.socketId).emit('consult-notification', {
-                                notification: notification
-                            });
-                            var updateNotification = {
-                                id: notification.id,
-                                template: notification.template,
-                                userId: notification.userId,
-                                type: notification.type,
-                                title: notification.title,
-                                content: notification.content,
-                                status: "sent",
-                                channel: notification.channel,
-                                priority: 1,
-                                triggerTime: notification.triggerTime,
-                                createdBy: notification.createdBy,
-                                updatedBy: notification.updatedBy
-                            };
-                            notificationModel.notification.update(updateNotification, {
-                                    where: {
-                                        id: updateNotification.id
-                                    }
+    function scheduler() {
+        log.info('Scheduler called at ', moment(Date.now()).format());
+        notificationService.readByTime((allNotifications) => {
+            allNotifications.map((notification) => {
+                userService.getById(notification.userId, (user) => {
+                    if (notification.status === 'created') {
+                        io.in(user.socketId).emit('consult-notification', {
+                            notification: notification
+                        });
+                        var updateNotification = {
+                            id: notification.id,
+                            template: notification.template,
+                            userId: notification.userId,
+                            type: notification.type,
+                            title: notification.title,
+                            content: notification.content,
+                            status: "sent",
+                            channel: notification.channel,
+                            priority: 1,
+                            triggerTime: notification.triggerTime,
+                            createdBy: notification.createdBy,
+                            updatedBy: notification.updatedBy
+                        };
+                        notificationModel.notification.update(updateNotification, {
+                                where: {
+                                    id: updateNotification.id
+                                }
 
-                                })
-                                .then((res) => {
-                                    log.info('notification updated.');
-                                }).catch((err) => {
-                                    log.error('error' + err);
-                                });
-                        } else {
-                            return;
-                        }
-                    });
+                            })
+                            .then((res) => {
+                                log.info('notification updated.');
+                            }).catch((err) => {
+                                log.error('error' + err);
+                            });
+                    } else {
+                        return;
+                    }
                 });
             });
-        }
-        setInterval(scheduler, 10000);
+        });
     }
+    setInterval(scheduler, 10000);
+}

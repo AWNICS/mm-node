@@ -622,6 +622,8 @@ class GroupService {
             WHERE
                 userId=${patientId}
             AND
+                phase!='archive'
+            AND
                 url="consultation/${doctorId}";
                 `, {
                 type: sequelize.QueryTypes.SELECT
@@ -840,7 +842,8 @@ class GroupService {
                 var visitorAppointment = {
                     visitorId: patientId,
                     doctorId: doctorId,
-                    status: 'scheduled',
+                    consultationId: createdGroup.id,
+                    status: 'Scheduled',
                     activity: `Consultation with ${user.firstname} ${user.lastname}`,
                     slotId: 5,
                     type: 'New consultation',

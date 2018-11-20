@@ -12,7 +12,6 @@ import log from '../../config/log4js.config';
 import visitorModel from './index';
 import VisitorTimelineDao from './visitor-timeline.dao';
 import UserDao from '../user/user.dao';
-import messageModel from '../message/message.model';
 import billingModel from '../billing/index';
 
 const Promise = require('bluebird');
@@ -319,7 +318,11 @@ class VisitorService {
                             doctorId: prescription.doctorId
                         }
                     }).then((billing) => {
-                        resolve({ prescription: prescription, user: user, billing: billing });
+                        if (billing) {
+                            resolve({ prescription: prescription, user: user, billing: billing });
+                        } else {
+                            resolve({ prescription: prescription, user: user, billing: null });
+                        }
                     });
                 });
             });
@@ -370,7 +373,7 @@ class VisitorService {
         followUps.fill(0);
         await visitorAppointments.map((visitorAppointment) => {
             var time;
-            time = new Date(visitorAppointment.startTime).getUTCHours();
+            time = moment(visitorAppointment.startTime).hours();
             //indexes will be 9am-0, 10am-1, 11am-2, and so on
             if (visitorAppointment.type === 'New consultation') {
                 switch (true) {
