@@ -60,6 +60,9 @@ class NotificationService {
                 userId: userId,
                 channel: 'web'
             },
+            order: [
+                ['createdAt', 'DESC'] 
+            ],
             offset: offset,
             limit: size
         }).then((notifications) => {

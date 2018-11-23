@@ -186,6 +186,9 @@ router.get('/notifications/users/:userId', (req, res) => {
     var page = parseInt(req.query.page);
     var size = parseInt(req.query.size);
     notificationService.readWebNotificationsByUserId(userId, page, size, (result) => {
+        result.map((res)=>{
+            console.log(res.dataValues);
+        });
         res.send(result);
     });
 });

@@ -17,6 +17,7 @@ import visitorModel from '../visitor/index';
 import FileService from '../file/file.service';
 import bucket from '../../config/gcp.config';
 import billingModel from '../billing/index';
+import GroupDao from '../group/group.dao';
 
 var doctorDao = new DoctorDao();
 var visitorAppoinmentDao = new VisitorAppointmentDao();
@@ -27,6 +28,7 @@ var doctorMediaDao = new DoctorMediaDao();
 var doctorStoreDao = new DoctorStoreDao();
 var doctorActivityDao = new DoctorActivityDao();
 var doctorReviewDao = new DoctorReviewDao();
+var groupDao = new GroupDao();
 
 class DoctorService {
 
@@ -564,8 +566,17 @@ class DoctorService {
         });
         fileService.pdfUpload(fileName, bucket, (fileName) => {
             callback(fileName);
+        groupDao.readById((pdfData.groupId),(groupDetails)=>{
+            groupDao.update({id: pdfData.groupId,details: groupDetails.details ,prescription_generated: true},(p)=>{
+                if(p===1){
+                    log.info('Prescription generated for group with Id: '+pdfData.groupId);
+                } else {
+                    log.error('Error in updating prescription entry in group');
+                }
+                
+            })
         });
-
+        });
 
     }
 }
