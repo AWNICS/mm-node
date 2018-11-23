@@ -304,11 +304,11 @@ class VisitorService {
                     [visitorModel, 'createdAt', 'DESC']
                 ]
             });
-        var result = await this.getDoctorDetail(visitorPrescriptions, visitorId);
+        var result = await this.getDoctorDetail(visitorPrescriptions);
         callback(result);
     }
 
-    async getDoctorDetail(visitorPrescriptions, visitorId) {
+    async getDoctorDetail(visitorPrescriptions) {
         return Promise.map(visitorPrescriptions, prescription => {
             return new Promise((resolve, reject) => {
                 userDao.readById(prescription.doctorId, (user) => {
@@ -316,6 +316,45 @@ class VisitorService {
                         where: {
                             consultationId: prescription.consultationId,
                             doctorId: prescription.doctorId
+                        }
+                    }).then((billing) => {
+                        if (billing) {
+                            resolve({ prescription: prescription, user: user, billing: billing });
+                        } else {
+                            resolve({ prescription: prescription, user: user, billing: null });
+                        }
+                    });
+                });
+            });
+        });
+    }
+
+    //all consultations by doctor id
+    async readAllConsultationsByDoctorId(doctorId, page, size, callback) {
+        var offset = ((size * page) - size);
+        var doctorPrescriptions = await visitorModel.visitor_prescription
+            .findAll({
+                where: {
+                    doctorId: doctorId
+                },
+                offset: offset,
+                limit: size,
+                order: [
+                    [visitorModel, 'createdAt', 'DESC']
+                ]
+            });
+        var result = await this.getPatientDetail(doctorPrescriptions);
+        callback(result);
+    }
+
+    async getPatientDetail(doctorPrescriptions) {
+        return Promise.map(doctorPrescriptions, prescription => {
+            return new Promise((resolve, reject) => {
+                userDao.readById(prescription.visitorId, (user) => {
+                    billingModel.billing.find({
+                        where: {
+                            consultationId: prescription.consultationId,
+                            visitorId: prescription.visitorId
                         }
                     }).then((billing) => {
                         if (billing) {
@@ -512,32 +551,6 @@ class VisitorService {
             } else {
                 return;
             }
-        });
-    }
-
-    //update visitorPrescription url
-    updatePrescription(groupId, doctorId, fileName, callback) {
-        visitorModel.visitor_prescription.find({
-            where: {
-                consultationId: groupId,
-                doctorId: doctorId
-            }
-        }).then((prescription) => {
-            var prescription = {
-                url: fileName.fileName,
-                analysis: prescription.analysis,
-                medication: prescription.medication,
-                diagnostic: prescription.diagnostic,
-                prescription: prescription.prescription
-            }
-            visitorModel.visitor_prescription.update(prescription, {
-                where: {
-                    consultationId: groupId,
-                    doctorId: doctorId
-                }
-            }).then((updated) => {
-                callback(updated);
-            });
         });
     }
 }

@@ -123,9 +123,18 @@ class BillingService {
 
     //billing by visitorId
     getAllBillingByVisitorId(visitorId, callback) {
-        billingModel.billing.findAll({ where: { visitorId: visitorId } }).then((billings) => {
-            callback(billings);
-        });
+        billingModel.billing.findAll({ where: { visitorId: visitorId } })
+            .then((billings) => {
+                callback(billings);
+            });
+    }
+
+    //get billing by doctorId
+    getAllBillingByDoctorId(doctorId, callback) {
+        billingModel.billing.findAll({ where: { doctorId: doctorId } })
+            .then((billings) => {
+                callback(billings);
+            });
     }
 
     /**
@@ -174,8 +183,8 @@ class BillingService {
         });
     }
 
-    generateBillingPdf(userId,invoiceNumber, invoiceDate, customerName,price,tax,coupon,discount,doctorName,callback){
-        let validDate = invoiceDate.replace(invoiceDate.substring(8,10),parseInt(invoiceDate.substring(8,10))+3);
+    generateBillingPdf(userId, invoiceNumber, invoiceDate, customerName, price, tax, coupon, discount, doctorName, callback) {
+        let validDate = invoiceDate.replace(invoiceDate.substring(8, 10), parseInt(invoiceDate.substring(8, 10)) + 3);
         let documentData = {
             pageSize: 'A4',
             pageOrientation: 'portrait',
@@ -211,7 +220,7 @@ class BillingService {
                                 { text: '1', style: 'tableBody' },
                                 { text: price, style: 'tableBody' },
                                 { text: tax, style: 'tableBody' },
-                                { text: 1* price, style: 'tableBody' }
+                                { text: 1 * price, style: 'tableBody' }
                             ],
                             // [{ text: 'Bold value', bold: true }, 'Val 2', 'Val 3', 'Val 4']
                         ]
@@ -231,8 +240,8 @@ class BillingService {
                             [{ text: 'Subtotal :', style: 'table2Head' }, { text: price, style: 'table2Body' }],
                             [{ text: 'Tax :', style: 'table2Head' }, { text: tax, style: 'table2Body' }],
                             [{ text: `Discount :\n (${coupon}) `, style: 'table2Head' }, { text: discount, style: 'table2Body' }],
-                            [{ text: 'Total :', style: 'table2Head' }, { text: price+tax-discount, style: 'table2Body' }]
-        
+                            [{ text: 'Total :', style: 'table2Head' }, { text: price + tax - discount, style: 'table2Body' }]
+
                         ]
                     }
                 },
@@ -266,7 +275,7 @@ class BillingService {
                     fontSize: 18,
                     bold: true,
                     marginTop: 15
-        
+
                 },
                 subElement: {
                     bold: false
@@ -292,18 +301,18 @@ class BillingService {
                 ]
             },
         }
-    
-    var pdfDoc = printer.createPdfKitDocument(documentData);
 
-    var date = moment().utcOffset(330).format('DD-MM-YYYYTHH-mm-ss-SSS');
-    var fileName = userId+'-bill'+ '-' + date + '.pdf';
-    pdfDoc.pipe(fs.createWriteStream('tmp/'+fileName)).on('finish', function() {
-    fileService.pdfUpload(fileName,bucket,(fileName)=>{
-        log.info('Generation of billing pdf successfull for userId: '+userId+' with filename '+fileName.fileName);
-        callback(fileName);
-    })
-    });
-    pdfDoc.end();
+        var pdfDoc = printer.createPdfKitDocument(documentData);
+
+        var date = moment().utcOffset(330).format('DD-MM-YYYYTHH-mm-ss-SSS');
+        var fileName = userId + '-bill' + '-' + date + '.pdf';
+        pdfDoc.pipe(fs.createWriteStream('tmp/' + fileName)).on('finish', function() {
+            fileService.pdfUpload(fileName, bucket, (fileName) => {
+                log.info('Generation of billing pdf successfull for userId: ' + userId + ' with filename ' + fileName.fileName);
+                callback(fileName);
+            })
+        });
+        pdfDoc.end();
     }
 }
 
