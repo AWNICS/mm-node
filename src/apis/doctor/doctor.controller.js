@@ -648,8 +648,8 @@ router.get('/doctors/:doctorId/history', function(req, res) {
     });
 });
 
-router.post('/doctors/:doctorId/files/pdf', function(req, res) {
-    doctorService.generatePdf(req.body, (uploadedFileName) => {
+router.post('/doctors/:doctorId/groups/:groupId/files/pdf', function(req, res) {
+    doctorService.generatePdf(req.body, req.params.groupId, (uploadedFileName) => {
         res.status(200).send(uploadedFileName);
     })
 });

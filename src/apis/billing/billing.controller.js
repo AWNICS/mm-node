@@ -191,6 +191,12 @@ router.get('/billing/visitors/:visitorId', (req, res) => {
     });
 });
 
+router.get('/billing/doctors/:doctorId', (req, res) => {
+    billingService.getAllBillingByDoctorId(req.params.doctorId, (billings) => {
+        res.send(billings);
+    });
+});
+
 /**
  * @swagger
  * definitions:
