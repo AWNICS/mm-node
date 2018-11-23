@@ -18,6 +18,7 @@ import FileService from '../file/file.service';
 import bucket from '../../config/gcp.config';
 import billingModel from '../billing/index';
 
+const Op = require('sequelize').Op;
 var doctorDao = new DoctorDao();
 var visitorAppoinmentDao = new VisitorAppointmentDao();
 var userService = new UserService();
@@ -314,9 +315,11 @@ class DoctorService {
     getMediaByDoctorId(doctorId, callback) {
         doctorMediaModel.doctor_media
             .findAll({
-                where: {
+                where: [{
                     userId: doctorId
-                }
+                }, {
+                    type: ['image', 'video']
+                }]
             }) //fetch all records for this doctorId
             .then((doctorMedia) => {
                 callback(doctorMedia);
@@ -554,7 +557,7 @@ class DoctorService {
         }
     }
 
-    generatePdf(pdfData, callback) {
+    generatePdf(pdfData, groupId, callback) {
         var date = moment().utcOffset(330).format('DD-MM-YYYYTHH-mm-ss-SSS');
         var fileName = pdfData.userId + '-' + date + '.pdf';
         fs.writeFileSync('./tmp/' + fileName, pdfData.data, 'binary', (err) => {
@@ -563,10 +566,28 @@ class DoctorService {
             }
         });
         fileService.pdfUpload(fileName, bucket, (fileName) => {
+            visitorModel.visitor_prescription.find({
+                where: {
+                    consultationId: groupId,
+                    visitorId: pdfData.userId
+                }
+            }).then((prescription) => {
+                var prescription = {
+                    url: fileName.fileName,
+                    analysis: prescription.analysis,
+                    medication: prescription.medication,
+                    diagnostic: prescription.diagnostic,
+                    prescription: prescription.prescription
+                }
+                visitorModel.visitor_prescription.update(prescription, {
+                    where: {
+                        consultationId: groupId,
+                        visitorId: pdfData.userId
+                    }
+                }).then(() => {});
+            });
             callback(fileName);
         });
-
-
     }
 }
 

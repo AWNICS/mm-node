@@ -884,6 +884,16 @@ router.get('/visitors/:visitorId/consultations', (req, res) => {
     });
 });
 
+//all consultations by doctorId
+router.get('/doctors/:doctorId/consultations', (req, res) => {
+    var doctorId = req.params.doctorId;
+    var page = parseInt(req.query.page);
+    var size = parseInt(req.query.size);
+    visitorService.readAllConsultationsByDoctorId(doctorId, page, size, (results) => {
+        res.send(results);
+    });
+});
+
 /**
  * @swagger
  * /appointments/doctors/{doctorId}:
@@ -911,15 +921,6 @@ router.get('/appointments/doctors/:doctorId', (req, res) => {
     var size = parseInt(req.query.size);
     visitorService.getAppointmentsByDoctorId(doctorId, page, size, (results) => {
         res.send(results);
-    });
-});
-
-//prescription url update
-router.put('/groups/:groupId/doctors/:doctorId/prescriptions', (req, res) => {
-    var groupId = req.params.groupId;
-    var doctorId = req.params.doctorId;
-    visitorService.updatePrescription(groupId, doctorId, req.body, (result) => {
-        res.send(result);
     });
 });
 
