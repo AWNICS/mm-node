@@ -83,6 +83,7 @@ class Config {
 
     configureCORS() {
         // Additional middleware which will set headers that we need on each request.
+        this.app.set('etag', false);
         this.app.use((req, res, next) => {
             // Set permissive CORS header - this allows this server to be used only as
             // an API server in conjunction with something like webpack-dev-server.
