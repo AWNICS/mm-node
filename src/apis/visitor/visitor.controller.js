@@ -894,6 +894,13 @@ router.get('/doctors/:doctorId/consultations', (req, res) => {
     });
 });
 
+router.get('/doctors/:doctorId/consultations/:consultationId', (req, res) => {
+    var doctorId = req.params.doctorId;
+    var consultationId = req.params.consultationId;
+    visitorService.getConsultationByConsultationId(doctorId, consultationId, (result) => {
+        res.send(result);
+    });
+});
 /**
  * @swagger
  * /appointments/doctors/{doctorId}:
