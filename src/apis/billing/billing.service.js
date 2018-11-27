@@ -247,7 +247,7 @@ class BillingService {
                 },
                 {
                     text: ['Note: ',
-                        { text: 'Issued on behalf of Consulting Physician', bold: false },
+                        { text: 'Issued on behalf of Consulting Physician ', bold: false },
                         { text: doctorName, bold: true }
                     ],
                     marginTop: 40,

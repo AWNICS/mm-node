@@ -347,6 +347,19 @@ class VisitorService {
         callback(result);
     }
 
+    async getConsultationByConsultationId(doctorId, consultationId, callback) {
+        var doctorPrescriptions = await visitorModel.visitor_prescription
+            .findAll({
+                where: {
+                    doctorId: doctorId,
+                    consultationId: consultationId
+                }
+            }); 
+        var result = await this.getPatientDetail(doctorPrescriptions);
+        callback(result);
+        
+    }
+
     async getPatientDetail(doctorPrescriptions) {
         return Promise.map(doctorPrescriptions, prescription => {
             return new Promise((resolve, reject) => {
