@@ -14,6 +14,9 @@ module.exports = (sequelize, DataTypes) => {
         consultationId: {
             type: DataTypes.INTEGER
         },
+        groupId: {
+            type: DataTypes.INTEGER
+        },
         status: {
             type: DataTypes.STRING //scheduled, missed, appear(appointments)
         },

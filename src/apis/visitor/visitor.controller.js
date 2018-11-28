@@ -161,10 +161,10 @@ router.get('/visitors/:visitorId/health', (req, res) => {
  *       200:
  *         description: Successfully created in MySql DB
  */
-router.post('/visitors/prescriptions', (req, res) => {
+router.put('/visitors/prescriptions', (req, res) => {
     req.body.analysis = null;
     req.body.prescription = null;
-    visitorService.createPrescription(req.body, (result) => {
+    visitorService.updatePrescription(req.body, (result) => {
         res.send(result);
     });
 });
@@ -682,8 +682,9 @@ router.get('/visitors/:visitorId/appointments/history', (req, res) => {
  */
 router.get('/visitors/:visitorId/doctors/:doctorId/appointments', (req, res) => {
     var visitorId = req.params.visitorId;
-    var doctorId = req.params.doctorId
-    visitorService.getAppointmentDetails(visitorId, doctorId, (appointmentDetails) => {
+    var doctorId = req.params.doctorId;
+    var groupId = req.query.groupId;
+    visitorService.getAppointmentDetails(visitorId, doctorId, groupId, (appointmentDetails) => {
         res.send(appointmentDetails);
     });
 });
