@@ -15,6 +15,8 @@ import sequelize from '../../util/conn.mysql';
 import VisitorService from '../visitor/visitor.service';
 import BillingDao from '../billing/billing.dao';
 import GroupDao from '../group/group.dao';
+import DoctorServce from '../doctor/doctor.service';
+import VisitorPrescriptionDao from '../visitor/visitor-prescription.dao';
 
 const moment = require('moment');
 const Op = require('sequelize').Op;
@@ -26,6 +28,9 @@ const auditService = new AuditService();
 const notificationService = new NotificationService();
 const billingDao = new BillingDao();
 const groupDao = new GroupDao();
+const doctorService = new DoctorServce();
+const visitorService = new VisitorService();
+const visitorPrescriptionDao = new VisitorPrescriptionDao();
 
 exports.connectSocket = (io) => {
     io.use(function(socket, next) {
@@ -372,6 +377,66 @@ exports.connectSocket = (io) => {
                                                 log.info(result.dataValues);
                                                 log.info('Created Billing entry for user: ' + user.firstname + ' ' + user.lastname);
                                             })
+
+                                            //this will create appointment when multiple patients in a group
+                                            userService.getById(user.id, (user) => {
+                                                var visitorAppointment = {
+                                                    visitorId: user.id,
+                                                    doctorId: doctor.id,
+                                                    groupId: group.id,
+                                                    consultationId: orderId,
+                                                    status: 'Scheduled',
+                                                    activity: `Consultation with ${user.firstname} ${user.lastname}`,
+                                                    slotId: 5,
+                                                    type: 'New Consultation',
+                                                    waitTime: 5,
+                                                    startTime: moment().add(5, 'm'),
+                                                    endTime: moment().add(20, 'm'),
+                                                    duration: 15,
+                                                    createdBy: user.id,
+                                                    updatedBy: user.id
+                                                };
+                                                doctorService.createConsultation(visitorAppointment, (visitorAppointmentCreated) => {
+                                                    log.info('visitor apppointment created');
+                                                    /**
+                                                     * create consultation entry details inside the visitor-timeline table
+                                                     */
+                                                    doctorService.getById(doctor.id, (doctorDetails) => {
+                                                        userService.getById(doctorDetails.doctorDetails.userId, (userDetails) => {
+                                                            var visitorTimeline = {
+                                                                visitorId: user.id,
+                                                                timestamp: visitorAppointmentCreated.startTime,
+                                                                consultations: {
+                                                                    "appointmentId": visitorAppointmentCreated.id,
+                                                                    "doctorName": `Dr. ${userDetails.firstname} ${userDetails.lastname}`,
+                                                                    "time": visitorAppointmentCreated.startTime,
+                                                                    "speciality": doctorDetails.doctorDetails.speciality,
+                                                                    "description": "Consultation for pre check-up info"
+                                                                },
+                                                                reminders: null,
+                                                                events: null,
+                                                                createdBy: user.id,
+                                                                updatedBy: user.id
+                                                            };
+                                                            visitorService.createVisitorTimeline(visitorTimeline, (timeline) => {
+                                                                log.info('timeline created');
+                                                            });
+
+                                                            //prescription enrty
+                                                            var visitorPrescription = {
+                                                                doctorId: doctor.id,
+                                                                visitorId: user.id,
+                                                                consultationId: orderId,
+                                                                createdBy: user.id,
+                                                                updatedBy: user.id
+                                                            }
+                                                            visitorPrescriptionDao.insert(visitorPrescription, (visitorPrescriptionCreated) => {
+                                                                //callback(visitorPrescriptionCreated);
+                                                            });
+                                                        });
+                                                    });
+                                                });
+                                            });
                                         }
                                     });
                                 });
@@ -450,7 +515,7 @@ exports.connectSocket = (io) => {
             socket.on('end-consultation', (doctor, group) => {
                 visitorModel.visitor_appointment.update({ status: 'Completed' }, {
                     where: {
-                        consultationId: group.id,
+                        groupId: group.id,
                         doctorId: doctor.id
                     }
                 }).then(() => {});

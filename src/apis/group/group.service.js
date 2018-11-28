@@ -66,6 +66,32 @@ class GroupService {
         });
     }
 
+    //create group by admin
+    async createGroupByAdmin(group, callback) {
+        var groupName = await this.getGroupName(group.users);
+        var updateName = '';
+        groupName.map((name) => {
+            if (updateName !== '') { updateName = updateName + ', ' + name; } else { updateName = name; }
+        });
+        var group = {
+            name: updateName,
+            url: group.url,
+            userId: group.userId,
+            details: {
+                description: group.description,
+                speciality: group.speciality
+            },
+            picture: group.picture,
+            status: group.status,
+            phase: group.status,
+            createdBy: group.userId,
+            updatedBy: group.userId
+        };
+        return groupDao.insert(group, (groupCreated) => {
+            callback(groupCreated);
+        });
+    }
+
     //create mapping for the users for newly created group
     mapUsers(users, groupId, callback) {
         users.map((user) => {
@@ -82,7 +108,13 @@ class GroupService {
 
     //updating the group by the admin
     async updateGroup(group, callback) {
-        //update the group details by dao and update the mappingof users in consultation_group_user_map
+        //update the group details by dao and update the mapping of users in consultation_group_user_map
+        var groupName = await this.getGroupName(group.users);
+        var updateName = '';
+        groupName.map((name) => {
+            if (updateName !== '') { updateName = updateName + ', ' + name; } else { updateName = name; }
+        });
+        group.name = updateName;
         groupDao.update(group, (groupUpdated) => {
             callback(groupUpdated);
         });
@@ -118,6 +150,22 @@ class GroupService {
             newList.push(user.id);
         });
         return ({ oldList: oldList, newList: newList });
+    }
+
+    getGroupName(users) {
+        var groupName = '';
+        return Promise.map(users, user => {
+            return new Promise((resolve, reject) => {
+                userService.getById(user.id, (userDetail) => {
+                    if (userDetail.role === 'doctor') {
+                        groupName = 'Dr ' + userDetail.firstname + ' ' + userDetail.lastname;
+                    } else {
+                        groupName = userDetail.firstname + ' ' + userDetail.lastname;
+                    }
+                    resolve(groupName);
+                });
+            });
+        });
     }
 
     /**
@@ -833,49 +881,6 @@ class GroupService {
                                     });
                                 }
                             }));
-                        });
-                    });
-                });
-            });
-            // create visitorAppointment
-            userService.getById(patientId, (user) => {
-                var visitorAppointment = {
-                    visitorId: patientId,
-                    doctorId: doctorId,
-                    consultationId: createdGroup.id,
-                    status: 'Scheduled',
-                    activity: `Consultation with ${user.firstname} ${user.lastname}`,
-                    slotId: 5,
-                    type: 'New consultation',
-                    waitTime: 5,
-                    startTime: moment().add(5, 'm'),
-                    endTime: moment().add(20, 'm'),
-                    duration: 15,
-                    createdBy: createdGroup.createdBy,
-                    updatedBy: createdGroup.updatedBy
-                };
-                doctorService.createConsultation(visitorAppointment, (visitorAppointmentCreated) => {
-                    /**
-                     * create consultation entry details inside the visitor-timeline table
-                     */
-                    doctorService.getById(doctorId, (doctorDetails) => {
-                        userService.getById(doctorDetails.doctorDetails.userId, (userDetails) => {
-                            var visitorTimeline = {
-                                visitorId: patientId,
-                                timestamp: visitorAppointmentCreated.startTime,
-                                consultations: {
-                                    "appointmentId": visitorAppointmentCreated.id,
-                                    "doctorName": `Dr. ${userDetails.firstname} ${userDetails.lastname}`,
-                                    "time": visitorAppointmentCreated.startTime,
-                                    "speciality": doctorDetails.doctorDetails.speciality,
-                                    "description": "Consultation for pre check-up info"
-                                },
-                                reminders: null,
-                                events: null,
-                                createdBy: patientId,
-                                updatedBy: patientId
-                            };
-                            visitorService.createVisitorTimeline(visitorTimeline, () => {});
                         });
                     });
                 });

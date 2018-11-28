@@ -501,7 +501,7 @@ router.get('/doctors/:doctorId/bio', function(req, res) {
 router.get('/doctors/:doctorId/digitalsig', function(req, res) {
     var doctorId = req.params.doctorId;
     doctorService.getDigitalSignatureByDoctorId(doctorId, (result) => {
-        res.json(result);
+        res.send(result);
     });
 });
 

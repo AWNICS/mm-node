@@ -586,13 +586,15 @@ class DoctorService {
                 log.info('Error writing pdf data to file ' + err);
             }
         });
+        console.log(pdfData);
         fileService.pdfUpload(fileName, bucket, (fileName) => {
             visitorModel.visitor_prescription.find({
                 where: {
-                    consultationId: groupId,
+                    consultationId: pdfData.consultationId,
                     visitorId: pdfData.userId
                 }
             }).then((prescription) => {
+                console.log(prescription);
                 var prescription = {
                     url: fileName.fileName,
                     analysis: prescription.analysis,
@@ -602,22 +604,22 @@ class DoctorService {
                 }
                 visitorModel.visitor_prescription.update(prescription, {
                     where: {
-                        consultationId: groupId,
+                        consultationId: pdfData.consultationId,
                         visitorId: pdfData.userId
                     }
                 }).then(() => {});
             });
             callback(fileName);
-        groupDao.readById((pdfData.groupId),(groupDetails)=>{
-            groupDao.update({id: pdfData.groupId,details: groupDetails.details ,prescription_generated: true},(p)=>{
-                if(p===1){
-                    log.info('Prescription generated for group with Id: '+pdfData.groupId);
-                } else {
-                    log.error('Error in updating prescription entry in group');
-                }
-                
-            })
-        });
+            groupDao.readById((pdfData.groupId), (groupDetails) => {
+                groupDao.update({ id: pdfData.groupId, details: groupDetails.details, prescription_generated: true }, (p) => {
+                    if (p === 1) {
+                        log.info('Prescription generated for group with Id: ' + pdfData.groupId);
+                    } else {
+                        log.error('Error in updating prescription entry in group');
+                    }
+
+                })
+            });
         });
     }
 }
