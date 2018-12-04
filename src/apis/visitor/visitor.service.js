@@ -53,10 +53,22 @@ class VisitorService {
     }
 
     //for visitor-prescription
-    createPrescription(visitorPrescription, callback) {
-        visitorPrescriptionDao.insert(visitorPrescription, (visitorPrescriptionCreated) => {
-            callback(visitorPrescriptionCreated);
-        });
+    updatePrescription(visitorPrescription, callback) {
+        var prescription = {
+            analysis: null,
+            issue: visitorPrescription.issue,
+            medication: visitorPrescription.medication,
+            diagnostic: visitorPrescription.diagnostic,
+            instructions: visitorPrescription.instructions,
+            description: visitorPrescription.description,
+            prescription: null
+        }
+        visitorModel.visitor_prescription.update(prescription, {
+            where: {
+                consultationId: visitorPrescription.consultationId,
+                doctorId: visitorPrescription.doctorId
+            }
+        }).then(() => {});
     }
 
     readAllPrescription(callback) {
@@ -154,8 +166,8 @@ class VisitorService {
         });
     }
 
-    getAppointmentDetails(visitorId, doctorId, callback) {
-        visitorModel.visitor_appointment.find({ where: { visitorId: visitorId, doctorId: doctorId } })
+    getAppointmentDetails(visitorId, doctorId, groupId, callback) {
+        visitorModel.visitor_appointment.find({ where: { visitorId: visitorId, doctorId: doctorId, groupId: groupId } })
             .then((appointmentDetails) => {
                 callback(appointmentDetails);
             });
@@ -354,10 +366,10 @@ class VisitorService {
                     doctorId: doctorId,
                     consultationId: consultationId
                 }
-            }); 
+            });
         var result = await this.getPatientDetail(doctorPrescriptions);
         callback(result);
-        
+
     }
 
     async getPatientDetail(doctorPrescriptions) {
@@ -366,7 +378,7 @@ class VisitorService {
                 userDao.readById(prescription.visitorId, (user) => {
                     billingModel.billing.find({
                         where: {
-                            consultationId: prescription.consultationId,
+                            orderId: prescription.consultationId,
                             visitorId: prescription.visitorId
                         }
                     }).then((billing) => {

@@ -67,6 +67,13 @@ router.post('/groups', function(req, res) {
     });
 });
 
+//create new group by admin
+router.post('/groups/admin', function(req, res) {
+    groupService.createGroupByAdmin(req.body, (result) => {
+        res.send(result);
+    });
+});
+
 /**
  * @swagger
  * /groups:
@@ -138,7 +145,6 @@ router.get('/groups/:id', function(req, res) {
  */
 router.put('/groups', function(req, res) {
     var group = req.body;
-    console.log('data: ' + JSON.stringify(req.body));
     groupService.updateGroup(group, (result) => {
         console.log('updated: ' + result);
         res.send(result);

@@ -16,6 +16,8 @@ import VisitorService from '../visitor/visitor.service';
 import BillingDao from '../billing/billing.dao';
 import billingModel from '../billing/index';
 import GroupDao from '../group/group.dao';
+import DoctorServce from '../doctor/doctor.service';
+import VisitorPrescriptionDao from '../visitor/visitor-prescription.dao';
 
 const moment = require('moment');
 const Op = require('sequelize').Op;
@@ -27,6 +29,9 @@ const auditService = new AuditService();
 const notificationService = new NotificationService();
 const billingDao = new BillingDao();
 const groupDao = new GroupDao();
+const doctorService = new DoctorServce();
+const visitorService = new VisitorService();
+const visitorPrescriptionDao = new VisitorPrescriptionDao();
 
 exports.connectSocket = (io) => {
     io.use(function(socket, next) {
@@ -517,7 +522,7 @@ exports.connectSocket = (io) => {
             socket.on('end-consultation', (doctor, group) => {
                 visitorModel.visitor_appointment.update({ status: 'Completed' }, {
                     where: {
-                        consultationId: group.id,
+                        groupId: group.id,
                         doctorId: doctor.id
                     }
                 }).then(() => {});
