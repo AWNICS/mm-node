@@ -403,6 +403,13 @@ router.get('/visitors/:visitorId/reports', (req, res) => {
     });
 });
 
+router.get('/reports/:reportId', (req, res) => {
+    var reportId = req.params.reportId;
+    visitorService.readReportById(reportId, (result) => {
+        res.send(result);
+    });
+});
+
 /**
  * @swagger
  * definitions:

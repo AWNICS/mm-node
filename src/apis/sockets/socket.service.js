@@ -255,8 +255,7 @@ exports.connectSocket = (io) => {
                 }, (user) => {
                     userService.getById(userId, (result) => {
                         io.in(result.socketId).emit('doctor-status', status);
-                    })
-
+                    });
                 });
                 groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
                     gumaps.map((gumap) => {

@@ -110,8 +110,8 @@ class VisitorService {
     }
 
     readByVisitorIdReport(visitorId, callback) {
-        visitorReportDao.readById(visitorId, (report) => {
-            callback(report);
+        visitorReportDao.readById(visitorId, (reports) => {
+            callback(reports);
         });
     }
 
@@ -119,6 +119,14 @@ class VisitorService {
         visitorReportDao.update(visitorReport, (visitorReportUpdated) => {
             callback(visitorReportUpdated);
         });
+    }
+
+    readReportById(id, callback) {
+        visitorModel.visitor_report.find({ where: { id: id } })
+            .then((visitorReport) => {
+                console.log('report: ' + JSON.stringify(visitorReport));
+                callback(visitorReport);
+            });
     }
 
     //for visitor-history
@@ -437,9 +445,9 @@ class VisitorService {
         followUps.fill(0);
         await visitorAppointments.map((visitorAppointment) => {
             var time;
-            time = moment(visitorAppointment.startTime).hours();
+            time = moment(visitorAppointment.startTime).subtract({ hours: 5, minutes: 30 }).hours();
             //indexes will be 9am-0, 10am-1, 11am-2, and so on
-            if (visitorAppointment.type === 'New consultation') {
+            if (visitorAppointment.type === 'New Consultation') {
                 switch (true) {
                     case (time >= 9 && time < 10):
                         newConsultations[0] = newConsultations[0] + 1;
@@ -574,7 +582,20 @@ class VisitorService {
                     log.info('Visitor health entry created for: ', createdVisitorHealth.visitorId);
                 });
             } else {
-                return;
+                var visitorHealth = {
+                    visitorId: visitor.userId,
+                    allergies: visitor.allergies,
+                    foodHabits: result[0].foodHabits,
+                    vitals: {
+                        bloodPressure: visitor.bloodPressure,
+                        heartRate: visitor.heartRate
+                    }
+                }
+                visitorModel.visitor_health.update(visitorHealth, {
+                    where: {
+                        visitorId: visitor.userId
+                    }
+                }, () => {});
             }
         });
     }
