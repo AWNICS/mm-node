@@ -123,7 +123,7 @@ class BillingService {
 
     //billing by visitorId
     getAllBillingByVisitorId(visitorId, callback) {
-        billingModel.billing.findAll({ where: { visitorId: visitorId } })
+        billingModel.billing.findAll({ where: { visitorId: visitorId }, order: [['createdAt','DESC']] })
             .then((billings) => {
                 callback(billings);
             });
@@ -131,7 +131,7 @@ class BillingService {
 
     //get billing by doctorId
     getAllBillingByDoctorId(doctorId, callback) {
-        billingModel.billing.findAll({ where: { doctorId: doctorId } })
+        billingModel.billing.findAll({ where: { doctorId: doctorId }, order: [['createdAt','DESC']] })
             .then((billings) => {
                 callback(billings);
             });
