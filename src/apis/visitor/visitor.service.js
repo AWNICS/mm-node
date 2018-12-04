@@ -341,7 +341,7 @@ class VisitorService {
                 limit: size,
                 order: [
                     [visitorModel, 'createdAt', 'DESC']
-                ]
+                ]  
             });
         var result = await this.getPatientDetail(doctorPrescriptions);
         callback(result);

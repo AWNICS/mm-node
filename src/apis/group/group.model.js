@@ -14,6 +14,9 @@ module.exports = (sequelize, DataTypes) => {
         userId: {
             type: DataTypes.INTEGER
         },
+        doctorId: {
+            type: DataTypes.INTEGER
+        },
         details: {
             type: DataTypes.TEXT,
             get: function() {

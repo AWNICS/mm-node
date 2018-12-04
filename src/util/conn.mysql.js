@@ -1,7 +1,7 @@
 import Sequelize from 'sequelize';
 import log from '../config/log4js.config'
 
-var sequelize = new Sequelize('test', 'arun', '', {
+var sequelize = new Sequelize('test', 'root', '', {
     host: 'localhost',
     dialect: 'mysql',
     operatorsAliases: false,
