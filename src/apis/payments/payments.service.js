@@ -1,6 +1,7 @@
 import Dotenv from 'dotenv';
 import billingModel from '../billing/index';
 import BillingService from '../billing/billing.service';
+import GroupService from '../group/group.service';
 import log from '../../config/log4js.config';
 import moment from 'moment';
 import fs from 'fs';
@@ -10,6 +11,8 @@ const dotenv = Dotenv.config({
 });
 
 const billingService = new BillingService();
+const groupService = new GroupService();
+
 
 class PaymentService {
 
@@ -47,6 +50,7 @@ class PaymentService {
             var ccavResponse = '',
                 workingKey = process.env.CCAV_WORKING_KEY, //Put in the 32-Bit key provided by CCAvenues.
                 ccavPOST = '';
+                createdGroupId;
             ccavPOST = request.body;
             var encryption = ccavPOST.encResp.toString();
             ccavResponse = ccav.decrypt(encryption, workingKey);
@@ -56,35 +60,41 @@ class PaymentService {
                 let referenceNumber = ccavResponse.match(/bank_ref_no=[a-zA-Z]+/)[0].substring(12);
                 let status = ccavResponse.match(/order_status=[a-zA-Z]+/)[0].substring(13);
                 if(status === 'Success'){
-                    let image = fs.readFileSync('images/payment_success.png',{encoding:'base64'});
-                    log.info('Transaction Success with status: '+status);
-                    let htmlcode = `<html>
-                    <head>
-                        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-                        <title>Payment page</title>
-                    </head>
-                    <body>
-                    <div style="width:100%;position: relative;margin-top:7%;height:56%">
-                        <div id="paymentBox" style="width:70%;max-height:100%;position: relative;left:13%;background: #ede7f6;border:3px solid #00968830;border-radius:14px">
-                            <div id="image" style="margin:23px">
-                                <img src="${'data:image/png;base64, '+image}"  style="position: relative;left:50%;height:46%;transform: translateX(-50%);border-radius:53%">
+                billingModel.billing.find({where:{orderId:ccavPOST.orderNo}}).then((bill)=>{
+                    if(bill){
+                    groupService.consultNow(bill.doctorId,bill.visitorId,(groupCreated)=>{
+                        createdGroupId = groupCreated.id;
+                        let image = fs.readFileSync('images/payment_success.png',{encoding:'base64'});
+                        log.info('Transaction Success with status: '+status);
+                        let htmlcode = `<html>
+                        <head>
+                            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+                            <title>Payment page</title>
+                        </head>
+                        <body>
+                        <div style="width:100%;position: relative;margin-top:7%;height:56%">
+                            <div id="paymentBox" style="width:70%;max-height:100%;position: relative;left:13%;background: #ede7f6;border:3px solid #00968830;border-radius:14px">
+                                <div id="image" style="margin:23px">
+                                    <img src="${'data:image/png;base64, '+image}"  style="position: relative;left:50%;height:46%;transform: translateX(-50%);border-radius:53%">
+                                </div>
+                                <h1 style="text-align:center">Payment was Successful</h1>
+                                <p style="text-align: center">Your transaction reference number is ${referenceNumber}</p>
+                                <p style="text-align: center"><a href="https://mesomeds.com/chat/${bill.visitorId}?active_group=${groupCreated.id}">Click here </a>to get back to mesomeds.com or you will be redirected back automatically in 3 seconds</p>
                             </div>
-                            <h1 style="text-align:center">Payment was Successful</h1>
-                            <p style="text-align: center">Your transaction reference number is ${referenceNumber}</p>
-                            <p style="text-align: center"><a href="https://mesomeds.com">Click here </a>to get back to mesomeds.com or you will be redirected back automatically in 3 seconds</p>
                         </div>
-                    </div>
-                    <script>
-                     setTimeout(()=>{window.location="https://mesomeds.com"},3000);
-                    </script>
-                    </body>
-                </html>` ;           
-                    response.writeHeader(200, {
-                        "Content-Type": "text/html"
+                        <script>
+                         setTimeout(()=>{window.location="https://mesomeds.com/chat/${bill.visitorId}?active_group=${groupCreated.id}"},3000);
+                        </script>
+                        </body>
+                    </html>` ;           
+                        response.writeHeader(200, {
+                            "Content-Type": "text/html"
+                        });
+                        response.write(htmlcode);
+                        response.end();                                                
                     });
-                    response.write(htmlcode);
-                    response.end();
-
+                    }
+                })
                 }else if(status ==='Aborted' || status ==='Failure' || status==='Invalid'){
                     log.info('Transaction failed with status: '+status);
                     let image = fs.readFileSync('images/payment_failed.png',{encoding:'base64'});
@@ -101,11 +111,11 @@ class PaymentService {
                                                 <img src="${'data:image/png;base64, '+image}"  style="position: relative;left:50%;height:46%;transform: translateX(-50%);border-radius:53%">
                                             </div>
                                             <h1 style="text-align:center">Payment failed</h1>
-                                            <p style="text-align: center"><a href="https://mesomeds.com">Click here </a>to get back to mesomeds.com or you will be redirected back automatically in 3 seconds</p>
+                                            <p style="text-align: center"><a href="https://mesomeds.com/payments/${bill.visitorId}">Click here </a>to get back to mesomeds.com or you will be redirected back automatically in 3 seconds</p>
                                         </div>
                             </div>
                         <script>
-                         setTimeout(()=>{window.location="https://mesomeds.com"},3000);
+                         setTimeout(()=>{window.location="https://mesomeds.com/payments/${bill.visitorId}"},3000);
                         </script>
                         </body>
                     </html>`;
@@ -137,11 +147,11 @@ class PaymentService {
                             referenceNumber:referenceNumber,
                             modeOfPayment:modeOfPayment,
                             cardName:cardName,
+                            consultationId:createdGroupId,
                             trackingId:trackingId,
                             date: transactionDateAndTime,
                             url: fileName.fileName
                         };
-                        
                         log.info(bill);
                         billingModel.billing.update(bill,{where:{orderId:ccavPOST.orderNo}}).then((res)=>{
                             if(res[0]===1){
@@ -151,7 +161,7 @@ class PaymentService {
                                 log.info('Something went wrong in updating bill');
                             }
                         }).catch((error)=>{
-                            console.log(error);
+                            log.info(error);
                         })
                     })
                     }else{
@@ -173,7 +183,7 @@ class PaymentService {
                                 log.info('Something went wrong in updating bill');
                             }
                         }).catch((error)=>{
-                            console.log(error);
+                            log.info(error);
                         })
                     }
                 })
