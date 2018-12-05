@@ -62,10 +62,13 @@ class NotificationService {
         notificationModel.notification.findAll({
             where: {
                 userId: userId,
-                channel: 'web'
+                channel: 'web',
+                status: {
+                    [Op.ne]: 'read'
+                }
             },
             order: [
-                ['createdAt', 'DESC'] 
+                ['createdAt', 'DESC']
             ],
             offset: offset,
             limit: size
