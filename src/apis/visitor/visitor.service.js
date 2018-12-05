@@ -361,7 +361,7 @@ class VisitorService {
                 limit: size,
                 order: [
                     [visitorModel, 'createdAt', 'DESC']
-                ]  
+                ]
             });
         var result = await this.getPatientDetail(doctorPrescriptions);
         callback(result);
@@ -386,7 +386,7 @@ class VisitorService {
                 userDao.readById(prescription.visitorId, (user) => {
                     billingModel.billing.find({
                         where: {
-                            orderId: prescription.consultationId,
+                            consultationId: prescription.consultationId,
                             visitorId: prescription.visitorId
                         }
                     }).then((billing) => {
