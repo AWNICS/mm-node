@@ -690,5 +690,5 @@ exports.connectSocket = (io) => {
             });
         });
     }
-    setInterval(scheduler, 10000);
+    setInterval(scheduler, 40000);
 }
