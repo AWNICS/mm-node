@@ -337,52 +337,56 @@ exports.connectSocket = (io) => {
                         date: Date.now(),
                         description: `Consultation with Dr. ${doctorName}`
                     }
-                    billingModel.billing.findAll({where:{
-                        doctorId: doctorId,
-                        visitorId: user.id
-                    }}).then((result)=>{
-                        if(result.length===0){
+                    billingModel.billing.findAll({
+                        where: {
+                            doctorId: doctorId,
+                            visitorId: user.id
+                        }
+                    }).then((result) => {
+                        if (result.length === 0) {
                             billingDao.insert(bill, (result) => {
                                 log.info('Created Billing entry for user: ' + user.firstname + ' ' + user.lastname);
-                                io.in(socket.id).emit('receive-consult-now','billing');
+                                io.in(socket.id).emit('receive-consult-now', 'billing');
                             });
                         } else {
                             let paymentSuccess;
                             let billingEntryExists;
-                            result.map((res)=>{
-                                if(res.status==='Success'){
+                            result.map((res) => {
+                                if (res.status === 'Success') {
                                     paymentSuccess = true;
                                 }
-                                if(res.status!=='Success' || !res.consultationId){
+                                if (res.status !== 'Success' || !res.consultationId) {
                                     billingEntryExists = true;
                                 }
                             });
-                            if(paymentSuccess) {
-                                consultationGroupModel.consultation_group.findAll({where:{
-                                    userId: user.id,
-                                    doctorId: doctorId,
-                                    phase: ['active', 'botInactive']
-                                }}).then((response)=>{
-                                    if(response.length > 0){
-                                        io.in(socket.id).emit('receive-consult-now','chat');
+                            if (paymentSuccess) {
+                                consultationGroupModel.consultation_group.findAll({
+                                    where: {
+                                        userId: user.id,
+                                        doctorId: doctorId,
+                                        phase: ['active', 'botInactive']
+                                    }
+                                }).then((response) => {
+                                    if (response.length > 0) {
+                                        io.in(socket.id).emit('receive-consult-now', 'chat');
                                         log.info(`An active group entry alread there for doctorName ${doctorName} and userName ${user.firstname}`);
                                     } else {
-                                        if(!billingEntryExists){
-                                        billingDao.insert(bill, (result) => {
-                                            log.info('Created Billing entry for user: ' + user.firstname + ' ' + user.lastname+' because of group being inactive or archived');
-                                            io.in(socket.id).emit('receive-consult-now','billing');
-                                    }); 
-                                } else {
-                                    log.info(`An pending billing entry alread there for doctorName ${doctorName} and userName ${user.firstname}`);
-                                    io.in(socket.id).emit('receive-consult-now','billing');
-                                }   
+                                        if (!billingEntryExists) {
+                                            billingDao.insert(bill, (result) => {
+                                                log.info('Created Billing entry for user: ' + user.firstname + ' ' + user.lastname + ' because of group being inactive or archived');
+                                                io.in(socket.id).emit('receive-consult-now', 'billing');
+                                            });
+                                        } else {
+                                            log.info(`An pending billing entry alread there for doctorName ${doctorName} and userName ${user.firstname}`);
+                                            io.in(socket.id).emit('receive-consult-now', 'billing');
+                                        }
                                     }
                                 });
                             } else {
-                                io.in(socket.id).emit('receive-consult-now','billing');
+                                io.in(socket.id).emit('receive-consult-now', 'billing');
                                 log.info(`An pending billing entry alread there for doctorName ${doctorName} and userName ${user.firstname}`);
                             }
-                    }
+                        }
                     })
                 }
             });
@@ -415,35 +419,79 @@ exports.connectSocket = (io) => {
                                 };
                                 groupService.update(newGroup, () => {
                                     groupService.getUsersByGroupId(group.id, (user) => {
-                                        // setTimeout(()=>{
                                         log.info(user.firstname + ' Emitted receive-user-added event')
                                         io.in(user.socketId).emit('receive-user-added', {
                                             message: `Dr. ${doctor.firstname} ${doctor.lastname} joined the consultation`,
                                             doctorId: doctor.id,
                                             group: group
                                         }); //emit one-by-one for all users    
-                                        // },2000)
-                                        // //this is to create billing entry for the user
-                                        // if (user.role === 'patient') {
-                                        //     let date = Date.now().toString();
-                                        //     let date1 = date.slice(date.length - 4, date.length);
-                                        //     let orderId = (date1 + (1 * 369)).replace('.', '1').slice(0, 6);
-                                        //     let bill = {
-                                        //         doctorId: doctor.id,
-                                        //         visitorId: user.id,
-                                        //         consultationId: group.id,
-                                        //         orderId: orderId,
-                                        //         status: 'due',
-                                        //         amount: '1',
-                                        //         date: Date.now(),
-                                        //         description: `Consultation with Dr. ${doctor.firstname} ${doctor.lastname}`
-                                        //     }
-                                        //     billingDao.insert(bill, (result) => {
-                                        //         console.log(result);
-                                        //         log.info(result.dataValues);
-                                        //         log.info('Created Billing entry for user: ' + user.firstname + ' ' + user.lastname);
-                                        //     })
-                                        // }
+                                        if (user.role === 'patient') {
+                                            //this will create appointment when multiple patients in a group
+                                            billingModel.billing.find({
+                                                where: {
+                                                    consultationId: group.id
+                                                }
+                                            }).then((billing) => {
+                                                userService.getById(user.id, (user) => {
+                                                    var visitorAppointment = {
+                                                        visitorId: user.id,
+                                                        doctorId: doctor.id,
+                                                        groupId: group.id,
+                                                        consultationId: billing.consultationId,
+                                                        status: 'Scheduled',
+                                                        activity: `Consultation with ${user.firstname} ${user.lastname}`,
+                                                        slotId: 5,
+                                                        type: 'New Consultation',
+                                                        waitTime: 5,
+                                                        startTime: moment().add(5, 'm'),
+                                                        endTime: moment().add(20, 'm'),
+                                                        duration: 15,
+                                                        createdBy: user.id,
+                                                        updatedBy: user.id
+                                                    };
+                                                    doctorService.createConsultation(visitorAppointment, (visitorAppointmentCreated) => {
+                                                        log.info('visitor apppointment created');
+                                                        /**
+                                                         * create consultation entry details inside the visitor-timeline table
+                                                         */
+                                                        doctorService.getById(doctor.id, (doctorDetails) => {
+                                                            userService.getById(doctorDetails.doctorDetails.userId, (userDetails) => {
+                                                                var visitorTimeline = {
+                                                                    visitorId: user.id,
+                                                                    timestamp: visitorAppointmentCreated.startTime,
+                                                                    consultations: {
+                                                                        "appointmentId": visitorAppointmentCreated.id,
+                                                                        "doctorName": `Dr. ${userDetails.firstname} ${userDetails.lastname}`,
+                                                                        "time": visitorAppointmentCreated.startTime,
+                                                                        "speciality": doctorDetails.doctorDetails.speciality,
+                                                                        "description": "Consultation for pre check-up info"
+                                                                    },
+                                                                    reminders: null,
+                                                                    events: null,
+                                                                    createdBy: user.id,
+                                                                    updatedBy: user.id
+                                                                };
+                                                                visitorService.createVisitorTimeline(visitorTimeline, (timeline) => {
+                                                                    log.info('timeline created');
+                                                                });
+
+                                                                //prescription enrty
+                                                                var visitorPrescription = {
+                                                                    doctorId: doctor.id,
+                                                                    visitorId: user.id,
+                                                                    consultationId: billing.consultationId,
+                                                                    createdBy: user.id,
+                                                                    updatedBy: user.id
+                                                                }
+                                                                visitorPrescriptionDao.insert(visitorPrescription, (visitorPrescriptionCreated) => {
+                                                                    //callback(visitorPrescriptionCreated);
+                                                                });
+                                                            });
+                                                        });
+                                                    });
+                                                });
+                                            });
+                                        }
                                     });
                                 });
                                 var audit = new AuditModel({

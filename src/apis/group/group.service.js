@@ -343,15 +343,15 @@ class GroupService {
                             })
                             .catch((error) => {
                                 rej(error)
-                            })
-                    })
+                            });
+                    });
                 }).then((allUsers) => {
                     res(allUsers);
                 }).catch((error) => {
                     rej(error)
-                })
-            })
-        })
+                });
+            });
+        });
     }
 
     /**
@@ -657,98 +657,98 @@ class GroupService {
     }
 
     consultNow(doctorId, patientId, callback) {
-        /**
-         * Changed the logic to fetch the groups in which doctor and patient is present
-         * DoctorId is being stored in the group URL which makes it easy to fetch the group details
-         */
-        // return sequelize
-        //     .query(`
-        //     SELECT
-        //         *
-        //     FROM
-        //     consultation_group
-        //     WHERE
-        //         userId=${patientId}
-        //     AND
-        //         phase!='archive'
-        //     AND
-        //         url="consultation/${doctorId}";
-        //         `, {
-        //         type: sequelize.QueryTypes.SELECT
-        //     })
-        //     .then((result, err) => {
-        //         if (err) {
-        //             log.error('Error while fetching doctors list ', err);
-        //             callback(err);
-        //         } else {
-        //             if (result.length >= 1) {
-        //                 var existingGroup = result[0];
-        //                 callback(existingGroup);
-        //                 // mapping doctor to the group
-        //                 // var groupUserMap = {
-        //                 //     groupId: existingGroup.id,
-        //                 //     userId: doctorId,
-        //                 //     createdBy: existingGroup.createdBy,
-        //                 //     updatedBy: existingGroup.updatedBy
-        //                 // };
-        //                 // this.createGroupUserMap(groupUserMap, (doctorMapped) => {
-        //                 // });
-        //                 //create notification for the doctor
-        //                 // doctorService.getById(doctorId, (doctor) => {
-        //                 //     userService.getById(patientId, (user) => {
-        //                 //         var notification = {
-        //                 //             userId: doctorId,
-        //                 //             type: 'follow up',
-        //                 //             title: `Follow up with ${user.firstname} ${user.lastname}`,
-        //                 //             content: `Speciality chosen: ${doctor.doctorDetails.speciality}`,
-        //                 //             status: 'created',
-        //                 //             channel: 'web',
-        //                 //             priority: 1,
-        //                 //             template: '',
-        //                 //             triggerTime: moment().add(2, 'm'),
-        //                 //             createdBy: user.id,
-        //                 //             updatedBy: user.id
-        //                 //         };
-        //                 //         notificationService.create(notification, (notificationCreated) => {
-        //                 //         });
-        //                 //     });
-        //                 // });
-        //             } else {
-                        userService.getById(doctorId, (doctor) => { //doctor details from user table
-                            if (doctor) {
-                                var groupName = '';
-                                userService.getById(patientId, (user) => {
-                                    doctorService.getById(doctorId, (result) => { //doctor from doctor table
-                                        if (result.doctorDetails) {
-                                            groupName = 'Dr. ' + doctor.firstname + ' ' + doctor.lastname + ', ' + user.firstname + ' ' + user.lastname;
-                                            var group = {
-                                                name: groupName,
-                                                url: `consultation/${doctorId}`,
-                                                userId: patientId,
-                                                details: {
-                                                    description: 'Consultation for registered patients',
-                                                    speciality: result.doctorDetails.speciality
-                                                },
-                                                picture: null,
-                                                phase: 'inactive',
-                                                status: 'online',
-                                                createdBy: patientId,
-                                                updatedBy: patientId
-                                            };
-                                            this.createGroupForConsultation(group, doctorId, patientId, (newGroup) => {
-                                                callback(newGroup);
-                                            });
-                                        }
-                                    });
+            /**
+             * Changed the logic to fetch the groups in which doctor and patient is present
+             * DoctorId is being stored in the group URL which makes it easy to fetch the group details
+             */
+            // return sequelize
+            //     .query(`
+            //     SELECT
+            //         *
+            //     FROM
+            //     consultation_group
+            //     WHERE
+            //         userId=${patientId}
+            //     AND
+            //         phase!='archive'
+            //     AND
+            //         url="consultation/${doctorId}";
+            //         `, {
+            //         type: sequelize.QueryTypes.SELECT
+            //     })
+            //     .then((result, err) => {
+            //         if (err) {
+            //             log.error('Error while fetching doctors list ', err);
+            //             callback(err);
+            //         } else {
+            //             if (result.length >= 1) {
+            //                 var existingGroup = result[0];
+            //                 callback(existingGroup);
+            //                 // mapping doctor to the group
+            //                 // var groupUserMap = {
+            //                 //     groupId: existingGroup.id,
+            //                 //     userId: doctorId,
+            //                 //     createdBy: existingGroup.createdBy,
+            //                 //     updatedBy: existingGroup.updatedBy
+            //                 // };
+            //                 // this.createGroupUserMap(groupUserMap, (doctorMapped) => {
+            //                 // });
+            //                 //create notification for the doctor
+            //                 // doctorService.getById(doctorId, (doctor) => {
+            //                 //     userService.getById(patientId, (user) => {
+            //                 //         var notification = {
+            //                 //             userId: doctorId,
+            //                 //             type: 'follow up',
+            //                 //             title: `Follow up with ${user.firstname} ${user.lastname}`,
+            //                 //             content: `Speciality chosen: ${doctor.doctorDetails.speciality}`,
+            //                 //             status: 'created',
+            //                 //             channel: 'web',
+            //                 //             priority: 1,
+            //                 //             template: '',
+            //                 //             triggerTime: moment().add(2, 'm'),
+            //                 //             createdBy: user.id,
+            //                 //             updatedBy: user.id
+            //                 //         };
+            //                 //         notificationService.create(notification, (notificationCreated) => {
+            //                 //         });
+            //                 //     });
+            //                 // });
+            //             } else {
+            userService.getById(doctorId, (doctor) => { //doctor details from user table
+                if (doctor) {
+                    var groupName = '';
+                    userService.getById(patientId, (user) => {
+                        doctorService.getById(doctorId, (result) => { //doctor from doctor table
+                            if (result.doctorDetails) {
+                                groupName = 'Dr. ' + doctor.firstname + ' ' + doctor.lastname + ', ' + user.firstname + ' ' + user.lastname;
+                                var group = {
+                                    name: groupName,
+                                    url: `consultation/${doctorId}`,
+                                    userId: patientId,
+                                    details: {
+                                        description: 'Consultation for registered patients',
+                                        speciality: result.doctorDetails.speciality
+                                    },
+                                    picture: null,
+                                    phase: 'inactive',
+                                    status: 'online',
+                                    createdBy: patientId,
+                                    updatedBy: patientId
+                                };
+                                this.createGroupForConsultation(group, doctorId, patientId, (newGroup) => {
+                                    callback(newGroup);
                                 });
-                            } else {
-                                return;
                             }
                         });
-                    // }
+                    });
+                } else {
+                    return;
                 }
-            // });
-    // }
+            });
+            // }
+        }
+        // });
+        // }
 
     createGroupForConsultation(group, doctorId, patientId, callback) {
         this.create(group, (createdGroup) => {
