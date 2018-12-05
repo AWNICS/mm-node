@@ -11,6 +11,8 @@ import moment from 'moment';
 import FileService from '../file/file.service';
 import bucket from '../../config/gcp.config';
 import log from '../../config/log4js.config';
+import UserService from '../user/user.service';
+const Promise = require('bluebird');
 
 let fonts = {
     Roboto: {
@@ -28,6 +30,7 @@ const visitorService = new VisitorService();
 const auditService = new AuditService();
 const consultationPriceDao = new ConsultationPriceDao();
 const fileService = new FileService();
+const userService = new UserService();
 
 class BillingService {
 
@@ -123,7 +126,12 @@ class BillingService {
 
     //billing by visitorId
     getAllBillingByVisitorId(visitorId, callback) {
-        billingModel.billing.findAll({ where: { visitorId: visitorId }, order: [['createdAt','DESC']] })
+        billingModel.billing.findAll({
+                where: { visitorId: visitorId },
+                order: [
+                    ['createdAt', 'DESC']
+                ]
+            })
             .then((billings) => {
                 callback(billings);
             });
@@ -131,9 +139,23 @@ class BillingService {
 
     //get billing by doctorId
     getAllBillingByDoctorId(doctorId, callback) {
-        billingModel.billing.findAll({ where: { doctorId: doctorId }, order: [['createdAt','DESC']] })
+        billingModel.billing.findAll({
+                where: { doctorId: doctorId },
+                order: [
+                    ['createdAt', 'DESC']
+                ]
+            })
             .then((billings) => {
-                callback(billings);
+                return Promise.map(billings, (billing) => {
+                    return new Promise((resolve, reject) => {
+                        userService.getById(billing.visitorId, (userDetails) => {
+                            billing.description = 'Consultation with ' + userDetails.firstname + ' ' + userDetails.lastname;
+                            resolve(billing);
+                        });
+                    });
+                }).then((allBills) => {
+                    callback(allBills);
+                });
             });
     }
 
