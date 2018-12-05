@@ -4,6 +4,7 @@ import Dotenv from 'dotenv';
 import NotificationDao from './notification.dao';
 import log from '../../config/log4js.config';
 import notificationModel from './index';
+const moment = require('moment');
 
 const notificationDao = new NotificationDao();
 const Op = require('sequelize').Op;
@@ -20,14 +21,17 @@ class NotificationService {
     readByTime(callback) {
         var currentTime = new Date();
         var lowerLimit = currentTime.setSeconds(0);
-        var upperLimit = currentTime.setSeconds(59);
+        var upperLimit = currentTime.setSeconds(40);
+        console.log('lowerlimit'+lowerLimit);
+        console.log(moment().add(45, 's'));
+        console.log('upperlimit'+upperLimit);
         notificationModel.notification.findAll({
                 where: {
                     triggerTime: {
                         [Op.gt]: lowerLimit,
                         [Op.lt]: upperLimit
                     },
-                    channel: 'web'
+                    channel: 'web',
                 }
             })
             .then(notifications => {

@@ -817,7 +817,7 @@ class GroupService {
                                                         channel: 'web',
                                                         priority: 1,
                                                         template: '',
-                                                        triggerTime: moment().add(1, 'm'),
+                                                        triggerTime: moment().add(45, 's'),
                                                         createdBy: user.id,
                                                         updatedBy: user.id
                                                     };
