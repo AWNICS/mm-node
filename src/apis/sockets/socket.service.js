@@ -371,11 +371,7 @@ exports.connectSocket = (io) => {
                         if (result.length === 0) {
                             billingDao.insert(bill, (result) => {
                                 log.info('Created Billing entry for user: ' + user.firstname + ' ' + user.lastname);
-<<<<<<< HEAD
                                 io.in(socket.id).emit('receive-consult-now',['billing',bill.orderId]);
-=======
-                                io.in(socket.id).emit('receive-consult-now', 'billing');
->>>>>>> 7f9e8aa0a021926c747ad01c80b5670fa2837f66
                             });
                         } else {
                             let paymentSuccess;
