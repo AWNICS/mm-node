@@ -254,9 +254,19 @@ class GroupService {
                             }
                             let inactiveGroupTime = moment(moment(group.createdAt).utc().format()).add(3, 'd');
                             if (group.phase === 'active' || group.name === 'MedHelp') { //MedHelp and all active groups
+                                allGroupUserMapByUserId.map((gumap)=>{
+                                    if(gumap.groupId===group.id){
+                                        group.dataValues.unreadCount = gumap.unreadCount 
+                                    }
+                                })
                                 activeGroups.push(group);
                             } else {
                                 if (inactiveGroupTime >= moment()) { //doctor is not active but for some query he will be available
+                                    allGroupUserMapByUserId.map((gumap)=>{
+                                        if(gumap.groupId===group.id){
+                                            group.dataValues.unreadCount = gumap.unreadCount 
+                                        }
+                                    })
                                     inactiveGroups.push(group);
                                 } else if (inactiveGroupTime <= moment() && group.name !== 'MedHelp') {
                                     var updated = {

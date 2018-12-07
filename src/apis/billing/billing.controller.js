@@ -191,6 +191,12 @@ router.get('/billing/visitors/:visitorId', (req, res) => {
     });
 });
 
+router.get('/billing/visitors/:visitorId/bill/:billId', (req, res) => {
+    billingService.getAllBillingByBillId(req.params.visitorId,req.params.billId, (billings) => {
+        res.send(billings);
+    });
+});
+
 router.get('/billing/doctors/:doctorId', (req, res) => {
     billingService.getAllBillingByDoctorId(req.params.doctorId, (billings) => {
         res.send(billings);

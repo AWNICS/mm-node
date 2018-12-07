@@ -49,7 +49,7 @@ class PaymentService {
         if (request) {
             var ccavResponse = '',
                 workingKey = process.env.CCAV_WORKING_KEY, //Put in the 32-Bit key provided by CCAvenues.
-                ccavPOST = '';
+                ccavPOST = '',
                 createdGroupId;
             ccavPOST = request.body;
             var encryption = ccavPOST.encResp.toString();

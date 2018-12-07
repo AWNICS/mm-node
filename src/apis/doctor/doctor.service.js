@@ -18,6 +18,7 @@ import FileService from '../file/file.service';
 import bucket from '../../config/gcp.config';
 import billingModel from '../billing/index';
 import GroupDao from '../group/group.dao';
+import GroupModel from '../group/index';
 
 const Op = require('sequelize').Op;
 var doctorDao = new DoctorDao();
@@ -181,7 +182,7 @@ class DoctorService {
         });
     }
 
-    getDoctorsLists(location, speciality, gps, time, page, size, callback) {
+    getDoctorsLists(userId, location, speciality, gps, time, page, size, callback) {
         var offset = ((size * page) - size);
         var condition = '';
         if (location) {
@@ -239,12 +240,27 @@ class DoctorService {
                 type: sequelize.QueryTypes.SELECT
             })
             .then((result, err) => {
-                if (err) {
-                    log.error('Error while fetching doctors list ', err);
-                    callback(err);
-                } else {
-                    callback(result);
-                }
+                GroupModel.consultation_group.findAll({
+                    where:{
+                        userId: userId
+                    }
+                }).then((pastConsultations)=>{
+                    let consultations={doctorId:[]};
+                    let inactiveGroups={doctorId:[]};
+                    pastConsultations.map((consultation)=>{
+                        if(consultation.phase==='inactive') {
+                            inactiveGroups.doctorId.push(consultation.doctorId);
+                        }
+                        consultations.doctorId.push(consultation.doctorId);
+                    })
+                    if (err) {
+                        log.error('Error while fetching doctors list ', err);
+                        callback(err);
+                    } else {
+                        result = {"doctors":result,"consultations":consultations,"inactiveGroups":inactiveGroups}                 
+                        callback(result);
+                    }
+                })
             });
     }
 
@@ -586,7 +602,6 @@ class DoctorService {
                 log.info('Error writing pdf data to file ' + err);
             }
         });
-        console.log(pdfData);
         fileService.pdfUpload(fileName, bucket, (fileName) => {
             visitorModel.visitor_prescription.find({
                 where: {

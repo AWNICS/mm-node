@@ -129,6 +129,13 @@ class BillingService {
             });
     }
 
+    getAllBillingByBillId(visitorId, billId, callback) {
+        billingModel.billing.findAll({ where: { visitorId: visitorId, orderId: billId }, order: [['createdAt','DESC']] })
+            .then((billings) => {
+                callback(billings);
+            });
+    }
+
     //get billing by doctorId
     getAllBillingByDoctorId(doctorId, callback) {
         billingModel.billing.findAll({ where: { doctorId: doctorId }, order: [['createdAt','DESC']] })
