@@ -289,7 +289,7 @@ class VisitorService {
                 },
                 limit: 3,
                 order: [
-                    [visitorModel, 'timestamp', 'ASC']
+                    [visitorModel, 'timestamp', 'DESC']
                 ]
             }).then((visitorTimelines) => {
                 callback(visitorTimelines);
@@ -422,7 +422,10 @@ class VisitorService {
                     }
                 },
                 offset: offset,
-                limit: size
+                limit: size,
+                order: [
+                    [visitorModel, 'startTime', 'DESC']
+                ]
             });
         var chartDetails = await this.getAppointmentsDetails(visitorAppointments);
         callback({
