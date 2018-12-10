@@ -18,6 +18,7 @@ import billingModel from '../billing/index';
 import GroupDao from '../group/group.dao';
 import DoctorServce from '../doctor/doctor.service';
 import VisitorPrescriptionDao from '../visitor/visitor-prescription.dao';
+import groupUserMapModel from '../group/index';
 
 const moment = require('moment');
 const Op = require('sequelize').Op;
@@ -150,6 +151,19 @@ exports.connectSocket = (io) => {
                 auditService.create(audit, (auditCreated) => {});
             });
 
+            socket.on('message-read', (groupId, userId) => {
+                io.in(socket.id).emit('receive-message-read', groupId);
+                groupUserMapModel.consultation_group_user_map.update({unreadCount: 0},{
+                    where:{
+                        groupId: groupId,
+                        userId: userId
+                    }
+                }).then((a)=>{
+                    console.log('message read');
+                    console.log(a);
+                })
+            })
+
             /**
              * for sending message to group/user which is emitted from client(msg with an groupId/userId)
              */
@@ -159,6 +173,17 @@ exports.connectSocket = (io) => {
                     messageService.sendMessage(msg, (result) => {
                         groupService.getUsersByGroupId(msg.receiverId, (user) => {
                             io.in(user.socketId).emit('receive-message', result); //emit one-by-one for all users
+                            if(user.role!=='bot' && msg.senderId !== user.id){
+                                groupUserMapModel.consultation_group_user_map.increment('unreadCount',{
+                                    where:{
+                                        groupId: msg.receiverId,
+                                        userId: user.id
+                                    }
+                                }).then((a)=>{
+                                    console.log('message sent');
+                                    console.log(a)
+                                })
+                            }
                         });
                     });
                     groupService.getById(group.id, (group) => {
@@ -346,7 +371,7 @@ exports.connectSocket = (io) => {
                         if (result.length === 0) {
                             billingDao.insert(bill, (result) => {
                                 log.info('Created Billing entry for user: ' + user.firstname + ' ' + user.lastname);
-                                io.in(socket.id).emit('receive-consult-now', 'billing');
+                                io.in(socket.id).emit('receive-consult-now',['billing',bill.orderId]);
                             });
                         } else {
                             let paymentSuccess;
@@ -359,31 +384,29 @@ exports.connectSocket = (io) => {
                                     billingEntryExists = true;
                                 }
                             });
-                            if (paymentSuccess) {
-                                consultationGroupModel.consultation_group.findAll({
-                                    where: {
-                                        userId: user.id,
-                                        doctorId: doctorId,
-                                        phase: ['active', 'botInactive']
-                                    }
-                                }).then((response) => {
-                                    if (response.length > 0) {
-                                        io.in(socket.id).emit('receive-consult-now', 'chat');
+                            if(paymentSuccess) {
+                                consultationGroupModel.consultation_group.findAll({where:{
+                                    userId: user.id,
+                                    doctorId: doctorId,
+                                    phase: ['active', 'botInactive']
+                                }}).then((response)=>{
+                                    if(response.length > 0){
+                                        io.in(socket.id).emit('receive-consult-now',['chat']);
                                         log.info(`An active group entry alread there for doctorName ${doctorName} and userName ${user.firstname}`);
                                     } else {
-                                        if (!billingEntryExists) {
-                                            billingDao.insert(bill, (result) => {
-                                                log.info('Created Billing entry for user: ' + user.firstname + ' ' + user.lastname + ' because of group being inactive or archived');
-                                                io.in(socket.id).emit('receive-consult-now', 'billing');
-                                            });
-                                        } else {
-                                            log.info(`An pending billing entry alread there for doctorName ${doctorName} and userName ${user.firstname}`);
-                                            io.in(socket.id).emit('receive-consult-now', 'billing');
-                                        }
+                                        if(!billingEntryExists){
+                                        billingDao.insert(bill, (result) => {
+                                            log.info('Created Billing entry for user: ' + user.firstname + ' ' + user.lastname+' because of group being inactive or archived');
+                                            io.in(socket.id).emit('receive-consult-now',['billing',bill.orderId]);
+                                    }); 
+                                    } else {
+                                    log.info(`An pending billing entry alread there for doctorName ${doctorName} and userName ${user.firstname}`);
+                                    io.in(socket.id).emit('receive-consult-now',['billing',result.orderId]);
+                                    }   
                                     }
                                 });
                             } else {
-                                io.in(socket.id).emit('receive-consult-now', 'billing');
+                                io.in(socket.id).emit('receive-consult-now',['billing',result.orderId]);
                                 log.info(`An pending billing entry alread there for doctorName ${doctorName} and userName ${user.firstname}`);
                             }
                         }

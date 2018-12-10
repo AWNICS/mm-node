@@ -360,13 +360,14 @@ router.post('/doctors/schedules', function(req, res) {
  *         description: Lists of doctors return from MySql db
  */
 router.get('/doctors/schedules', function(req, res) {
+    var userId = req.query.userId;
     var location = req.query.location;
     var speciality = req.query.speciality;
     var gps = req.query.gps;
     var currentTime = req.query.current_time;
     var page = parseInt(req.query.page);
     var size = parseInt(req.query.size);
-    doctorService.getDoctorsLists(location, speciality, gps, currentTime, page, size, (result) => {
+    doctorService.getDoctorsLists(userId, location, speciality, gps, currentTime, page, size, (result) => {
         res.send(result);
     });
 });
