@@ -38,7 +38,12 @@ class VisitorReportDao {
      * read method based on id
      */
     readById(id, callback) {
-        visitorReportModel.visitor_report.findAll({ where: { visitorId: id } })
+        visitorReportModel.visitor_report.findAll({
+                where: { visitorId: id },
+                order: [
+                    ['createdAt', 'DESC']
+                ]
+            })
             .then((visitorReport) => {
                 callback(visitorReport);
             });

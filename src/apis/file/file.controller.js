@@ -12,6 +12,7 @@ const multer = Multer({
     }
 });
 
+//message files
 router.post('/file', multer.single('file'), function(req, res, next) {
     const fileName = Date.now() + req.file.originalname;
     //send the created thumbnail back to user
@@ -32,6 +33,15 @@ router.post('/file/thumbnail', multer.single('file'), function(req, res, next) {
         fileService.upload(req, bucket, next, (response) => {
             res.send(response);
         });
+    });
+});
+
+//other files like reports
+router.post('/file/reports', multer.single('file'), function(req, res, next) {
+    const fileName = Date.now() + req.file.originalname;
+    //send the created thumbnail back to user
+    fileService.upload(req, bucket, fileName, (result) => {
+        res.send(result);
     });
 });
 
