@@ -11,6 +11,9 @@ module.exports = (sequelize, DataTypes) => {
         userId: {
             type: DataTypes.INTEGER
         },
+        unreadCount: {
+            type: DataTypes.INTEGER
+        },
         createdBy: {
             type: DataTypes.INTEGER,
             defaultValue: null

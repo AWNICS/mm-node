@@ -13,7 +13,6 @@ import visitorModel from './index';
 import VisitorTimelineDao from './visitor-timeline.dao';
 import UserDao from '../user/user.dao';
 import billingModel from '../billing/index';
-
 const Promise = require('bluebird');
 const moment = require('moment');
 const Op = require('sequelize').Op;
