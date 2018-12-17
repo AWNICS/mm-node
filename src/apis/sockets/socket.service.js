@@ -50,17 +50,20 @@ exports.connectSocket = (io) => {
             socket.on('disconnect', (type) => {
                 console.log('disc');
                 console.log(type);
+                let userId = socket.decoded.data.id;
+                userService.getById(userId, (user) => {
+                    let socketId = [];
+                    if (user.socketId !== null) {
+                        socketId = user.socketId;
+                    }
+                    socketId.splice(socketId.indexOf(socket.id), 1);
+                    userService.updateRegisteredUser({
+                        'id': userId,
+                        'socketId': socketId,
+                        'status': 'offline'
+                    }, () => {});
+                });
                 if (type === 'transport close') {
-                    let userId = socket.decoded.data.id;
-                    userService.getById(userId, (user) => {
-                        if (user.id === userId) {
-                            userService.updateRegisteredUser({
-                                'id': userId,
-                                'socketId': socket.id,
-                                'status': 'offline'
-                            }, (user) => {});
-                        }
-                    })
                     log.info('User disconnected with ID: ' + userId);
                     //         consultationGroupModel.consultation_group.findAll({where:{userId:userId,name:'MedHelp'}}).then((result)=>{
                     //             if(result){
@@ -99,9 +102,15 @@ exports.connectSocket = (io) => {
                 log.info('a user connected with ID: ' + userId);
                 userService.getById(userId, (user) => {
                     if (user.id === userId) {
+                        let socketId = [];
+                        if (user.socketId !== null) {
+                            socketId = user.socketId;
+                        }
+                        socketId.push(socket.id);
+                        console.log(socketId);
                         userService.updateRegisteredUser({
                             'id': userId,
-                            'socketId': socket.id,
+                            'socketId': socketId,
                             'status': 'online'
                         }, (user) => {});
 
@@ -152,17 +161,25 @@ exports.connectSocket = (io) => {
             });
 
             socket.on('message-read', (groupId, userId) => {
-                io.in(socket.id).emit('receive-message-read', groupId);
-                groupUserMapModel.consultation_group_user_map.update({unreadCount: 0},{
-                    where:{
+                userService.getById(userId, (user) => {
+                    let socketIds = [];
+                    socketIds = user.socketId;
+                    if (socketIds !== null) {
+                        socketIds.map((socketId) => {
+                            io.in(socketId).emit('receive-message-read', groupId);
+                        });
+                    }
+                });
+                groupUserMapModel.consultation_group_user_map.update({ unreadCount: 0 }, {
+                    where: {
                         groupId: groupId,
                         userId: userId
                     }
-                }).then((a)=>{
+                }).then((a) => {
                     console.log('message read');
                     console.log(a);
-                })
-            })
+                });
+            });
 
             /**
              * for sending message to group/user which is emitted from client(msg with an groupId/userId)
@@ -172,16 +189,24 @@ exports.connectSocket = (io) => {
                 if (msg.receiverType === "group") {
                     messageService.sendMessage(msg, (result) => {
                         groupService.getUsersByGroupId(msg.receiverId, (user) => {
-                            io.in(user.socketId).emit('receive-message', result); //emit one-by-one for all users
-                            if(user.role!=='bot' && msg.senderId !== user.id){
-                                groupUserMapModel.consultation_group_user_map.increment('unreadCount',{
-                                    where:{
+                            if (user.role !== 'bot') {
+                                let socketIds = [];
+                                socketIds = user.socketId;
+                                if (socketIds !== null) {
+                                    socketIds.map((socketId) => {
+                                        io.in(socketId).emit('receive-message', result); //emit one-by-one for all users
+                                    });
+                                }
+                            }
+                            if (user.role !== 'bot' && msg.senderId !== user.id) {
+                                groupUserMapModel.consultation_group_user_map.increment('unreadCount', {
+                                    where: {
                                         groupId: msg.receiverId,
                                         userId: user.id
                                     }
-                                }).then((a)=>{
+                                }).then((a) => {
                                     console.log('message sent');
-                                    console.log(a)
+                                    console.log(a);
                                 })
                             }
                         });
@@ -205,8 +230,14 @@ exports.connectSocket = (io) => {
                                                     msg.senderName = user.firstname + ' ' + user.lastname;
                                                     messageService.sendMessage(msg, (result) => {
                                                         groupService.getUsersByGroupId(msg.receiverId, (user) => {
-                                                            io.in(user.socketId).emit('receive-message', result);
-                                                            //emit one-by-one for all users
+                                                            let socketIds = [];
+                                                            socketIds = user.socketId;
+                                                            if (socketIds !== null) {
+                                                                socketIds.map((socketId) => {
+                                                                    io.in(socketId).emit('receive-message', result);
+                                                                    //emit one-by-one for all users
+                                                                });
+                                                            }
                                                         });
                                                     });
                                                 });
@@ -228,7 +259,13 @@ exports.connectSocket = (io) => {
                         msg.picUrl = result.picUrl;
                         messageService.sendMessage(msg, (result) => {
                             userService.getById(msg.receiverId, (user) => {
-                                socket.to(user.socketId).emit('receive-message', result);
+                                let socketIds = [];
+                                socketIds = user.socketId;
+                                if (socketIds !== null) {
+                                    socketIds.map((socketId) => {
+                                        socket.to(socketId).emit('receive-message', result);
+                                    });
+                                }
                             });
                         });
                     });
@@ -236,9 +273,15 @@ exports.connectSocket = (io) => {
                 // if neither group nor user is selected
                 else {
                     userService.getById(msg.senderId, (result) => {
-                        socket.to(result.socketId).emit('receive-message', {
-                            "text": 'Select a group or an user to chat with.'
-                        }); //only to sender
+                        let socketIds = [];
+                        socketIds = result.socketId;
+                        if (socketIds !== null) {
+                            socketIds.map((socketId) => {
+                                socket.to(socketId).emit('receive-message', {
+                                    "text": 'Select a group or an user to chat with.'
+                                }); //only to sender
+                            });
+                        }
                     });
                 }
 
@@ -246,7 +289,13 @@ exports.connectSocket = (io) => {
                 if (msg.type === 'image' || msg.type === 'video' || msg.type === 'doc') {
                     messageService.media(msg.receiverId, 1, 5, (media) => {
                         userService.getById(msg.senderId, (user) => {
-                            io.in(user.socketId).emit('media-file', media);
+                            let socketIds = [];
+                            socketIds = user.socketId;
+                            if (socketIds !== null) {
+                                socketIds.map((socketId) => {
+                                    io.in(socketId).emit('media-file', media);
+                                });
+                            }
                         });
                     });
                 }
@@ -255,7 +304,14 @@ exports.connectSocket = (io) => {
             socket.on('send-typing', (groupId, userName, prescription) => {
                 groupService.getAllUsersByGroupId(groupId, (users) => {
                     users.map(user => {
-                        user.firstname + ' ' + user.lastname === userName ? null : socket.to(user.socketId).emit('receive-typing', { 'groupId': groupId, 'userName': userName, 'prescription': prescription }); //emit one-by-one for all users
+                        let socketIds = [];
+                        socketIds = user.socketId;
+                        if (socketIds !== null) {
+                            socketIds.map((socketId) => {
+                                user.firstname + ' ' + user.lastname === userName ? null : socket.to(socketId)
+                                    .emit('receive-typing', { 'groupId': groupId, 'userName': userName, 'prescription': prescription }); //emit one-by-one for all users
+                            });
+                        }
                     });
                 });
             });
@@ -266,22 +322,42 @@ exports.connectSocket = (io) => {
             socket.on('update-message', (data) => {
                 messageService.update(data.message, (res) => {
                     groupService.getUsersByGroupId(data.message.receiverId, (user) => {
-                        io.in(user.socketId).emit('updated-message', {
-                            message: res,
-                            index: data.index // added message index to update the same on UI
-                        }); //emit one-by-one for all users
+                        let socketIds = [];
+                        socketIds = user.socketId;
+                        if (socketIds !== null) {
+                            socketIds.map((socketId) => {
+                                io.in(socketId).emit('updated-message', {
+                                    message: res,
+                                    index: data.index // added message index to update the same on UI
+                                }); //emit one-by-one for all users
+                            });
+                        }
                     });
                 });
             });
 
             socket.on('doctor-status', (userId, status) => {
-                doctorService.updateDoctorSchedule({ status: status }, userId, (statusUpdated) => {
-                    userService.updateRegisteredUser({
-                        'id': userId,
-                        'status': status
-                    }, () => {});
-                    userService.getById(userId, (result) => {
-                        io.in(result.socketId).emit('received-doctor-status', status);
+                userService.getById(userId, (user) => {
+                    let socketId = [];
+                    if (user.socketId !== null) {
+                        socketId = user.socketId;
+                    }
+                    socketId.push(socket.id);
+                    doctorService.updateDoctorSchedule({ status: status }, userId, (statusUpdated) => {
+                        userService.updateRegisteredUser({
+                            'id': userId,
+                            'socketId': socketId,
+                            'status': status
+                        }, () => {});
+                        userService.getById(userId, (user) => {
+                            let socketIds = [];
+                            socketIds = user.socketId;
+                            if (socketIds !== null) {
+                                socketIds.map((socketId) => {
+                                    io.in(socketId).emit('received-doctor-status', status);
+                                });
+                            }
+                        });
                     });
                 });
                 groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
@@ -292,22 +368,35 @@ exports.connectSocket = (io) => {
                                 if (user.role !== 'bot' && user.status === 'online') {
                                     count++;
                                 }
-                            })
+                            });
                             if (count > 1) {
                                 log.info('Group status Update with ID: ' + gumap.groupId + ' online');
                                 allUsers.map((user) => {
                                     if (user.role !== 'bot') {
-                                        io.in(user.socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'online' });
+                                        let socketIds = [];
+                                        socketIds = user.socketId;
+                                        if (socketIds !== null) {
+                                            socketIds.map((socketId) => {
+                                                io.in(socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'online' });
+                                            });
+                                        }
                                     }
-                                })
+                                });
                                 groupService.updateGroupStatus(gumap.groupId, 'online', (result) => {
                                     result === 1 ? log.info("Group status updated in DB for ID: " + gumap.groupId + ' to online') : null;
-                                })
+                                });
                             } else {
                                 log.info('Group status Update with ID: ' + gumap.groupId + ' offline');
                                 allUsers.map((user) => {
                                     if (user.role !== 'bot') {
-                                        io.in(user.socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'offline' });
+                                        let socketIds = [];
+                                        socketIds = user.socketId;
+                                        if (socketIds !== null) {
+                                            socketIds.map((socketId) => {
+                                                io.in(socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'offline' });
+                                            });
+                                        }
+
                                     }
                                 })
                                 groupService.updateGroupStatus(gumap.groupId, 'offline', (result) => {
@@ -326,11 +415,17 @@ exports.connectSocket = (io) => {
             socket.on('delete-message', (data, index) => {
                 messageService.removeGroupMessageMap(data._id, (result) => {
                     groupService.getUsersByGroupId(data.receiverId, (user) => {
-                        io.in(user.socketId).emit('deleted-message', {
-                            result,
-                            data,
-                            index
-                        }); //emit one-by-one for all users
+                        let socketIds = [];
+                        socketIds = user.socketId;
+                        if (socketIds !== null) {
+                            socketIds.map((socketId) => {
+                                io.in(socketId).emit('deleted-message', {
+                                    result,
+                                    data,
+                                    index
+                                }); //emit one-by-one for all users
+                            });
+                        }
                     });
                 });
             });
@@ -340,9 +435,15 @@ exports.connectSocket = (io) => {
              */
             socket.on('notify-users', (data) => {
                 groupService.getUsersByGroupId(data.receiverId, (user) => {
-                    io.in(user.socketId).emit('receive-notification', {
-                        'message': 'One message deleted from this group'
-                    }); //emit one-by-one for all users
+                    let socketIds = [];
+                    socketIds = user.socketId;
+                    if (socketIds !== null) {
+                        socketIds.map((socketId) => {
+                            io.in(socketId).emit('receive-notification', {
+                                'message': 'One message deleted from this group'
+                            }); //emit one-by-one for all users
+                        });
+                    }
                 });
             });
             //when user clicks consult now on doctor's list  page
@@ -371,7 +472,7 @@ exports.connectSocket = (io) => {
                         if (result.length === 0) {
                             billingDao.insert(bill, (result) => {
                                 log.info('Created Billing entry for user: ' + user.firstname + ' ' + user.lastname);
-                                io.in(socket.id).emit('receive-consult-now',['billing',bill.orderId]);
+                                io.in(socket.id).emit('receive-consult-now', ['billing', bill.orderId]);
                             });
                         } else {
                             let paymentSuccess;
@@ -384,29 +485,31 @@ exports.connectSocket = (io) => {
                                     billingEntryExists = true;
                                 }
                             });
-                            if(paymentSuccess) {
-                                consultationGroupModel.consultation_group.findAll({where:{
-                                    userId: user.id,
-                                    doctorId: doctorId,
-                                    phase: ['active', 'botInactive']
-                                }}).then((response)=>{
-                                    if(response.length > 0){
-                                        io.in(socket.id).emit('receive-consult-now',['chat']);
+                            if (paymentSuccess) {
+                                consultationGroupModel.consultation_group.findAll({
+                                    where: {
+                                        userId: user.id,
+                                        doctorId: doctorId,
+                                        phase: ['active', 'botInactive']
+                                    }
+                                }).then((response) => {
+                                    if (response.length > 0) {
+                                        io.in(socket.id).emit('receive-consult-now', ['chat']);
                                         log.info(`An active group entry alread there for doctorName ${doctorName} and userName ${user.firstname}`);
                                     } else {
-                                        if(!billingEntryExists){
-                                        billingDao.insert(bill, (result) => {
-                                            log.info('Created Billing entry for user: ' + user.firstname + ' ' + user.lastname+' because of group being inactive or archived');
-                                            io.in(socket.id).emit('receive-consult-now',['billing',bill.orderId]);
-                                    }); 
-                                    } else {
-                                    log.info(`An pending billing entry alread there for doctorName ${doctorName} and userName ${user.firstname}`);
-                                    io.in(socket.id).emit('receive-consult-now',['billing',result.orderId]);
-                                    }   
+                                        if (!billingEntryExists) {
+                                            billingDao.insert(bill, (result) => {
+                                                log.info('Created Billing entry for user: ' + user.firstname + ' ' + user.lastname + ' because of group being inactive or archived');
+                                                io.in(socket.id).emit('receive-consult-now', ['billing', bill.orderId]);
+                                            });
+                                        } else {
+                                            log.info(`An pending billing entry alread there for doctorName ${doctorName} and userName ${user.firstname}`);
+                                            io.in(socket.id).emit('receive-consult-now', ['billing', result.orderId]);
+                                        }
                                     }
                                 });
                             } else {
-                                io.in(socket.id).emit('receive-consult-now',['billing',result.orderId]);
+                                io.in(socket.id).emit('receive-consult-now', ['billing', result.orderId]);
                                 log.info(`An pending billing entry alread there for doctorName ${doctorName} and userName ${user.firstname}`);
                             }
                         }
@@ -442,12 +545,18 @@ exports.connectSocket = (io) => {
                                 };
                                 groupService.update(newGroup, () => {
                                     groupService.getUsersByGroupId(group.id, (user) => {
-                                        log.info(user.firstname + ' Emitted receive-user-added event')
-                                        io.in(user.socketId).emit('receive-user-added', {
-                                            message: `Dr. ${doctor.firstname} ${doctor.lastname} joined the consultation`,
-                                            doctorId: doctor.id,
-                                            group: group
-                                        }); //emit one-by-one for all users    
+                                        log.info(user.firstname + ' Emitted receive-user-added event');
+                                        let socketIds = [];
+                                        socketIds = user.socketId;
+                                        if (socketIds !== null) {
+                                            socketIds.map((socketId) => {
+                                                io.in(socketId).emit('receive-user-added', {
+                                                    message: `Dr. ${doctor.firstname} ${doctor.lastname} joined the consultation`,
+                                                    doctorId: doctor.id,
+                                                    group: group
+                                                }); //emit one-by-one for all users 
+                                            });
+                                        }
                                         if (user.role === 'patient') {
                                             //this will create appointment when multiple patients in a group
                                             billingModel.billing.find({
@@ -598,10 +707,16 @@ exports.connectSocket = (io) => {
                 }).then(() => {});
                 groupService.getUsersByGroupId(group.id, (user) => {
                     // if (user.id === doctor.id) {
-                    io.in(user.socketId).emit('receive-end-consultation', {
-                        message: `Dr. ${doctor.firstname} ${doctor.lastname} left the conversation`,
-                        groupId: group.id
-                    }); //emit one-by-one for all users
+                    let socketIds = [];
+                    socketIds = user.socketId;
+                    if (socketIds !== null) {
+                        socketIds.map((socketId) => {
+                            io.in(socketId).emit('receive-end-consultation', {
+                                message: `Dr. ${doctor.firstname} ${doctor.lastname} left the conversation`,
+                                groupId: group.id
+                            }); //emit one-by-one for all users
+                        });
+                    }
                     // }
                 });
                 groupDao.readById(group.id, (result) => {
@@ -661,9 +776,12 @@ exports.connectSocket = (io) => {
                 socket.disconnect();
                 userService.getById(userId, (user) => {
                     if (user.id === userId) {
+                        //find the index position of the given socketId and then delete from the list
+
                         userService.updateRegisteredUser({
                             'id': userId,
-                            'status': 'offline'
+                            'status': 'offline',
+                            'socketId': socket.id
                         }, (user) => {
                             log.info('User logged out: ', userId);
                             if (user) {
@@ -726,9 +844,16 @@ exports.connectSocket = (io) => {
             allNotifications.map((notification) => {
                 userService.getById(notification.userId, (user) => {
                     if (notification.status === 'created') {
-                        io.in(user.socketId).emit('consult-notification', {
-                            notification: notification
-                        });
+                        let socketIds = [];
+                        socketIds = user.socketId;
+                        if (socketIds !== null) {
+                            socketIds.map((socketId) => {
+                                io.in(socketId).emit('consult-notification', {
+                                    notification: notification
+                                });
+                            });
+                        }
+
                         var updateNotification = {
                             id: notification.id,
                             template: notification.template,

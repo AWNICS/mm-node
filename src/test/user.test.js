@@ -58,10 +58,10 @@ describe('userDao', function() {
                 waitingTime: 10,
                 rating: 7
             };
-            return userService.updateRegisteredUser(user, (result) => {}).then((res) => {
+            /*return userService.updateRegisteredUser(user, (result) => {}).then((res) => {
                 //userService.deleteRegisteredUser(user.id, (result) => {});
                 //done();
-            });
+            });*/
             setTimeout(done, 3000);
         });
     });
