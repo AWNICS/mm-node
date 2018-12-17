@@ -447,7 +447,7 @@ class VisitorService {
         followUps.fill(0);
         await visitorAppointments.map((visitorAppointment) => {
             var time;
-            time = moment(visitorAppointment.startTime).subtract({ hours: 5, minutes: 30 }).hours();
+            time = moment(visitorAppointment.startTime).add({ hours: 5, minutes: 30 }).hours();
             //indexes will be 9am-0, 10am-1, 11am-2, and so on
             if (visitorAppointment.type === 'New Consultation') {
                 switch (true) {

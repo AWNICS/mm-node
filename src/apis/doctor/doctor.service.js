@@ -248,7 +248,7 @@ class DoctorService {
                     let consultations={doctorId:[]};
                     let inactiveGroups={doctorId:[]};
                     pastConsultations.map((consultation)=>{
-                        if(consultation.phase==='inactive') {
+                        if(consultation.phase==='inactive' || consultation.phase==='botInactive' ) {
                             inactiveGroups.doctorId.push(consultation.doctorId);
                         }
                         consultations.doctorId.push(consultation.doctorId);

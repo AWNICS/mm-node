@@ -275,13 +275,12 @@ exports.connectSocket = (io) => {
             });
 
             socket.on('doctor-status', (userId, status) => {
-                doctorService.updateDoctorSchedule({ status: status }, userId, (statusUpdated) => {
-                    userService.updateRegisteredUser({
-                        'id': userId,
-                        'status': status
-                    }, () => {});
+                userService.updateRegisteredUser({
+                    'id': userId,
+                    'status': status
+                }, (user) => {
                     userService.getById(userId, (result) => {
-                        io.in(result.socketId).emit('received-doctor-status', status);
+                        io.in(result.socketId).emit('doctor-status', status);
                     });
                 });
                 groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
@@ -318,6 +317,7 @@ exports.connectSocket = (io) => {
                         })
                     })
                 })
+
             });
 
             /**
