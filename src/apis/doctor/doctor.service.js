@@ -248,7 +248,7 @@ class DoctorService {
                     let consultations={doctorId:[]};
                     let inactiveGroups={doctorId:[]};
                     pastConsultations.map((consultation)=>{
-                        if(consultation.phase==='inactive' || consultation.phase==='botInactive' ) {
+                        if(consultation.phase==='inactive' || consultation.phase==='botInactive') {
                             inactiveGroups.doctorId.push(consultation.doctorId);
                         }
                         consultations.doctorId.push(consultation.doctorId);
@@ -257,7 +257,7 @@ class DoctorService {
                         log.error('Error while fetching doctors list ', err);
                         callback(err);
                     } else {
-                        result = {"doctors":result,"consultations":consultations,"inactiveGroups":inactiveGroups}                 
+                        result = {"doctors":result,"consultations":consultations,"inactiveGroups":inactiveGroups}            
                         callback(result);
                     }
                 })
