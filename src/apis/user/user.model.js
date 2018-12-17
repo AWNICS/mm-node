@@ -51,8 +51,13 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: null
         },
         socketId: {
-            type: DataTypes.STRING,
-            defaultValue: null
+            type: DataTypes.TEXT,
+            get: function() {
+                return JSON.parse(this.getDataValue('socketId'));
+            },
+            set: function(socketId) {
+                this.setDataValue('socketId', JSON.stringify(socketId));
+            }
         },
         termsAccepted: {
             type: DataTypes.BOOLEAN,
