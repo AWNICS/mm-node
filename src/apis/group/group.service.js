@@ -241,6 +241,7 @@ class GroupService {
                     userService.getById(userId, (result) => {
                         var activeGroups = [];
                         var inactiveGroups = [];
+                        let medhelp = groups.shift();
                         groups.reverse().map((group) => {
                             if (result.role === 'doctor' && group.name !== 'MedHelp') {
                                 var groupName = [];
@@ -253,7 +254,7 @@ class GroupService {
                                 group.name = group.name + ',' + temp;
                             }
                             let inactiveGroupTime = moment(moment(group.createdAt).utc().format()).add(3, 'd');
-                            if (group.phase === 'active' || group.name === 'MedHelp') { //MedHelp and all active groups
+                            if (group.phase === 'active') { //MedHelp and all active groups
                                 allGroupUserMapByUserId.map((gumap)=>{
                                     if(gumap.groupId===group.id){
                                         group.dataValues.unreadCount = gumap.unreadCount 
@@ -261,7 +262,7 @@ class GroupService {
                                 })
                                 activeGroups.push(group);
                             } else {
-                                if (inactiveGroupTime >= moment()) { //doctor is not active but for some query he will be available
+                                if (inactiveGroupTime >= moment() || group.phase==='botInactive') { //doctor is not active but for some query he will be available
                                     allGroupUserMapByUserId.map((gumap)=>{
                                         if(gumap.groupId===group.id){
                                             group.dataValues.unreadCount = gumap.unreadCount 
@@ -283,6 +284,7 @@ class GroupService {
                                 }
                             }
                         });
+                        activeGroups.unshift(medhelp);
                         resolve({ activeGroups: activeGroups, inactiveGroups: inactiveGroups });
                     });
                 }).catch((error) => {
@@ -735,6 +737,7 @@ class GroupService {
                                     name: groupName,
                                     url: `consultation/${doctorId}`,
                                     userId: patientId,
+                                    doctorId: doctorId,
                                     details: {
                                         description: 'Consultation for registered patients',
                                         speciality: result.doctorDetails.speciality

@@ -147,7 +147,7 @@ class BillingService {
     //get billing by doctorId
     getAllBillingByDoctorId(doctorId, callback) {
         billingModel.billing.findAll({
-                where: { doctorId: doctorId },
+                where: { doctorId: doctorId, status: 'Success' },
                 order: [
                     ['createdAt', 'DESC']
                 ]

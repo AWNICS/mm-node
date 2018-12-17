@@ -405,6 +405,7 @@ exports.connectSocket = (io) => {
                         })
                     })
                 })
+
             });
 
             /**

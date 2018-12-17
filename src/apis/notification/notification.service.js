@@ -64,7 +64,7 @@ class NotificationService {
                 userId: userId,
                 channel: 'web',
                 status: {
-                    [Op.ne]: 'read'
+                    [Op.eq]: 'sent'
                 }
             },
             order: [
