@@ -107,7 +107,6 @@ exports.connectSocket = (io) => {
                             socketId = user.socketId;
                         }
                         socketId.push(socket.id);
-                        console.log(socketId);
                         userService.updateRegisteredUser({
                             'id': userId,
                             'socketId': socketId,
@@ -342,7 +341,6 @@ exports.connectSocket = (io) => {
                     if (user.socketId !== null) {
                         socketId = user.socketId;
                     }
-                    socketId.push(socket.id);
                     doctorService.updateDoctorSchedule({ status: status }, userId, (statusUpdated) => {
                         userService.updateRegisteredUser({
                             'id': userId,
@@ -777,11 +775,15 @@ exports.connectSocket = (io) => {
                 userService.getById(userId, (user) => {
                     if (user.id === userId) {
                         //find the index position of the given socketId and then delete from the list
-
+                        let socketId = [];
+                        if (user.socketId !== null) {
+                            socketId = user.socketId;
+                        }
+                        socketId.splice(socketId.indexOf(socket.id), 1);
                         userService.updateRegisteredUser({
                             'id': userId,
                             'status': 'offline',
-                            'socketId': socket.id
+                            'socketId': socketId
                         }, (user) => {
                             log.info('User logged out: ', userId);
                             if (user) {
