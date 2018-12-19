@@ -246,10 +246,10 @@ class DoctorService {
                     }
                 }).then((pastConsultations)=>{
                     let consultations={doctorId:[]};
-                    let inactiveGroups={doctorId:[]};
+                    let inactiveGroups={groups:[]};
                     pastConsultations.map((consultation)=>{
-                        if(consultation.phase==='inactive') {
-                            inactiveGroups.doctorId.push(consultation.doctorId);
+                        if(consultation.phase==='inactive' || consultation.phase==='botInactive') {
+                            inactiveGroups.groups.push({'doctorId':consultation.doctorId,'groupId':consultation.id});
                         }
                         consultations.doctorId.push(consultation.doctorId);
                     })
@@ -257,7 +257,7 @@ class DoctorService {
                         log.error('Error while fetching doctors list ', err);
                         callback(err);
                     } else {
-                        result = {"doctors":result,"consultations":consultations,"inactiveGroups":inactiveGroups}                 
+                        result = {"doctors":result,"consultations":consultations,"inactiveGroups":inactiveGroups}            
                         callback(result);
                     }
                 })

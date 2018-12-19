@@ -32,6 +32,9 @@ module.exports = (sequelize, DataTypes) => {
         amount: {
             type: DataTypes.INTEGER, //consultation charges, taxes((cgst, sgst(inside Karnataka)), igst(outside Karnataka))
         },
+        speciality: {
+            type: DataTypes.STRING, //doctors speciality chosen
+        },
         date: {
             type: DataTypes.DATE //date on which the bill generated
         },
