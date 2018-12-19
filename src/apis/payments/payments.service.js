@@ -57,12 +57,14 @@ class PaymentService {
             log.info("The below is the response from ccavenue for the orderNo " + ccavPOST.orderNo);
             log.info(ccavResponse);
             if (ccavResponse) {
-                let referenceNumber = ccavResponse.match(/bank_ref_no=[a-zA-Z]+/)[0].substring(12);
+                let referenceNumber = ccavResponse.match(/bank_ref_no=[a-zA-Z0-9]+/)[0].substring(12);
                 let status = ccavResponse.match(/order_status=[a-zA-Z]+/)[0].substring(13);
                 if (status === 'Success') {
+                var transactionDateAndTime = moment(ccavResponse.match(/trans_date=[0-9/: ]+/)[0].substring(11), 'DD/MM/YYYY HH:mm:ss').format('YYYY-MM-DD HH:mm:ss');
+                var transactionDate = transactionDateAndTime.substring(0, 10);
                     billingModel.billing.find({ where: { orderId: ccavPOST.orderNo } }).then((bill) => {
                         if (bill) {
-                            groupService.consultNow(bill.doctorId, bill.visitorId, (groupCreated) => {
+                            groupService.consultNow(bill.doctorId, bill.visitorId, bill.speciality, (groupCreated) => {
                                 createdGroupId = groupCreated.id;
                                 let image = fs.readFileSync('images/payment_success.png', { encoding: 'base64' });
                                 log.info('Transaction Success with status: ' + status);
@@ -96,6 +98,8 @@ class PaymentService {
                         }
                     })
                 } else if (status === 'Aborted' || status === 'Failure' || status === 'Invalid') {
+                    billingModel.billing.find({ where: { orderId: ccavPOST.orderNo } }).then((bill) => {
+                        if (bill) {
                     log.info('Transaction failed with status: ' + status);
                     let image = fs.readFileSync('images/payment_failed.png', { encoding: 'base64' });
                     let htmlcode =
@@ -124,12 +128,11 @@ class PaymentService {
                     });
                     response.write(htmlcode);
                     response.end();
-
+                }
+                });
                 } else {
                     log.info('Billing new status detected status: ' + status);
                 }
-                let transactionDateAndTime = moment(ccavResponse.match(/trans_date=[0-9/: ]+/)[0].substring(11), 'DD/MM/YYYY HH:mm:ss').format('YYYY-MM-DD HH:mm:ss');
-                let transactionDate = transactionDateAndTime.substring(0, 10);
                 let customerName = ccavResponse.match(/billing_name=[a-zA-Z ]+/)[0].substring(13);
                 let failureMessage = ccavResponse.match(/failure_message=[a-zA-Z0-9 ]+/) !== null ? ccavResponse.match(/failure_message=[a-zA-Z0-9 ]+/)[0].substring(16) : null;
                 let trackingId = ccavResponse.match(/tracking_id=[0-9]+/) !== null ? ccavResponse.match(/tracking_id=[0-9]+/)[0].substring(12) : null;
@@ -171,7 +174,6 @@ class PaymentService {
                             modeOfPayment: modeOfPayment,
                             failureMessage: failureMessage,
                             trackingId: trackingId,
-                            date: transactionDateAndTime,
                         };
                         log.info(bill);
                         console.log(ccavPOST.orderNo);

@@ -242,6 +242,11 @@ class GroupService {
                         var activeGroups = [];
                         var inactiveGroups = [];
                         let medhelp = groups.shift();
+                        allGroupUserMapByUserId.map((gumap)=>{
+                        if(gumap.groupId===medhelp.id){
+                            medhelp.dataValues.unreadCount = gumap.unreadCount 
+                        }
+                        })
                         groups.reverse().map((group) => {
                             if (result.role === 'doctor' && group.name !== 'MedHelp') {
                                 var groupName = [];
@@ -668,7 +673,7 @@ class GroupService {
         });
     }
 
-    consultNow(doctorId, patientId, callback) {
+    consultNow(doctorId, patientId, speciality, callback) {
             /**
              * Changed the logic to fetch the groups in which doctor and patient is present
              * DoctorId is being stored in the group URL which makes it easy to fetch the group details
@@ -738,6 +743,7 @@ class GroupService {
                                     url: `consultation/${doctorId}`,
                                     userId: patientId,
                                     doctorId: doctorId,
+                                    speciality: speciality,
                                     details: {
                                         description: 'Consultation for registered patients',
                                         speciality: result.doctorDetails.speciality

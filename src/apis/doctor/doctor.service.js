@@ -246,10 +246,10 @@ class DoctorService {
                     }
                 }).then((pastConsultations)=>{
                     let consultations={doctorId:[]};
-                    let inactiveGroups={doctorId:[]};
+                    let inactiveGroups={groups:[]};
                     pastConsultations.map((consultation)=>{
                         if(consultation.phase==='inactive' || consultation.phase==='botInactive') {
-                            inactiveGroups.doctorId.push(consultation.doctorId);
+                            inactiveGroups.groups.push({'doctorId':consultation.doctorId,'groupId':consultation.id});
                         }
                         consultations.doctorId.push(consultation.doctorId);
                     })
