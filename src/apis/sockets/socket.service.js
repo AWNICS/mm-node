@@ -551,7 +551,8 @@ exports.connectSocket = (io) => {
                                                 io.in(socketId).emit('receive-user-added', {
                                                     message: `Dr. ${doctor.firstname} ${doctor.lastname} joined the consultation`,
                                                     doctorId: doctor.id,
-                                                    group: group
+                                                    group: group,
+                                                    socketId: socket.id
                                                 }); //emit one-by-one for all users 
                                             });
                                         }
@@ -711,7 +712,8 @@ exports.connectSocket = (io) => {
                         socketIds.map((socketId) => {
                             io.in(socketId).emit('receive-end-consultation', {
                                 message: `Dr. ${doctor.firstname} ${doctor.lastname} left the conversation`,
-                                groupId: group.id
+                                groupId: group.id,
+                                socketId: socket.id
                             }); //emit one-by-one for all users
                         });
                     }
