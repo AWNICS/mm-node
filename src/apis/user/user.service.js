@@ -300,7 +300,7 @@ class UserService {
             })
             .catch(error => log.error('Error while sending activation link to ' + user.email + ' ' + error));
         const message = user.role === "patient" ? msgconfig.userMessage : msgconfig.doctorMessage;
-        this.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, message, user.firstname + ' ' + user.lastname, 'registration', "Message sent for " + title)
+        this.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, message, user.firstname + ' ' + user.lastname, 'registration', "Message sent for " + title);
     }
 
     adminDoctorRegistration(doctorDetails) {

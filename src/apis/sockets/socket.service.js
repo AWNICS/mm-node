@@ -19,6 +19,7 @@ import GroupDao from '../group/group.dao';
 import DoctorServce from '../doctor/doctor.service';
 import VisitorPrescriptionDao from '../visitor/visitor-prescription.dao';
 import groupUserMapModel from '../group/index';
+import msgconfig from '../../config/message.config';
 
 const moment = require('moment');
 const Op = require('sequelize').Op;
@@ -196,7 +197,7 @@ exports.connectSocket = (io) => {
             /**
              * for sending message to group/user which is emitted from client(msg with an groupId/userId)
              */
-            socket.on('send-message', (msg, group) => {
+            socket.on('send-message', (msg, group, notify) => {
                 // if it is a group message
                 if (msg.receiverType === "group") {
                     messageService.sendMessage(msg, (result) => {
@@ -219,7 +220,15 @@ exports.connectSocket = (io) => {
                                 }).then((a) => {
                                     console.log('message sent');
                                     console.log(a);
-                                })
+                                });
+                            }
+                            if (user.role === 'doctor' && notify === 1) {
+                                var message = msgconfig.doctorNotifyMessage;
+                                message = message.replace('patient1', socket.decoded.data.firstname + ' ' + socket.decoded.data.lastname)
+
+                                userService.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, message, user.firstname +
+                                    ' ' + user.lastname, 'doctorNotifyMessage', "Inactive Consultation doctor notify");
+                                console.log('message sent for doctor notification');
                             }
                         });
                     });
@@ -361,13 +370,13 @@ exports.connectSocket = (io) => {
                             'status': status
                         }, () => {});
                         // userService.getById(userId, (user) => {
-                            // let socketIds = [];
-                            // socketIds = user.socketId;
-                            if (socketIds !== null) {
-                                socketIds.map((socketId) => {
-                                    io.in(socketId).emit('received-doctor-status', status);
-                                });
-                            }
+                        // let socketIds = [];
+                        // socketIds = user.socketId;
+                        if (socketIds !== null) {
+                            socketIds.map((socketId) => {
+                                io.in(socketId).emit('received-doctor-status', status);
+                            });
+                        }
                         // });
                     });
                 });
