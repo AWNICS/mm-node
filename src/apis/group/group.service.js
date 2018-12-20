@@ -267,7 +267,7 @@ class GroupService {
                                 })
                                 activeGroups.push(group);
                             } else {
-                                if (inactiveGroupTime >= moment() || group.phase==='botInactive') { //doctor is not active but for some query he will be available
+                                if (inactiveGroupTime >= moment()) { //doctor is not active but for some query he will be available
                                     allGroupUserMapByUserId.map((gumap)=>{
                                         if(gumap.groupId===group.id){
                                             group.dataValues.unreadCount = gumap.unreadCount 
@@ -756,6 +756,9 @@ class GroupService {
                                 };
                                 this.createGroupForConsultation(group, doctorId, patientId, (newGroup) => {
                                     callback(newGroup);
+                                    doctorService.updateDoctorSchedule({ status: 'busy' }, doctorId, (statusUpdated) => {
+                                        console.log('status updated')
+                                    })
                                 });
                             }
                         });

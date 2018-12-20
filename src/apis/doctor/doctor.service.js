@@ -200,7 +200,7 @@ class DoctorService {
                 u.firstName,
                 u.lastName,
                 u.picUrl,
-                u.status,
+                ds.status,
                 d.userId,
                 d.regNo,
                 d.speciality,
