@@ -26,6 +26,9 @@ module.exports = (sequelize, DataTypes) => {
                 this.setDataValue('details', JSON.stringify(details));
             }
         },
+        speciality:{
+            type: DataTypes.STRING,
+        },
         picture: {
             type: DataTypes.STRING
         },

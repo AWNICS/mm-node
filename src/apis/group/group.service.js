@@ -810,7 +810,7 @@ class GroupService {
                                         receiverType: 'group',
                                         senderId: user.id,
                                         senderName: user.firstname + ' ' + user.lastname,
-                                        text: 'Welcome to Mesomeds! I am Medroid, your medical assistant. How may I assist you?',
+                                        text: 'Welcome to Mesomeds! Doctor will join the group in 2-3 minutes',
                                         createdBy: user.id,
                                         updatedBy: user.id,
                                         createdTime: Date.now(),

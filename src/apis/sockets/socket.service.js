@@ -187,8 +187,10 @@ exports.connectSocket = (io) => {
                     socketIds = user.socketId;
                     if (socketIds !== null) {
                         socketIds.map((socketId) => {
-                            io.in(socketId).emit('receive-count-sync', count);
-                            console.log('Emiited across sockets the sync count');
+                            if (socketId !== socket.id) {
+                                io.in(socketId).emit('receive-count-sync', count);
+                                console.log('Emiited across sockets the sync count for ' + user.firstname);
+                            }
                         });
                     }
                 });
@@ -233,7 +235,7 @@ exports.connectSocket = (io) => {
                         });
                     });
                     groupService.getById(group.id, (group) => {
-                        if (group.phase === 'inactive' && msg.type !== 'notification') {
+                        if (group.name === 'MedHelp' && msg.type === 'text') {
                             consultationGroupModel.consultation_group_user_map.findAll({
                                 where: {
                                     groupId: group.id
@@ -512,7 +514,7 @@ exports.connectSocket = (io) => {
                                     where: {
                                         userId: user.id,
                                         doctorId: doctorId,
-                                        phase: ['active', 'botInactive']
+                                        phase: ['active']
                                     }
                                 }).then((response) => {
                                     if (response.length > 0) {
