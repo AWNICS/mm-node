@@ -186,8 +186,10 @@ exports.connectSocket = (io) => {
                     socketIds = user.socketId;
                     if (socketIds !== null) {
                         socketIds.map((socketId) => {
-                            io.in(socketId).emit('receive-count-sync', count);
-                            console.log('Emiited across sockets the sync count');
+                            if(socketId !== socket.id){
+                                io.in(socketId).emit('receive-count-sync', count);
+                                console.log('Emiited across sockets the sync count for '+user.firstname);
+                            } 
                         });
                     }
                 });
@@ -196,7 +198,8 @@ exports.connectSocket = (io) => {
             /**
              * for sending message to group/user which is emitted from client(msg with an groupId/userId)
              */
-            socket.on('send-message', (msg, group) => {
+            socket.on('send-message', (msg, group, notify) => {
+                console.log(socket.decoded.data.firstname);
                 // if it is a group message
                 if (msg.receiverType === "group") {
                     messageService.sendMessage(msg, (result) => {
@@ -209,7 +212,7 @@ exports.connectSocket = (io) => {
                                         io.in(socketId).emit('receive-message', result); //emit one-by-one for all users
                                     });
                                 }
-                            }
+                            } 
                             if (user.role !== 'bot' && msg.senderId !== user.id) {
                                 groupUserMapModel.consultation_group_user_map.increment('unreadCount', {
                                     where: {
@@ -220,11 +223,11 @@ exports.connectSocket = (io) => {
                                     console.log('message sent');
                                     console.log(a);
                                 })
-                            }
+                             }
                         });
                     });
                     groupService.getById(group.id, (group) => {
-                        if (group.phase === 'inactive' && msg.type !== 'notification') {
+                        if (group.name === 'MedHelp' && msg.type === 'text') {
                             consultationGroupModel.consultation_group_user_map.findAll({
                                 where: {
                                     groupId: group.id
@@ -503,7 +506,7 @@ exports.connectSocket = (io) => {
                                     where: {
                                         userId: user.id,
                                         doctorId: doctorId,
-                                        phase: ['active', 'botInactive']
+                                        phase: ['active']
                                     }
                                 }).then((response) => {
                                     if (response.length > 0) {
