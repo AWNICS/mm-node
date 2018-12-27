@@ -241,15 +241,15 @@ class DoctorService {
             })
             .then((result, err) => {
                 GroupModel.consultation_group.findAll({
-                    where:{
+                    where: {
                         userId: userId
                     }
-                }).then((pastConsultations)=>{
-                    let consultations={doctorId:[]};
-                    let inactiveGroups={groups:[]};
-                    pastConsultations.map((consultation)=>{
-                        if(consultation.phase==='inactive' || consultation.phase==='botInactive') {
-                            inactiveGroups.groups.push({'doctorId':consultation.doctorId,'groupId':consultation.id});
+                }).then((pastConsultations) => {
+                    let consultations = { doctorId: [] };
+                    let inactiveGroups = { groups: [] };
+                    pastConsultations.map((consultation) => {
+                        if (consultation.phase === 'inactive' || consultation.phase === 'botInactive') {
+                            inactiveGroups.groups.push({ 'doctorId': consultation.doctorId, 'groupId': consultation.id });
                         }
                         consultations.doctorId.push(consultation.doctorId);
                     })
@@ -257,7 +257,7 @@ class DoctorService {
                         log.error('Error while fetching doctors list ', err);
                         callback(err);
                     } else {
-                        result = {"doctors":result,"consultations":consultations,"inactiveGroups":inactiveGroups}            
+                        result = { "doctors": result, "consultations": consultations, "inactiveGroups": inactiveGroups }
                         callback(result);
                     }
                 })
@@ -545,12 +545,14 @@ class DoctorService {
     async moneyEarnedByDoctor(billings) {
         var daily = 0,
             weekly = 0,
-            monthly = 0;
+            monthly = 0,
+            yearly = 0;
         if (billings) {
             await billings.map((billing) => {
                 var month = moment(billing.createdAt).month();
                 var currentMonth = moment().month();
                 if (moment(billing.createdAt).year() === moment().year()) {
+                    yearly = yearly + billing.amount;
                     if (++month === ++currentMonth) {
                         monthly = monthly + billing.amount;
                         if (moment(billing.createdAt).date() === moment().date()) {
@@ -562,21 +564,23 @@ class DoctorService {
                     }
                 }
             });
-            return ({ "today": daily, "week": weekly, "month": monthly });
+            return ({ "today": daily, "week": weekly, "month": monthly, "year": yearly });
         } else {
-            return ({ "today": daily, "week": weekly, "month": monthly });
+            return ({ "today": daily, "week": weekly, "month": monthly, "year": yearly });
         }
     }
 
     async consultationDetails(visitorAppointments) {
         var daily = 0,
             weekly = 0,
-            monthly = 0;
+            monthly = 0,
+            yearly = 0;
         if (visitorAppointments) {
             await visitorAppointments.map((visitorAppointment) => {
                 var month = moment(visitorAppointment.startTime).month();
                 var currentMonth = moment().month();
                 if (moment(visitorAppointment.startTime).year() === moment().year()) {
+                    yearly = yearly + 1;
                     if (++month === ++currentMonth) {
                         monthly = monthly + 1;
                         if (moment(visitorAppointment.startTime).date() === moment().date()) {
@@ -588,9 +592,9 @@ class DoctorService {
                     }
                 }
             });
-            return ({ "today": daily, "week": weekly, "month": monthly });
+            return ({ "today": daily, "week": weekly, "month": monthly, "year": yearly });
         } else {
-            return ({ "today": daily, "week": weekly, "month": monthly });
+            return ({ "today": daily, "week": weekly, "month": monthly, "year": yearly });
         }
     }
 

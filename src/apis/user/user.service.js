@@ -392,6 +392,16 @@ class UserService {
         });
     }
 
+    updateRegisteredUserDetails(user, callback) {
+        user.id = user.userId;
+        this.getById(user.userId, (userDetails) => {
+            user.socketId = userDetails.socketId;
+            return userDao.update(user, (userUpdated) => {
+                callback(userUpdated);
+            });
+        });
+    }
+
     getAll(callback) {
         return userDao.readAll((allUsers) => {
             callback(allUsers);
