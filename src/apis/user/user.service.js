@@ -53,6 +53,7 @@ class UserService {
             });
             bcrypt.hash(user.password, 10, (err, hash) => {
                 user.password = hash;
+                user.socketId = null;
                 return userDao.insert(user, (userInserted) => {
                     // if a user exists with same email and mobile execute this block this is to prevent duplicate registrations
                     if (userInserted.original) {
@@ -80,6 +81,7 @@ class UserService {
                     userInserted.createdBy = userInserted.id;
                     userInserted.updatedBy = userInserted.id;
                     userModel.user.update({
+                        "socketId": null,
                         "createdBy": userInserted.id,
                         "updatedBy": userInserted.id
                     }, {
