@@ -19,6 +19,7 @@ import GroupDao from '../group/group.dao';
 import DoctorServce from '../doctor/doctor.service';
 import VisitorPrescriptionDao from '../visitor/visitor-prescription.dao';
 import groupUserMapModel from '../group/index';
+import msgconfig from '../../config/message.config';
 
 const moment = require('moment');
 const Op = require('sequelize').Op;
@@ -180,10 +181,25 @@ exports.connectSocket = (io) => {
                 });
             });
 
+            socket.on('count-sync', (userId, count) => {
+                userService.getById(userId, (user) => {
+                    let socketIds = [];
+                    socketIds = user.socketId;
+                    if (socketIds !== null) {
+                        socketIds.map((socketId) => {
+                            if (socketId !== socket.id) {
+                                io.in(socketId).emit('receive-count-sync', count);
+                                console.log('Emiited across sockets the sync count for ' + user.firstname);
+                            }
+                        });
+                    }
+                });
+            });
+
             /**
              * for sending message to group/user which is emitted from client(msg with an groupId/userId)
              */
-            socket.on('send-message', (msg, group) => {
+            socket.on('send-message', (msg, group, notify) => {
                 // if it is a group message
                 if (msg.receiverType === "group") {
                     messageService.sendMessage(msg, (result) => {
@@ -206,12 +222,20 @@ exports.connectSocket = (io) => {
                                 }).then((a) => {
                                     console.log('message sent');
                                     console.log(a);
-                                })
+                                });
+                            }
+                            if (user.role === 'doctor' && notify === 1) {
+                                var message = msgconfig.doctorNotifyMessage;
+                                message = message.replace('patient1', socket.decoded.data.firstname + ' ' + socket.decoded.data.lastname)
+
+                                userService.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, message, user.firstname +
+                                    ' ' + user.lastname, 'doctorNotifyMessage', "Inactive Consultation doctor notify");
+                                console.log('message sent for doctor notification');
                             }
                         });
                     });
                     groupService.getById(group.id, (group) => {
-                        if (group.phase === 'inactive' && msg.type !== 'notification') {
+                        if (group.name === 'MedHelp' && msg.type === 'text') {
                             consultationGroupModel.consultation_group_user_map.findAll({
                                 where: {
                                     groupId: group.id
@@ -337,74 +361,74 @@ exports.connectSocket = (io) => {
 
             socket.on('doctor-status', (userId, status) => {
                 userService.getById(userId, (user) => {
-                    let socketId = [];
+                    let socketIds = [];
                     if (user.socketId !== null) {
-                        socketId = user.socketId;
+                        socketIds = user.socketId;
                     }
                     doctorService.updateDoctorSchedule({ status: status }, userId, (statusUpdated) => {
                         userService.updateRegisteredUser({
                             'id': userId,
-                            'socketId': socketId,
+                            'socketId': socketIds,
                             'status': status
                         }, () => {});
-                        userService.getById(userId, (user) => {
-                            let socketIds = [];
-                            socketIds = user.socketId;
-                            if (socketIds !== null) {
-                                socketIds.map((socketId) => {
-                                    io.in(socketId).emit('received-doctor-status', status);
-                                });
-                            }
-                        });
+                        // userService.getById(userId, (user) => {
+                        // let socketIds = [];
+                        // socketIds = user.socketId;
+                        if (socketIds !== null) {
+                            socketIds.map((socketId) => {
+                                io.in(socketId).emit('received-doctor-status', status);
+                            });
+                        }
+                        // });
                     });
                 });
-                groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
-                    gumaps.map((gumap) => {
-                        groupService.getAllUsersInGroup(gumap.groupId).then((allUsers) => {
-                            let count = 0;
-                            allUsers.map((user) => {
-                                if (user.role !== 'bot' && user.status === 'online') {
-                                    count++;
-                                }
-                            });
-                            if (count > 1) {
-                                log.info('Group status Update with ID: ' + gumap.groupId + ' online');
-                                allUsers.map((user) => {
-                                    if (user.role !== 'bot') {
-                                        let socketIds = [];
-                                        socketIds = user.socketId;
-                                        if (socketIds !== null) {
-                                            socketIds.map((socketId) => {
-                                                io.in(socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'online' });
-                                            });
-                                        }
-                                    }
-                                });
-                                groupService.updateGroupStatus(gumap.groupId, 'online', (result) => {
-                                    result === 1 ? log.info("Group status updated in DB for ID: " + gumap.groupId + ' to online') : null;
-                                });
-                            } else {
-                                log.info('Group status Update with ID: ' + gumap.groupId + ' offline');
-                                allUsers.map((user) => {
-                                    if (user.role !== 'bot') {
-                                        let socketIds = [];
-                                        socketIds = user.socketId;
-                                        if (socketIds !== null) {
-                                            socketIds.map((socketId) => {
-                                                io.in(socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'offline' });
-                                            });
-                                        }
+                // groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
+                //     gumaps.map((gumap) => {
+                //         groupService.getAllUsersInGroup(gumap.groupId).then((allUsers) => {
+                //             let count = 0;
+                //             allUsers.map((user) => {
+                //                 if (user.role !== 'bot' && user.status === 'online') {
+                //                     count++;
+                //                 }
+                //             });
+                //             if (count > 1) {
+                //                 log.info('Group status Update with ID: ' + gumap.groupId + ' online');
+                //                 allUsers.map((user) => {
+                //                     if (user.role !== 'bot') {
+                //                         let socketIds = [];
+                //                         socketIds = user.socketId;
+                //                         if (socketIds !== null) {
+                //                             socketIds.map((socketId) => {
+                //                                 io.in(socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'online' });
+                //                             });
+                //                         }
+                //                     }
+                //                 });
+                //                 groupService.updateGroupStatus(gumap.groupId, 'online', (result) => {
+                //                     result === 1 ? log.info("Group status updated in DB for ID: " + gumap.groupId + ' to online') : null;
+                //                 });
+                //             } else {
+                //                 log.info('Group status Update with ID: ' + gumap.groupId + ' offline');
+                //                 allUsers.map((user) => {
+                //                     if (user.role !== 'bot') {
+                //                         let socketIds = [];
+                //                         socketIds = user.socketId;
+                //                         if (socketIds !== null) {
+                //                             socketIds.map((socketId) => {
+                //                                 io.in(socketId).emit('received-group-status', { 'groupId': gumap.groupId, 'groupStatus': 'offline' });
+                //                             });
+                //                         }
 
-                                    }
-                                })
-                                groupService.updateGroupStatus(gumap.groupId, 'offline', (result) => {
-                                    result === 1 ? log.info("Group status updated in DB for ID: " + gumap.groupId + ' to offline') : null;
-                                })
+                //                     }
+                //                 })
+                //                 groupService.updateGroupStatus(gumap.groupId, 'offline', (result) => {
+                //                     result === 1 ? log.info("Group status updated in DB for ID: " + gumap.groupId + ' to offline') : null;
+                //                 })
 
-                            }
-                        })
-                    })
-                })
+                //             }
+                //         })
+                //     })
+                // })
 
             });
 
@@ -446,7 +470,9 @@ exports.connectSocket = (io) => {
                 });
             });
             //when user clicks consult now on doctor's list  page
-            socket.on('consult-now', (user, doctorId, doctorName) => {
+            socket.on('consult-now', (user, doctorId, doctorName, speciality) => {
+                doctorService.getDoctorScheduleByDoctorId(doctorId,(schedule)=>{
+            if(schedule.status==='online'){
                 //this is to create billing entry for the user
                 if (user.role === 'patient') {
                     let date = Date.now().toString();
@@ -455,6 +481,7 @@ exports.connectSocket = (io) => {
                     let bill = {
                         doctorId: doctorId,
                         visitorId: user.id,
+                        speciality: speciality,
                         // consultationId: group.id,
                         orderId: orderId,
                         status: 'due',
@@ -489,7 +516,7 @@ exports.connectSocket = (io) => {
                                     where: {
                                         userId: user.id,
                                         doctorId: doctorId,
-                                        phase: ['active', 'botInactive']
+                                        phase: ['active']
                                     }
                                 }).then((response) => {
                                     if (response.length > 0) {
@@ -514,6 +541,10 @@ exports.connectSocket = (io) => {
                         }
                     })
                 }
+                }else {
+                    io.in(socket.id).emit('receive-consult-now', [doctor.status,doctorName]);
+                }
+                })
             });
 
             /**
@@ -552,7 +583,8 @@ exports.connectSocket = (io) => {
                                                 io.in(socketId).emit('receive-user-added', {
                                                     message: `Dr. ${doctor.firstname} ${doctor.lastname} joined the consultation`,
                                                     doctorId: doctor.id,
-                                                    group: group
+                                                    group: group,
+                                                    socketId: socket.id
                                                 }); //emit one-by-one for all users 
                                             });
                                         }
@@ -698,6 +730,9 @@ exports.connectSocket = (io) => {
              * user or doctor added to consultation group
              */
             socket.on('end-consultation', (doctor, group) => {
+                doctorService.updateDoctorSchedule({ status: 'online' }, doctor.id, (statusUpdated) => {
+                    console.log('Doctor status updated');
+                })
                 visitorModel.visitor_appointment.update({ status: 'Completed' }, {
                     where: {
                         groupId: group.id,
@@ -712,7 +747,8 @@ exports.connectSocket = (io) => {
                         socketIds.map((socketId) => {
                             io.in(socketId).emit('receive-end-consultation', {
                                 message: `Dr. ${doctor.firstname} ${doctor.lastname} left the conversation`,
-                                groupId: group.id
+                                groupId: group.id,
+                                socketId: socket.id
                             }); //emit one-by-one for all users
                         });
                     }

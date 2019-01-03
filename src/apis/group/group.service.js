@@ -242,6 +242,11 @@ class GroupService {
                         var activeGroups = [];
                         var inactiveGroups = [];
                         let medhelp = groups.shift();
+                        allGroupUserMapByUserId.map((gumap)=>{
+                        if(gumap.groupId===medhelp.id){
+                            medhelp.dataValues.unreadCount = gumap.unreadCount 
+                        }
+                        })
                         groups.reverse().map((group) => {
                             if (result.role === 'doctor' && group.name !== 'MedHelp') {
                                 var groupName = [];
@@ -262,7 +267,7 @@ class GroupService {
                                 })
                                 activeGroups.push(group);
                             } else {
-                                if (inactiveGroupTime >= moment() || group.phase==='botInactive') { //doctor is not active but for some query he will be available
+                                if (inactiveGroupTime >= moment()) { //doctor is not active but for some query he will be available
                                     allGroupUserMapByUserId.map((gumap)=>{
                                         if(gumap.groupId===group.id){
                                             group.dataValues.unreadCount = gumap.unreadCount 
@@ -668,7 +673,7 @@ class GroupService {
         });
     }
 
-    consultNow(doctorId, patientId, callback) {
+    consultNow(doctorId, patientId, speciality, callback) {
             /**
              * Changed the logic to fetch the groups in which doctor and patient is present
              * DoctorId is being stored in the group URL which makes it easy to fetch the group details
@@ -738,6 +743,7 @@ class GroupService {
                                     url: `consultation/${doctorId}`,
                                     userId: patientId,
                                     doctorId: doctorId,
+                                    speciality: speciality,
                                     details: {
                                         description: 'Consultation for registered patients',
                                         speciality: result.doctorDetails.speciality
@@ -750,6 +756,9 @@ class GroupService {
                                 };
                                 this.createGroupForConsultation(group, doctorId, patientId, (newGroup) => {
                                     callback(newGroup);
+                                    doctorService.updateDoctorSchedule({ status: 'busy' }, doctorId, (statusUpdated) => {
+                                        console.log('status updated')
+                                    })
                                 });
                             }
                         });
@@ -804,7 +813,7 @@ class GroupService {
                                         receiverType: 'group',
                                         senderId: user.id,
                                         senderName: user.firstname + ' ' + user.lastname,
-                                        text: 'Welcome to Mesomeds! I am Medroid, your medical assistant. How may I assist you?',
+                                        text: 'Welcome to Mesomeds! Doctor will join the group in 2-3 minutes',
                                         createdBy: user.id,
                                         updatedBy: user.id,
                                         createdTime: Date.now(),

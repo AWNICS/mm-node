@@ -53,6 +53,7 @@ class UserService {
             });
             bcrypt.hash(user.password, 10, (err, hash) => {
                 user.password = hash;
+                user.socketId = null;
                 return userDao.insert(user, (userInserted) => {
                     // if a user exists with same email and mobile execute this block this is to prevent duplicate registrations
                     if (userInserted.original) {
@@ -80,6 +81,7 @@ class UserService {
                     userInserted.createdBy = userInserted.id;
                     userInserted.updatedBy = userInserted.id;
                     userModel.user.update({
+                        "socketId": null,
                         "createdBy": userInserted.id,
                         "updatedBy": userInserted.id
                     }, {
@@ -300,7 +302,7 @@ class UserService {
             })
             .catch(error => log.error('Error while sending activation link to ' + user.email + ' ' + error));
         const message = user.role === "patient" ? msgconfig.userMessage : msgconfig.doctorMessage;
-        this.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, message, user.firstname + ' ' + user.lastname, 'registration', "Message sent for " + title)
+        this.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, message, user.firstname + ' ' + user.lastname, 'registration', "Message sent for " + title);
     }
 
     adminDoctorRegistration(doctorDetails) {
@@ -389,6 +391,16 @@ class UserService {
     updateRegisteredUser(user, callback) {
         return userDao.update(user, (userUpdated) => {
             callback(userUpdated);
+        });
+    }
+
+    updateRegisteredUserDetails(user, callback) {
+        user.id = user.userId;
+        this.getById(user.userId, (userDetails) => {
+            user.socketId = userDetails.socketId;
+            return userDao.update(user, (userUpdated) => {
+                callback(userUpdated);
+            });
         });
     }
 
