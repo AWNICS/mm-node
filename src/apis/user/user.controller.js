@@ -117,7 +117,7 @@ router.get('/users/:id', function(req, res) {
  */
 router.put('/users', function(req, res) {
     var user = req.body;
-    userService.updateRegisteredUser(user, (result) => {
+    userService.updateRegisteredUserDetails(user, (result) => {
         res.send(result);
     });
 });

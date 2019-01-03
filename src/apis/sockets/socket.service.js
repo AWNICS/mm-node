@@ -19,6 +19,7 @@ import GroupDao from '../group/group.dao';
 import DoctorServce from '../doctor/doctor.service';
 import VisitorPrescriptionDao from '../visitor/visitor-prescription.dao';
 import groupUserMapModel from '../group/index';
+import msgconfig from '../../config/message.config';
 
 const moment = require('moment');
 const Op = require('sequelize').Op;
@@ -186,10 +187,10 @@ exports.connectSocket = (io) => {
                     socketIds = user.socketId;
                     if (socketIds !== null) {
                         socketIds.map((socketId) => {
-                            if(socketId !== socket.id){
+                            if (socketId !== socket.id) {
                                 io.in(socketId).emit('receive-count-sync', count);
-                                console.log('Emiited across sockets the sync count for '+user.firstname);
-                            } 
+                                console.log('Emiited across sockets the sync count for ' + user.firstname);
+                            }
                         });
                     }
                 });
@@ -199,7 +200,6 @@ exports.connectSocket = (io) => {
              * for sending message to group/user which is emitted from client(msg with an groupId/userId)
              */
             socket.on('send-message', (msg, group, notify) => {
-                console.log(socket.decoded.data.firstname);
                 // if it is a group message
                 if (msg.receiverType === "group") {
                     messageService.sendMessage(msg, (result) => {
@@ -212,7 +212,7 @@ exports.connectSocket = (io) => {
                                         io.in(socketId).emit('receive-message', result); //emit one-by-one for all users
                                     });
                                 }
-                            } 
+                            }
                             if (user.role !== 'bot' && msg.senderId !== user.id) {
                                 groupUserMapModel.consultation_group_user_map.increment('unreadCount', {
                                     where: {
@@ -222,8 +222,16 @@ exports.connectSocket = (io) => {
                                 }).then((a) => {
                                     console.log('message sent');
                                     console.log(a);
-                                })
-                             }
+                                });
+                            }
+                            if (user.role === 'doctor' && notify === 1) {
+                                var message = msgconfig.doctorNotifyMessage;
+                                message = message.replace('patient1', socket.decoded.data.firstname + ' ' + socket.decoded.data.lastname)
+
+                                userService.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, message, user.firstname +
+                                    ' ' + user.lastname, 'doctorNotifyMessage', "Inactive Consultation doctor notify");
+                                console.log('message sent for doctor notification');
+                            }
                         });
                     });
                     groupService.getById(group.id, (group) => {
@@ -364,13 +372,13 @@ exports.connectSocket = (io) => {
                             'status': status
                         }, () => {});
                         // userService.getById(userId, (user) => {
-                            // let socketIds = [];
-                            // socketIds = user.socketId;
-                            if (socketIds !== null) {
-                                socketIds.map((socketId) => {
-                                    io.in(socketId).emit('received-doctor-status', status);
-                                });
-                            }
+                        // let socketIds = [];
+                        // socketIds = user.socketId;
+                        if (socketIds !== null) {
+                            socketIds.map((socketId) => {
+                                io.in(socketId).emit('received-doctor-status', status);
+                            });
+                        }
                         // });
                     });
                 });
@@ -575,7 +583,8 @@ exports.connectSocket = (io) => {
                                                 io.in(socketId).emit('receive-user-added', {
                                                     message: `Dr. ${doctor.firstname} ${doctor.lastname} joined the consultation`,
                                                     doctorId: doctor.id,
-                                                    group: group
+                                                    group: group,
+                                                    socketId: socket.id
                                                 }); //emit one-by-one for all users 
                                             });
                                         }
@@ -738,7 +747,8 @@ exports.connectSocket = (io) => {
                         socketIds.map((socketId) => {
                             io.in(socketId).emit('receive-end-consultation', {
                                 message: `Dr. ${doctor.firstname} ${doctor.lastname} left the conversation`,
-                                groupId: group.id
+                                groupId: group.id,
+                                socketId: socket.id
                             }); //emit one-by-one for all users
                         });
                     }
