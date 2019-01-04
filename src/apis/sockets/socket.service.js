@@ -471,8 +471,8 @@ exports.connectSocket = (io) => {
             });
             //when user clicks consult now on doctor's list  page
             socket.on('consult-now', (user, doctorId, doctorName, speciality) => {
-                doctorService.getDoctorScheduleByDoctorId(doctorId,(schedule)=>{
-            if(schedule.status==='online'){
+        doctorService.getDoctorScheduleByDoctorId(doctorId,(schedule)=>{
+            if(schedule[0].status==='Online'){
                 //this is to create billing entry for the user
                 if (user.role === 'patient') {
                     let date = Date.now().toString();
@@ -542,7 +542,7 @@ exports.connectSocket = (io) => {
                     })
                 }
                 }else {
-                    io.in(socket.id).emit('receive-consult-now', [doctor.status,doctorName]);
+                    io.in(socket.id).emit('receive-consult-now', [schedule[0].status,doctorName]);
                 }
                 })
             });

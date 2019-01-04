@@ -186,7 +186,7 @@ router.delete('/billing/:id', (req, res) => {
  *           $ref: '#/definitions/Billing'
  */
 router.get('/billing/visitors/:visitorId', (req, res) => {
-    billingService.getAllBillingByVisitorId(req.params.visitorId, (billings) => {
+    billingService.getAllBillingByVisitorId(req.params.visitorId, req.query.page, (billings) => {
         res.send(billings);
     });
 });
@@ -198,7 +198,7 @@ router.get('/billing/visitors/:visitorId/bill/:billId', (req, res) => {
 });
 
 router.get('/billing/doctors/:doctorId', (req, res) => {
-    billingService.getAllBillingByDoctorId(req.params.doctorId, (billings) => {
+    billingService.getAllBillingByDoctorId(req.params.doctorId, req.query.page, (billings) => {
         res.send(billings);
     });
 });
