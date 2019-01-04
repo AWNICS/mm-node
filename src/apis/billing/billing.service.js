@@ -125,9 +125,12 @@ class BillingService {
     }
 
     //billing by visitorId
-    getAllBillingByVisitorId(visitorId, callback) {
+    getAllBillingByVisitorId(visitorId, page, callback) {
+        var offset = ((5 * page) - 5);
         billingModel.billing.findAll({
                 where: { visitorId: visitorId },
+                offset: offset,
+                limit: 5,
                 order: [
                     ['createdAt', 'DESC']
                 ]
@@ -145,9 +148,12 @@ class BillingService {
     }
 
     //get billing by doctorId
-    getAllBillingByDoctorId(doctorId, callback) {
+    getAllBillingByDoctorId(doctorId, page, callback) {
+        var offset = ((5 * page) - 5);
         billingModel.billing.findAll({
                 where: { doctorId: doctorId, status: 'Success' },
+                offset: offset,
+                limit: 5,
                 order: [
                     ['createdAt', 'DESC']
                 ]
