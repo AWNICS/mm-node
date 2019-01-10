@@ -19,6 +19,8 @@ class UserDao {
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
+                    callback(error);
+                    log.error('error in userDao ', error);
                     t.rollback();
                 });
             });
@@ -38,7 +40,11 @@ class UserDao {
      * read method based on id
      */
     readById(id, callback) {
-        userModel.user.findById(id).then((user) => {
+        userModel.user.findById(id, {
+            attributes: {
+                exclude: ['password', 'token']
+            }
+        }).then((user) => {
             callback(user);
         });
     }
@@ -57,6 +63,7 @@ class UserDao {
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
+                console.log('Error while updating the user: ' + error);
                 t.rollback();
             });
         });

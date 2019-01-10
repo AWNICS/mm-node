@@ -1,5 +1,4 @@
 import ContactDao from './contactUs.dao';
-import log from '../../config/log4js.config';
 
 var contactDao = new ContactDao();
 /*
@@ -14,7 +13,7 @@ class ContactService {
         });
     }
 
-    getAll(callback) {
+    get(callback) {
         return contactDao.readAll((allContacts) => {
             callback(allContacts);
         });

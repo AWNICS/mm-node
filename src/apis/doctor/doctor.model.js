@@ -5,20 +5,32 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true,
             autoIncrement: true
         },
-        socketId: {
-            type: DataTypes.STRING
-        },
-        name: {
-            type: DataTypes.STRING
-        },
-        picUrl: {
-            type: DataTypes.STRING
+        userId: {
+            type: DataTypes.INTEGER
         },
         regNo: {
             type: DataTypes.STRING
         },
-        speciality: {
+        validity: {
+            type: DataTypes.DATE //validity of MCI number
+        },
+        sex: {
             type: DataTypes.STRING
+        },
+        age: {
+            type: DataTypes.INTEGER
+        },
+        address: {
+            type: DataTypes.STRING
+        },
+        speciality: {
+            type: DataTypes.TEXT,
+            get: function() {
+                return JSON.parse(this.getDataValue('speciality'));
+            },
+            set: function(speciality) {
+                this.setDataValue('speciality', JSON.stringify(speciality));
+            }
         },
         experience: {
             type: DataTypes.DOUBLE
@@ -26,41 +38,49 @@ module.exports = (sequelize, DataTypes) => {
         description: {
             type: DataTypes.STRING
         },
-        email: {
-            type: DataTypes.STRING
-        },
-        phoneNo: {
-            type: DataTypes.STRING
-        },
-        status: {
-            type: DataTypes.STRING
-        },
-        waitingTime: {
-            type: DataTypes.DOUBLE
-        },
-        rating: {
-            type: DataTypes.DOUBLE
-        },
         videoUrl: {
             type: DataTypes.STRING
         },
         appearUrl: {
             type: DataTypes.STRING
         },
-        token: {
+        waitingTime: {
+            type: DataTypes.NUMERIC
+        },
+        ratingValue: {
+            type: DataTypes.NUMERIC
+        },
+        ratingCount: {
+            type: DataTypes.NUMERIC
+        },
+        shortBio: {
             type: DataTypes.STRING
         },
-        activate: {
-            type: DataTypes.DOUBLE
+        longBio: {
+            type: DataTypes.STRING
         },
-        role: {
+        education: {
+            type: DataTypes.STRING //educational degree
+        },
+        educationYear: {
+            type: DataTypes.INTEGER
+        },
+        institution: {
+            type: DataTypes.STRING //training institution
+        },
+        institutionYear: {
+            type: DataTypes.INTEGER
+        },
+        workHistory: {
             type: DataTypes.STRING
         },
         createdBy: {
-            type: DataTypes.STRING
+            type: DataTypes.INTEGER,
+            defaultValue: null
         },
         updatedBy: {
-            type: DataTypes.STRING
+            type: DataTypes.INTEGER,
+            defaultValue: null
         },
         termsAccepted: {
             type: DataTypes.BOOLEAN

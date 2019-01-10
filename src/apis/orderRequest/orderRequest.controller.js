@@ -31,8 +31,6 @@ var router = express.Router();
  *         type: string
  *       location:
  *         type: string
- *       waitingTime:
- *         type: integer
  *       dp:
  *         type: integer
  *       button:
@@ -42,7 +40,7 @@ var router = express.Router();
  */
 /**
  * @swagger
- * /orderRequest/controllers/createOrderRequest:
+ * /orderRequests:
  *   post:
  *     tags:
  *       - OrderRequest
@@ -50,7 +48,7 @@ var router = express.Router();
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: OrderRequest
+ *       - name: body
  *         description: orderRequest object
  *         in: body
  *         required: true
@@ -60,7 +58,7 @@ var router = express.Router();
  *       200:
  *         description: Successfully created in MySql db
  */
-router.post('/controllers/createOrderRequest', (req, res) => {
+router.post('/orderRequests', (req, res) => {
     orderRequestsService.create(req.body, (result) => {
         res.json(result);
     });
@@ -68,7 +66,7 @@ router.post('/controllers/createOrderRequest', (req, res) => {
 
 /**
  * @swagger
- * /orderRequest/controllers/readAllOrderRequests:
+ * /orderRequests:
  *   get:
  *     tags:
  *       - OrderRequest
@@ -81,7 +79,7 @@ router.post('/controllers/createOrderRequest', (req, res) => {
  *         schema:
  *           $ref: '#/definitions/OrderRequest'
  */
-router.get('/controllers/readAllOrderRequests', (req, res) => {
+router.get('/orderRequests', (req, res) => {
     orderRequestsService.readAll((results) => {
         res.json(results);
     });
@@ -89,7 +87,7 @@ router.get('/controllers/readAllOrderRequests', (req, res) => {
 
 /**
  * @swagger
- * /orderRequest/controllers/readOrderRequestById/{id}:
+ * /orderRequests/{id}:
  *   get:
  *     tags:
  *       - OrderRequest
@@ -108,7 +106,7 @@ router.get('/controllers/readAllOrderRequests', (req, res) => {
  *       200:
  *         description: An orderRequest return from MySql db
  */
-router.get('/controllers/readOrderRequestById/:id', (req, res) => {
+router.get('/orderRequests/:id', (req, res) => {
     orderRequestsService.readById(req.params.id, (result) => {
         res.json(result);
     });
@@ -116,7 +114,7 @@ router.get('/controllers/readOrderRequestById/:id', (req, res) => {
 
 /**
  * @swagger
- * /orderRequest/controllers/updateOrderRequest:
+ * /orderRequests:
  *   put:
  *     tags:
  *       - OrderRequest
@@ -134,7 +132,7 @@ router.get('/controllers/readOrderRequestById/:id', (req, res) => {
  *       200:
  *         description: Successfully updated in MySql db
  */
-router.put('/controllers/updateOrderRequest', (req, res) => {
+router.put('/orderRequests', (req, res) => {
     orderRequestsService.update(req.body, (result) => {
         res.json(result);
     });
@@ -142,7 +140,7 @@ router.put('/controllers/updateOrderRequest', (req, res) => {
 
 /**
  * @swagger
- * /orderRequest/controllers/removeOrderRequest/{id}:
+ * /orderRequests/{id}:
  *   delete:
  *     tags:
  *       - OrderRequest
@@ -159,7 +157,7 @@ router.put('/controllers/updateOrderRequest', (req, res) => {
  *       200:
  *         description: Successfully deleted from MySql db
  */
-router.delete('/controllers/removeOrderRequest/:id', (req, res) => {
+router.delete('/orderRequests/:id', (req, res) => {
     orderRequestsService.remove(req.params.id, (result) => {
         res.send('OrderRequest deleted');
     });

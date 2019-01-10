@@ -1,18 +1,23 @@
-/**
- * Specialities api models
- */
-
-import mongoose from 'mongoose';
-
-//Define a schema
-var Schema = mongoose.Schema;
-
-var SpecialitiesSchema = new Schema({
-    id: { type: Date, default: Date.now },
-    name: String
-}, { collection: 'specialities' });
-
-// Compile model from schema
-var Specialities = mongoose.model('Specialities', SpecialitiesSchema);
-
-module.exports = Specialities;
+module.exports = (sequelize, DataTypes) => {
+    var Specialities = sequelize.define('specialities', {
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        name: {
+            type: DataTypes.STRING
+        },
+        createdBy: {
+            type: DataTypes.INTEGER,
+            defaultValue: null
+        },
+        updatedBy: {
+            type: DataTypes.INTEGER,
+            defaultValue: null
+        }
+    }, {
+        freezeTableName: true
+    });
+    return Specialities;
+};

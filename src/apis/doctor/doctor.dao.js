@@ -19,6 +19,7 @@ class DoctorDao {
                 }).then(function() {
                     t.commit();
                 }).catch(function(error) {
+                    log.error(error);
                     t.rollback();
                 });
             });
@@ -38,7 +39,7 @@ class DoctorDao {
      * read method based on id
      */
     readById(id, callback) {
-        doctorModel.doctor.findById(id).then((doctor) => {
+        return doctorModel.doctor.find({ where: { userId: id } }).then((doctor) => {
             callback(doctor);
         });
     }
@@ -50,13 +51,14 @@ class DoctorDao {
         sequelize.transaction().then(function(t) {
             doctorModel.doctor.update(doctor, {
                 where: {
-                    id: doctor.id
+                    userId: doctor.userId
                 }
             }, { transaction: t }).then(function(doctorUpdated) {
                 callback(doctorUpdated);
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
+                log.error('Error in doctor dao update ', error);
                 t.rollback();
             });
         });

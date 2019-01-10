@@ -1,4 +1,4 @@
-import groupUserMapModel from './index';
+import consultationGroupUserMapModel from './index';
 import sequelize from '../../util/conn.mysql';
 import log from '../../config/log4js.config';
 
@@ -14,7 +14,7 @@ class GroupUserMapDao {
     insert(groupUser, callback) {
         sequelize.sync({ force: false }).then(() => {
             sequelize.transaction().then(function(t) {
-                groupUserMapModel.group_user_map.create(groupUser, { transaction: t }).then(function(groupUserInserted) {
+                consultationGroupUserMapModel.consultation_group_user_map.create(groupUser, { transaction: t }).then(function(groupUserInserted) {
                     callback(groupUserInserted);
                 }).then(function() {
                     t.commit();
@@ -29,7 +29,7 @@ class GroupUserMapDao {
      * read all method
      */
     readAll(callback) {
-        groupUserMapModel.group_user_map.findAll().then((allGroupUser) => {
+        consultationGroupUserMapModel.consultation_group_user_map.findAll().then((allGroupUser) => {
             callback(allGroupUser);
         });
     }
@@ -38,7 +38,7 @@ class GroupUserMapDao {
      * read method based on id
      */
     readById(id, callback) {
-        groupUserMapModel.group_user_map.findById(id).then((group) => {
+        consultationGroupUserMapModel.consultation_group_user_map.findById(id).then((group) => {
             callback(group);
         });
     }
@@ -48,7 +48,7 @@ class GroupUserMapDao {
      */
     update(groupUser, callback) {
         sequelize.transaction().then(function(t) {
-            groupUserMapModel.group_user_map.update(groupUser, {
+            consultationGroupUserMapModel.consultation_group_user_map.update(groupUser, {
                 where: {
                     id: groupUser.id
                 }
@@ -65,11 +65,12 @@ class GroupUserMapDao {
     /**
      * Delete method
      */
-    delete(id, callback) {
+    delete(userId, groupId, callback) {
         sequelize.transaction().then(function(t) {
-            groupUserMapModel.group_user_map.destroy({
+            consultationGroupUserMapModel.consultation_group_user_map.destroy({
                 where: {
-                    id: id
+                    userId: userId,
+                    groupId: groupId
                 }
             }).then(function(groupUserDeleted) {
                 callback(groupUserDeleted);

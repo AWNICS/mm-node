@@ -5,35 +5,42 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true,
             autoIncrement: true
         },
-        name: {
+        firstname: {
+            type: DataTypes.STRING
+        },
+        lastname: {
             type: DataTypes.STRING
         },
         email: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
+            unique: true
         },
         password: {
             type: DataTypes.STRING
         },
         phoneNo: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
+            unique: true
+        },
+        aadhaarNo: {
+            type: DataTypes.BIGINT,
+            defaultValue: null
         },
         picUrl: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
+            defaultValue: null
         },
         description: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
+            defaultValue: null
         },
         status: {
-            type: DataTypes.STRING
-        },
-        waitingTime: {
-            type: DataTypes.NUMERIC
-        },
-        rating: {
-            type: DataTypes.NUMERIC
+            type: DataTypes.STRING,
+            defaultValue: 'offline'
         },
         token: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
+            defaultValue: null
         },
         activate: {
             type: DataTypes.NUMERIC,
@@ -44,14 +51,25 @@ module.exports = (sequelize, DataTypes) => {
             defaultValue: null
         },
         socketId: {
-            type: DataTypes.STRING,
-            defaultValue: null
+            type: DataTypes.TEXT,
+            get: function() {
+                return JSON.parse(this.getDataValue('socketId'));
+            },
+            set: function(socketId) {
+                this.setDataValue('socketId', JSON.stringify(socketId));
+            }
+        },
+        termsAccepted: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
         },
         createdBy: {
-            type: DataTypes.STRING
+            type: DataTypes.INTEGER,
+            defaultValue: null
         },
         updatedBy: {
-            type: DataTypes.STRING
+            type: DataTypes.INTEGER,
+            defaultValue: null
         }
     }, {
         freezeTableName: true

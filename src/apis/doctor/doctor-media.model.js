@@ -1,30 +1,38 @@
 module.exports = (sequelize, DataTypes) => {
-    var ConsultationSchedule = sequelize.define('consultation_schedule', {
+    var DoctorMedia = sequelize.define('doctor_media', {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
-        patientId: {
-            type: DataTypes.STRING
+        userId: {
+            type: DataTypes.INTEGER
         },
-        doctorId: {
+        title: {
             type: DataTypes.STRING
         },
         description: {
             type: DataTypes.STRING
         },
-        createdBy: {
+        url: {
             type: DataTypes.STRING
+        },
+        thumbUrl: {
+            type: DataTypes.STRING
+        },
+        type: {
+            type: DataTypes.STRING
+        },
+        createdBy: {
+            type: DataTypes.INTEGER,
+            defaultValue: null
         },
         updatedBy: {
-            type: DataTypes.STRING
-        },
-        lastActive: {
-            type: DataTypes.STRING
+            type: DataTypes.INTEGER,
+            defaultValue: null
         }
     }, {
         freezeTableName: true
     });
-    return ConsultationSchedule;
+    return DoctorMedia;
 };

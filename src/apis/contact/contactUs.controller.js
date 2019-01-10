@@ -3,7 +3,6 @@ import ContactService from './contactUs.service';
 
 var router = express.Router();
 var contactService = new ContactService();
-
 /**
  * @swagger
  * definitions:
@@ -40,11 +39,11 @@ var contactService = new ContactService();
  *       thumbnailUrl:
  *         type: string
  *       termsAccepted:
- *         type: true
+ *         type: boolean
  */
 /**
  * @swagger
- * /contact/controllers/createContact:
+ * /contacts:
  *   post:
  *     tags:
  *       - Contact
@@ -52,7 +51,7 @@ var contactService = new ContactService();
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: contact
+ *       - name: body
  *         description: contact object
  *         in: body
  *         required: true
@@ -60,9 +59,9 @@ var contactService = new ContactService();
  *           $ref: '#/definitions/Contact'
  *     responses:
  *       200:
- *         description: Successfully created in MySql db
+ *         description: Successfully created contact in MySql db
  */
-router.post('/controllers/createContact', function(req, res) {
+router.post('/contacts', function(req, res) {
     var contact = req.body;
     contactService.create(contact, (result) => {
         res.send(result);
@@ -71,7 +70,7 @@ router.post('/controllers/createContact', function(req, res) {
 
 /**
  * @swagger
- * /contact/controllers/getContacts:
+ * /contacts:
  *   get:
  *     tags:
  *       - Contact
@@ -84,15 +83,15 @@ router.post('/controllers/createContact', function(req, res) {
  *         schema:
  *           $ref: '#/definitions/Contact'
  */
-router.get('/controllers/getContacts', function(req, res) {
-    contactService.getAll((result) => {
+router.get('/contacts', function(req, res) {
+    contactService.get((result) => {
         res.send(result);
     });
 });
 
 /**
  * @swagger
- * /contact/controllers/getContactById/{id}:
+ * /contacts/{id}:
  *   get:
  *     tags:
  *       - Contact
@@ -113,7 +112,7 @@ router.get('/controllers/getContacts', function(req, res) {
  *         schema:
  *           $ref: '#/definitions/Contact'
  */
-router.get('/controllers/getContactById/:id', function(req, res) {
+router.get('/contacts/:id', function(req, res) {
     var id = req.params.id;
     contactService.getById(id, (result) => {
         res.send(result);
@@ -122,7 +121,7 @@ router.get('/controllers/getContactById/:id', function(req, res) {
 
 /**
  * @swagger
- * /contact/controllers/putContact:
+ * /contacts:
  *   put:
  *     tags:
  *       - Contact
@@ -140,7 +139,7 @@ router.get('/controllers/getContactById/:id', function(req, res) {
  *       200:
  *         description: Successfully updated data in MySql
  */
-router.put('/controllers/putContact', function(req, res) {
+router.put('/contacts', function(req, res) {
     var contact = req.body;
     contactService.update(contact, (result) => {
         res.send(result);
@@ -149,7 +148,7 @@ router.put('/controllers/putContact', function(req, res) {
 
 /**
  * @swagger
- * /contact/controllers/deleteContact/{id}:
+ * /contacts/{id}:
  *   delete:
  *     tags:
  *       - Contact
@@ -166,7 +165,7 @@ router.put('/controllers/putContact', function(req, res) {
  *       200:
  *         description: Successfully deleted from MySql db
  */
-router.delete('/controllers/deleteContact/:id', function(req, res) {
+router.delete('/contacts/:id', function(req, res) {
     var id = req.params.id;
     contactService.delete(id, (result) => {
         res.send('Number of contact deleted: ' + result);

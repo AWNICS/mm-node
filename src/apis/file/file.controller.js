@@ -12,8 +12,11 @@ const multer = Multer({
     }
 });
 
+//message files
 router.post('/file', multer.single('file'), function(req, res, next) {
-    fileService.upload(req, bucket, next, (result) => {
+    const fileName = Date.now() + req.file.originalname;
+    //send the created thumbnail back to user
+    fileService.resizeToThumb(req, bucket, fileName, (result) => {
         res.send(result);
     });
 });
@@ -21,6 +24,25 @@ router.post('/file', multer.single('file'), function(req, res, next) {
 router.get('/file/:fileName', function(req, res) {
     const fileName = req.params.fileName;
     fileService.download(bucket, fileName, res);
+});
+
+router.post('/file/thumbnail', multer.single('file'), function(req, res, next) {
+    fileService.createThumb(req.file, (result) => {
+        req.file.buffer = result;
+        req.file.originalname = 'thumbnail_' + req.file.originalname;
+        fileService.upload(req, bucket, req.file.originalname , (response) => {
+            res.send(response);
+        });
+    });
+});
+
+//other files like reports
+router.post('/file/reports', multer.single('file'), function(req, res, next) {
+    const fileName = Date.now() + req.file.originalname;
+    //send the created thumbnail back to user
+    fileService.upload(req, bucket, fileName, (result) => {
+        res.send(result);
+    });
 });
 
 module.exports = router;

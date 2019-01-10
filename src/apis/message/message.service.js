@@ -1,18 +1,11 @@
-/**
- * 1. create
- * 2. 
- */
-
 import messageDao from './message.dao';
 import userMapDao from './user-message-map.dao';
 import groupMapDao from './group-message-map.dao';
 import Message from './message.model';
 import GroupMessageMap from './group-message-map.model';
 import UserMessageMap from './user-message-map.model';
-import Status from '../../util/status.message';
 
 class MessageService {
-    constructor() {}
 
     sendMessage(message, callback) {
         if (message.receiverType === 'group') {
@@ -25,33 +18,37 @@ class MessageService {
     }
 
     sendGroupMessage(message, callback) {
-
         //createMessage and createGroupMap using DAO object
         var msg = new Message(message);
-        var grpMessage = new GroupMessageMap({
-            groupId: message.receiverId,
-            userSId: message.senderId,
-            createdBy: message.senderId,
-            updatedBy: message.senderId
+        messageDao.create(msg, (result) => {
+            var grpMessage = new GroupMessageMap({
+                messageId: result._id,
+                groupId: message.receiverId,
+                userSId: message.senderId,
+                createdBy: message.senderId,
+                updatedBy: message.senderId
+            });
+            groupMapDao.create(grpMessage, (groupMesasgeMap) => {});
+            callback(result);
         });
-        messageDao.create(msg, callback);
-        groupMapDao.create(grpMessage);
     }
 
     sendUserMessage(message, callback) {
         //createMessage and createUserMap using DAO object
         var msg = new Message(message);
-        var userMessage = new UserMessageMap({
-            messageId: msg._id,
-            userRId: message.receiverId,
-            userSId: message.senderId,
-            createdBy: message.senderId,
-            updatedBy: message.senderId,
-            createdTime: new Date(),
-            updatedTime: new Date()
+        messageDao.create(msg, (result) => {
+            var userMessage = new UserMessageMap({
+                messageId: result._id,
+                userRId: message.receiverId,
+                userSId: message.senderId,
+                createdBy: message.senderId,
+                updatedBy: message.senderId,
+                createdTime: new Date(),
+                updatedTime: new Date()
+            });
+            userMapDao.create(userMessage);
+            callback(result);
         });
-        messageDao.create(msg, callback);
-        userMapDao.create(userMessage);
     }
 
     readAll(callback) {
@@ -71,13 +68,72 @@ class MessageService {
     }
 
     /**
-     * render 100 message onclick of any group
+     * render 20 message onclick of any group
      */
-    getLimitedMessages(receiverId, senderId, offset, size, callback) {
-        Message.find({ receiverId: receiverId }, (err, messages) => {
-            if (err) throw err;
+    async getLimitedMessages(receiverId, senderId, page, size, callback) {
+        var promises = [];
+        var groupMessageMaps = await GroupMessageMap.find({ groupId: receiverId })
+            .skip(parseInt(((size * page) - size)))
+            .limit(parseInt(size))
+            .sort({ $natural: -1 });
+        groupMessageMaps.map((groupMessageMap) => {
+            promises.push(Message.findOne({ _id: groupMessageMap.messageId }));
+        });
+        var messages = await Promise.all(promises);
+        callback(messages);
+    }
+
+    /**
+     * group_message_map
+     */
+    readAllGroupMessageMap(callback) {
+        groupMapDao.getAll(callback);
+    }
+
+    readGroupMessageMapById(id, callback) {
+        groupMapDao.getById(id, callback);
+    }
+
+    updateGroupMessageMap(message, callback) {
+        groupMapDao.update(message, callback);
+    }
+
+    removeGroupMessageMap(id, callback) {
+        groupMapDao.delete(id, callback);
+    }
+
+    /**
+     * for getting all media files
+     */
+    async media(receiverId, page, size, callback) {
+        var promises = [];
+        var groupMessageMaps = await GroupMessageMap.find({ groupId: receiverId.toString() });
+        groupMessageMaps.map((groupMessageMap) => {
+            var message = Message.findOne({ $and: [{ _id: groupMessageMap.messageId }, { 'type': { $in: ['image', 'video', 'doc'] } }] });
+            promises.push(message);
+        });
+        var messages = await Promise.all(promises);
+        messages = this.filterMessage(messages).reverse(); //removes all the null messages
+        if (messages.length < size) {
             callback(messages);
-        }).limit(parseInt(offset + size)).skip(parseInt(offset)).sort({ $natural: -1 });
+        } else {
+            messages = messages.splice(messages.length - size);
+            callback(messages);
+        }
+    }
+
+    filterMessage(messages) {
+        var index = -1;
+        var arr_length = messages ? messages.length : 0;
+        var resIndex = -1;
+        var result = [];
+        while (++index < arr_length) {
+            var message = messages[index];
+            if (message) {
+                result[++resIndex] = message;
+            }
+        }
+        return result;
     }
 }
 

@@ -1,6 +1,5 @@
 import express from 'express';
 import GroupService from './group.service';
-import log from '../../config/log4js.config';
 
 var router = express.Router();
 var groupService = new GroupService();
@@ -17,20 +16,20 @@ var groupService = new GroupService();
  *       url:
  *         type: string
  *       userId:
- *         type: string
+ *         type: integer
  *       description:
  *         type: string
  *       picture:
  *         type: string
  *       createdBy:
- *         type: string
+ *         type: integer
  *       updatedBy:
- *         type: string
+ *         type: integer
  *       
  */
 /**
  * @swagger
- * /group/controllers/createGroup:
+ * /groups:
  *   post:
  *     tags:
  *       - Group
@@ -38,7 +37,7 @@ var groupService = new GroupService();
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: group
+ *       - name: body
  *         description: Group object 
  *         in: body
  *         required: true
@@ -49,15 +48,35 @@ var groupService = new GroupService();
  *         description: Successfully created in MySql db
  */
 router.post('/groups', function(req, res) {
-    var group = req.body;
+    var group = {
+        name: req.body.name,
+        url: req.body.url,
+        userId: req.body.userId,
+        details: {
+            description: req.body.description,
+            speciality: req.body.speciality
+        },
+        picture: req.body.picture,
+        status: req.body.status,
+        phase: req.body.status,
+        createdBy: req.body.userId,
+        updatedBy: req.body.userId
+    };
     groupService.create(group, (result) => {
+        res.send(result);
+    });
+});
+
+//create new group by admin
+router.post('/groups/admin', function(req, res) {
+    groupService.createGroupByAdmin(req.body, (result) => {
         res.send(result);
     });
 });
 
 /**
  * @swagger
- * /group/controllers/getGroups:
+ * /groups:
  *   get:
  *     tags:
  *       - Group
@@ -78,11 +97,11 @@ router.get('/groups', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/getGroupById/{id}:
+ * /groups/{id}:
  *   get:
  *     tags:
  *       - Group
- *     description: Returns Group by id from MySql
+ *     description: Returns group by id from MySql
  *     produces:
  *       - application/json
  *     parameters:
@@ -95,7 +114,7 @@ router.get('/groups', function(req, res) {
  *           $ref: '#/definitions/Group'
  *     responses:
  *       200:
- *         description: An Group return from MySql
+ *         description: A group return from MySql
  */
 router.get('/groups/:id', function(req, res) {
     var id = req.params.id;
@@ -106,7 +125,7 @@ router.get('/groups/:id', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/putGroup:
+ * /groups:
  *   put:
  *     tags:
  *       - Group
@@ -126,14 +145,15 @@ router.get('/groups/:id', function(req, res) {
  */
 router.put('/groups', function(req, res) {
     var group = req.body;
-    groupService.update(group, (result) => {
+    groupService.updateGroup(group, (result) => {
+        console.log('updated: ' + result);
         res.send(result);
     });
 });
 
 /**
  * @swagger
- * /group/controllers/deleteGroup/{id}:
+ * /groups/{id}:
  *   delete:
  *     tags:
  *       - Group
@@ -153,7 +173,8 @@ router.put('/groups', function(req, res) {
 router.delete('/groups/:id', function(req, res) {
     var id = req.params.id;
     groupService.delete(id, (result) => {
-        res.send('Number of groups deleted: ' + result);
+        //res.send('Number of groups deleted: ' + result);
+        res.send({ message: 'Group deleted successfully' });
     });
 });
 
@@ -165,17 +186,17 @@ router.delete('/groups/:id', function(req, res) {
  *       id:
  *         type: integer
  *       groupId:
- *         type: string
+ *         type: integer
  *       userId:
- *         type: string
+ *         type: integer
  *       createdBy:
- *         type: string
+ *         type: integer
  *       updatedBy:
- *         type: string
+ *         type: integer
  */
 /**
  * @swagger
- * /group/controllers/createGroupUserMap:
+ * /groupUserMaps:
  *   post:
  *     tags:
  *       - GroupUserMap
@@ -183,7 +204,7 @@ router.delete('/groups/:id', function(req, res) {
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: groupUserMap
+ *       - name: body
  *         description: GroupUserMap object
  *         in: body
  *         required: true
@@ -202,7 +223,7 @@ router.post('/groupUserMaps', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/getGroupUserMaps:
+ * /groupUserMaps:
  *   get:
  *     tags:
  *       - GroupUserMap
@@ -223,7 +244,7 @@ router.get('/groupUserMaps', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/getGroupUserMapById/{id}:
+ * /groupUserMaps/{id}:
  *   get:
  *     tags:
  *       - GroupUserMap
@@ -251,7 +272,7 @@ router.get('/groupUserMaps/:id', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/putGroupUserMap:
+ * /groupUserMaps:
  *   put:
  *     tags:
  *       - GroupUserMap
@@ -278,7 +299,7 @@ router.put('/groupUserMaps', function(req, res) {
 
 /**
  * @swagger
- * /group/controllers/deleteGroupUserMap/{id}:
+ * /groupUserMaps/{id}:
  *   delete:
  *     tags:
  *       - GroupUserMap
@@ -295,15 +316,41 @@ router.put('/groupUserMaps', function(req, res) {
  *       200:
  *         description: Successfully deleted from MySql db
  */
-router.delete('/groupUserMaps/:id', function(req, res) {
+router.delete('/groupUserMaps/:userId/:groupId', function(req, res) {
     var id = req.params.id;
-    groupService.deleteGroupUserMap(id, (result) => {
+    groupService.deleteGroupUserMap(req.params.userId, req.params.groupId, (result) => {
         res.send('Number of groupUserMap deleted: ' + result);
     });
 });
 
+//map users for newly created group
+router.post('/groups/:groupId/users/map', function(req, res) {
+    var users = req.body;
+    groupService.mapUsers(users, req.params.groupId, (result) => {
+        res.send(result);
+    });
+});
+
 /**
- * for fetching all the groups for given user
+ * @swagger
+ * /groups/users/{userId}:
+ *   get:
+ *     tags:
+ *       - Group
+ *     description: For fetching all the groups for given user
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: userId
+ *         in: path
+ *         description: userId for group to return 
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *     responses:
+ *       200:
+ *         description: Returns all the groups for the userId
  */
 router.get('/groups/users/:userId', (req, res) => {
     groupService.getAllGroupsByUserId((req.params.userId))
@@ -311,7 +358,31 @@ router.get('/groups/users/:userId', (req, res) => {
 });
 
 /**
- * creating new group by doctor/bot
+ * @swagger
+ * /groups/{receiverId}:
+ *   post:
+ *     tags:
+ *       - Group
+ *     description: Creating new group by doctor/bot
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: body
+ *         description: Group object
+ *         in: body
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *       - name: receiverId
+ *         in: path
+ *         description: receiverId for group to return 
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *     responses:
+ *       200:
+ *         description: Successfully created in MySql db
  */
 router.post('/groups/:receiverId', function(req, res) {
     var group = req.body;
@@ -322,7 +393,38 @@ router.post('/groups/:receiverId', function(req, res) {
 });
 
 /**
- * creating new group manually by doctor/bot
+ * @swagger
+ * /groups/{receiverId}/{doctorId}:
+ *   post:
+ *     tags:
+ *       - Group
+ *     description: Creating new group manually by doctor/bot
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: body
+ *         description: Group object
+ *         in: body
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *       - name: receiverId
+ *         in: path
+ *         description: receiverId for group  
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *       - name: doctorId
+ *         in: path
+ *         description: doctorId for group  
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *     responses:
+ *       200:
+ *         description: Successfully created in MySql db
  */
 router.post('/groups/:receiverId/:doctorId', function(req, res) {
     var group = req.body;
@@ -331,6 +433,80 @@ router.post('/groups/:receiverId/:doctorId', function(req, res) {
     groupService.createGroupManual(group, receiverId, doctorId, (result) => {
         res.send(result);
     });
+});
+
+/**
+ * @swagger
+ * /groups/doctors/:doctorId/patients/:patientId:
+ *   get:
+ *     tags:
+ *       - Group
+ *     description: For fetching consultation for the specified doctorId and patientId
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: doctorId
+ *         in: path
+ *         description: doctorId for group to return 
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *       - name: patientId
+ *         in: path
+ *         description: patientId for group to return 
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *     responses:
+ *       200:
+ *         description: consultation for the specified doctorId and patientId
+ */
+router.get('/groups/doctors/:doctorId/patients/:patientId', function(req, res) {
+    var doctorId = req.params.doctorId;
+    var patientId = req.params.patientId;
+    groupService.consultNow(doctorId, patientId, (result) => {
+        res.send(result);
+    });
+});
+
+
+/**
+ * @swagger
+ * /groups/:groupId/users:
+ *   get:
+ *     tags:
+ *       - Group
+ *     description: For fetching fullnames of users in group
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: groupId
+ *         in: path
+ *         description: id of the group
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Group'
+ *     responses:
+ *       200:
+ *         description: list of users in the group
+ */
+
+router.get('/groups/:groupId/users', function(req, res) {
+    var doctorId = req.params.groupId;
+    groupService.getAllUsersByGroupId(doctorId, (result) => {
+        res.send(result);
+    });
+});
+
+/* fetch the archived groups */
+router.get('/groups/archived/users/:userId', (req, res) => {
+    groupService.getArchivedGroupsByUserId((req.params.userId))
+        .then((result) => {
+            res.send(result);
+        });
 });
 
 module.exports = router;

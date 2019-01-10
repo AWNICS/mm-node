@@ -10,18 +10,17 @@ var router = express.Router();
  * definitions:
  *   Message:
  *     properties:
- *       id:
- *         type: string
- *         format: date
  *       receiverId:
- *         type: string
+ *         type: integer
  *       receiverType:
  *         type: string
  *       senderId:
- *         type: string
+ *         type: integer
  *       picUrl:
  *         type: string
  *       text:
+ *         type: string
+ *       type:
  *         type: string
  *       status:
  *         type: string
@@ -44,10 +43,20 @@ var router = express.Router();
  *       lastUpdateTime: 
  *         type: string
  *         format: date
+ *       createdBy: 
+ *         type: integer
+ *       updatedBy: 
+ *         type: integer
+ *       createdTime: 
+ *         type: string
+ *         format: date
+ *       updatedTime: 
+ *         type: string
+ *         format: date
  */
 /**
  * @swagger
- * /message/controllers/getMessage:
+ * /messages:
  *   get:
  *     tags:
  *       - Messages
@@ -61,7 +70,6 @@ var router = express.Router();
  *           $ref: '#/definitions/Message'
  */
 router.get('/messages', (req, res) => {
-    //var message = new Message();
     messageService.readAll((results) => {
         res.send(results);
     });
@@ -69,7 +77,7 @@ router.get('/messages', (req, res) => {
 
 /**
  * @swagger
- * /message/controllers/sendMessage:
+ * /messages:
  *   post:
  *     tags:
  *       - Messages
@@ -77,7 +85,7 @@ router.get('/messages', (req, res) => {
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: message
+ *       - name: body
  *         description: Message object
  *         in: body
  *         required: true
@@ -86,10 +94,6 @@ router.get('/messages', (req, res) => {
  *     responses:
  *       200:
  *         description: Successfully created in Mongo db
- * 
- * 
- * 
- * 
  */
 router.post('/messages', (req, res) => {
     // call service and pass the control from service to DAO
@@ -100,7 +104,7 @@ router.post('/messages', (req, res) => {
 
 /**
  * @swagger
- * /message/controllers/putMessage:
+ * /messages:
  *   put:
  *     tags:
  *       - Messages
@@ -125,7 +129,7 @@ router.put('/messages', (req, res) => {
 
 /**
  * @swagger
- * /message/controllers/removeMessage/{id}:
+ * /messages/{id}:
  *   delete:
  *     tags:
  *       - Messages
@@ -134,7 +138,7 @@ router.put('/messages', (req, res) => {
  *       - application/json
  *     parameters:
  *       - name: id
- *         description:  messages
+ *         description: messages
  *         in: path
  *         required: true
  *         type: string
@@ -143,13 +147,14 @@ router.put('/messages', (req, res) => {
  *         description: Successfully deleted from Mongo db
  */
 router.delete('/messages/:id', (req, res) => {
-    messageService.remove(req.params.id, (result) => { log.info(JSON.stringify(result)); });
-    res.send('Message deleted');
+    messageService.remove(req.params.id, (result) => {
+        res.send(result);
+    });
 });
 
 /**
  * @swagger
- * /message/controllers/getMessageById/{id}:
+ * /messages/{id}:
  *   get:
  *     tags:
  *       - Messages
@@ -169,16 +174,190 @@ router.delete('/messages/:id', (req, res) => {
  *         description: An message return from Mongo db
  */
 router.get('/messages/:id', (req, res) => {
-    messageService.readById(req.params.id, (result) => { log.info(JSON.stringify(result)); });
-    res.send('Read message by ID successful');
+    messageService.readById(req.params.id, (result) => {
+        res.send(result);
+    });
 });
 
 /**
- * get 100 messages on click of any group
+ * @swagger
+ * /messages/users/{userId}/groups/{groupId}:
+ *   get:
+ *     tags:
+ *       - Messages
+ *     description: Get 100 messages on click of any group
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: userId
+ *         in: path
+ *         description: userId for message to return
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Message'
+ *       - name: groupId
+ *         in: path
+ *         description: groupId for message to return
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Message'
+ *     responses:
+ *       200:
+ *         description: 100 messages return from Mongo db
  */
 router.get('/messages/users/:userId/groups/:groupId', (req, res) => {
-    messageService.getLimitedMessages((req.params.groupId), (req.params.userId), (req.query.offset), (req.query.size), (result) => {
+    messageService.getLimitedMessages((req.params.groupId), (req.params.userId), (req.query.page), (req.query.size), (results) => {
+        res.send(results);
+    });
+});
+
+/**
+ * @swagger
+ * definitions:
+ *   GroupMessageMap:
+ *     properties:
+ *       messageId:
+ *         type: string
+ *       groupId:
+ *         type: integer
+ *       userSId:
+ *         type: integer
+ *       createdBy: 
+ *         type: integer
+ *       updatedBy: 
+ *         type: integer
+ *       createdTime: 
+ *         type: string
+ *         format: date
+ *       updatedTime: 
+ *         type: string
+ *         format: date
+ */
+/**
+ * @swagger
+ * /groupMessageMap:
+ *   get:
+ *     tags:
+ *       - GroupMessageMap
+ *     description: Returns all group message maps from Mongo db
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: An array of group message maps from Mongo db
+ *         schema:
+ *           $ref: '#/definitions/GroupMessageMap'
+ */
+router.get('/groupMessageMap', (req, res) => {
+    messageService.readAllGroupMessageMap((results) => {
+        res.send(results);
+    });
+});
+
+/**
+ * @swagger
+ * /groupMessageMap/{id}:
+ *   get:
+ *     tags:
+ *       - GroupMessageMap
+ *     description: Returns group message map by id from Mongo db
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: id for group message map to return
+ *         required: true
+ *         type: string
+ *         schema:
+ *           $ref: '#/definitions/GroupMessageMap'
+ *     responses:
+ *       200:
+ *         description: An group message map return from Mongo db
+ */
+router.get('/groupMessageMap/:id', (req, res) => {
+    messageService.readGroupMessageMapById(req.params.id, (result) => {
         res.send(result);
+    });
+});
+
+/**
+ * @swagger
+ * /groupMessageMap:
+ *   put:
+ *     tags:
+ *       - GroupMessageMap
+ *     description: Updates group message map in Mongo db
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - in: body
+ *         name: body
+ *         description: group message map data that needs to be update
+ *         required: true
+ *         schema:
+ *           $ref: '#/definitions/GroupMessageMap'
+ *     responses:
+ *       200:
+ *         description: Successfully updated in Mongo db
+ */
+router.put('/groupMessageMap', (req, res) => {
+    messageService.updateGroupMessageMap(req.body, (result) => {
+        res.send(result);
+    });
+});
+
+/**
+ * @swagger
+ * /groupMessageMap/{id}:
+ *   delete:
+ *     tags:
+ *       - GroupMessageMap
+ *     description: Deletes group message map from Mongo db
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         description:  id for deleting group message map
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: Successfully deleted from Mongo db
+ */
+router.delete('/groupMessageMap/:id', (req, res) => {
+    messageService.removeGroupMessageMap(req.params.id, (result) => {
+        res.send(result);
+    });
+});
+
+/**
+ * @swagger
+ * /messages/media/groups/{groupId}:
+ *   get:
+ *     tags:
+ *       - Messages
+ *     description: For getting all media files
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: groupId for message to return
+ *         required: true
+ *         type: integer
+ *         schema:
+ *           $ref: '#/definitions/Message'
+ *     responses:
+ *       200:
+ *         description: Return all media messages for this groupId
+ */
+router.get('/messages/media/groups/:id', (req, res) => {
+    messageService.media((req.params.id), (req.query.page), (req.query.size), (messages) => {
+        res.send(messages);
     });
 });
 

@@ -12,6 +12,7 @@ var MessageSchema = new Schema({
     receiverId: Number,
     receiverType: String, // group or individual
     senderId: Number, //userId
+    senderName: String, //message sender name
     picUrl: String,
     text: String,
     type: String,
@@ -24,8 +25,8 @@ var MessageSchema = new Schema({
         data: [String]
     },
     lastUpdateTime: Date,
-    createdBy: String,
-    updatedBy: String,
+    createdBy: { type: Number, default: null },
+    updatedBy: { type: Number, default: null },
     createdTime: { type: Date, default: Date.now() },
     updatedTime: { type: Date }
 }, { collection: 'message' });

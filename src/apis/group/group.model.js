@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    var Group = sequelize.define('group', {
+    var ConsultationGroup = sequelize.define('consultation_group', {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
@@ -14,20 +14,44 @@ module.exports = (sequelize, DataTypes) => {
         userId: {
             type: DataTypes.INTEGER
         },
-        description: {
-            type: DataTypes.STRING
+        doctorId: {
+            type: DataTypes.INTEGER
+        },
+        details: {
+            type: DataTypes.TEXT,
+            get: function() {
+                return JSON.parse(this.getDataValue('details'));
+            },
+            set: function(details) {
+                this.setDataValue('details', JSON.stringify(details));
+            }
+        },
+        speciality:{
+            type: DataTypes.STRING,
         },
         picture: {
             type: DataTypes.STRING
         },
-        createdBy: {
+        status: {
             type: DataTypes.STRING
         },
+        phase: {
+            type: DataTypes.STRING //active,inactive,archive,botInactive
+        },
+        prescription_generated: {
+            type: DataTypes.TINYINT, //active,inactive,archive,botInactive
+            defaultValue: false
+        },
+        createdBy: {
+            type: DataTypes.INTEGER,
+            defaultValue: null
+        },
         updatedBy: {
-            type: DataTypes.STRING
+            type: DataTypes.INTEGER,
+            defaultValue: null
         }
     }, {
         freezeTableName: true
     });
-    return Group;
+    return ConsultationGroup;
 };
