@@ -53,7 +53,9 @@ class UserService {
             });
             bcrypt.hash(user.password, 10, (err, hash) => {
                 user.password = hash;
-                user.socketId = null;
+                user.socketId = [];
+                console.log(user);
+                user.firstLogin = false;
                 return userDao.insert(user, (userInserted) => {
                     // if a user exists with same email and mobile execute this block this is to prevent duplicate registrations
                     if (userInserted.original) {
@@ -395,8 +397,8 @@ class UserService {
     }
 
     updateRegisteredUserDetails(user, callback) {
-        user.id = user.userId;
-        this.getById(user.userId, (userDetails) => {
+        console.log(user);
+        this.getById(user.id, (userDetails) => {
             user.socketId = userDetails.socketId;
             return userDao.update(user, (userUpdated) => {
                 callback(userUpdated);

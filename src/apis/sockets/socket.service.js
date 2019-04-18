@@ -162,13 +162,15 @@ exports.connectSocket = (io) => {
 
             socket.on('message-read', (groupId, userId) => {
                 userService.getById(userId, (user) => {
-                    let socketIds = [];
-                    socketIds = user.socketId;
-                    if (socketIds !== null) {
-                        socketIds.map((socketId) => {
-                            io.in(socketId).emit('receive-message-read', groupId);
-                        });
-                    }
+                    // let socketIds = [];
+                    // socketIds = user.socketId;
+                    // if (socketIds !== null) {
+                        // socketIds.map((socketId) => {
+                            // if(socket.id === socketId){
+                                io.in(socket.id).emit('receive-message-read', groupId);
+                            // }
+                        // });
+                    // }
                 });
                 groupUserMapModel.consultation_group_user_map.update({ unreadCount: 0 }, {
                     where: {
@@ -181,15 +183,17 @@ exports.connectSocket = (io) => {
                 });
             });
 
-            socket.on('count-sync', (userId, count) => {
+            socket.on('count-sync', (userId, count, groupId) => {
+                console.log('count sync on '+socket.id);
                 userService.getById(userId, (user) => {
                     let socketIds = [];
                     socketIds = user.socketId;
                     if (socketIds !== null) {
                         socketIds.map((socketId) => {
                             if (socketId !== socket.id) {
-                                io.in(socketId).emit('receive-count-sync', count);
-                                console.log('Emiited across sockets the sync count for ' + user.firstname);
+                                // console.log(socketId);
+                                io.in(socketId).emit('receive-count-sync', {'count':count,'groupId':groupId});
+                                console.log('Emiited across socket the sync count for ' + user.firstname);
                             }
                         });
                     }
@@ -213,7 +217,8 @@ exports.connectSocket = (io) => {
                                     });
                                 }
                             }
-                            if (user.role !== 'bot' && msg.senderId !== user.id) {
+                            // user.role !== 'bot' &&
+                            if (msg.senderId !== user.id) {
                                 groupUserMapModel.consultation_group_user_map.increment('unreadCount', {
                                     where: {
                                         groupId: msg.receiverId,
@@ -503,12 +508,14 @@ exports.connectSocket = (io) => {
                         } else {
                             let paymentSuccess;
                             let billingEntryExists;
+                            let orderId;
                             result.map((res) => {
                                 if (res.status === 'Success') {
                                     paymentSuccess = true;
                                 }
                                 if (res.status !== 'Success' || !res.consultationId) {
                                     billingEntryExists = true;
+                                    orderId = res.orderId;
                                 }
                             });
                             if (paymentSuccess) {
@@ -530,7 +537,7 @@ exports.connectSocket = (io) => {
                                             });
                                         } else {
                                             log.info(`An pending billing entry alread there for doctorName ${doctorName} and userName ${user.firstname}`);
-                                            io.in(socket.id).emit('receive-consult-now', ['billing', result.orderId]);
+                                            io.in(socket.id).emit('receive-consult-now', ['billing', orderId]);
                                         }
                                     }
                                 });
@@ -730,7 +737,7 @@ exports.connectSocket = (io) => {
              * user or doctor added to consultation group
              */
             socket.on('end-consultation', (doctor, group) => {
-                doctorService.updateDoctorSchedule({ status: 'online' }, doctor.id, (statusUpdated) => {
+                doctorService.updateDoctorSchedule({ status: 'Online' }, doctor.id, (statusUpdated) => {
                     console.log('Doctor status updated');
                 })
                 visitorModel.visitor_appointment.update({ status: 'Completed' }, {
@@ -878,7 +885,7 @@ exports.connectSocket = (io) => {
         });
 
     function scheduler() {
-        log.info('Scheduler called at ', moment(Date.now()).format());
+        // log.info('Scheduler called at ', moment(Date.now()).format());
         notificationService.readByTime((allNotifications) => {
             allNotifications.map((notification) => {
                 userService.getById(notification.userId, (user) => {

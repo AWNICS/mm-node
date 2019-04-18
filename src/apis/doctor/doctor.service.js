@@ -186,14 +186,15 @@ class DoctorService {
         var offset = ((size * page) - size);
         var condition = '';
         if (location) {
-            condition = condition + `dst.value LIKE CONCAT('%','${location}','%') AND `;
+            condition = condition + `dstloc.value LIKE CONCAT('%','${location}','%') `;
         }
         if (speciality) {
-            condition = condition + `d.speciality LIKE CONCAT('%','${speciality}','%') AND `;
+            condition = condition + ` AND d.speciality LIKE CONCAT('%','${speciality}','%')`;
         }
-        if (time) {
-            condition = condition + `('${time}' BETWEEN ds.startTime AND ds.endTime)`;
-        }
+        console.log(condition);
+        // if (time) {
+        //     condition = condition + ` AND ('${time}' BETWEEN ds.startTime AND ds.endTime)`;
+        // }
         return sequelize
             .query(`
             SELECT
@@ -212,7 +213,9 @@ class DoctorService {
                 d.ratingValue,
                 d.updatedAt,
                 ds.waitTime,
-                dst.value
+                dstloc.value as location,
+                dstqual.value as qualification,
+                dstcon.value as consultationMode
             FROM
                 doctor AS d
             LEFT JOIN
@@ -226,9 +229,17 @@ class DoctorService {
             ON
                 d.userId = ds.doctorId
             LEFT JOIN
-                doctor_store AS dst
+                doctor_store AS dstloc
             ON
-                d.userId = dst.userId
+                d.userId = dstloc.userId AND dstloc.type="Location"
+            LEFT JOIN
+                doctor_store AS dstcon
+            ON
+                d.userId = dstcon.userId AND dstcon.type="Consultation mode"
+            LEFT JOIN
+                doctor_store AS dstqual
+            ON
+                d.userId = dstqual.userId AND dstqual.type="Qualification"
             WHERE
             ${condition}
             ORDER BY
@@ -240,6 +251,7 @@ class DoctorService {
                 type: sequelize.QueryTypes.SELECT
             })
             .then((result, err) => {
+                console.log(result);
                 GroupModel.consultation_group.findAll({
                     where: {
                         userId: userId

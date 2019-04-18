@@ -5,10 +5,12 @@ const LocalStrategy = require('passport-local').Strategy;
 const passportJWT = require("passport-jwt");
 
 import UserService from '../apis/user/user.service';
+import DoctorService from '../apis/doctor/doctor.service';
 import log from '../config/log4js.config';
 
 const dotenv = Dotenv.config({ path: '.env.dev' });
 const userService = new UserService();
+const doctorService = new DoctorService();
 const JWTStrategy = passportJWT.Strategy;
 const ExtractJWT = passportJWT.ExtractJwt;
 
@@ -37,9 +39,28 @@ passport.use(new LocalStrategy({
                         log.error('Incorrect password');
                         return done(null, false, { message: 'Incorrect password. Try again.' });
                     } else {
+                        delete user.dataValues.password;
+                        console.log(user);
                         // Passwords match
-                        log.info('Logged In Successfully');
-                        return done(null, user, { message: 'Logged In Successfully' });
+                        if(!user.firstLogin && user.role==="doctor"){
+                            let userupdate={
+                                id: user.id,
+                                firstLogin: true,
+                                socketId:[]
+                            };
+                            userService.updateRegisteredUser(userupdate,(result)=>{
+                                console.log(result);
+                                console.log('User update to first login');
+                            });
+                            doctorService.updateDoctorSchedule({status:'online'}, user.id, (doctorUpdated)=>{
+                                console.log('Doctor status updated as first login');
+                                log.info('Logged In Successfully');
+                                return done(null, user, { message: 'Logged In Successfully' });
+                            })
+                        } else {
+                             log.info('Logged In Successfully');
+                             return done(null, user, { message: 'Logged In Successfully' });
+                        }
                     }
                 });
             }

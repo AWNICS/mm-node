@@ -22,9 +22,9 @@ class NotificationService {
         var currentTime = new Date();
         var lowerLimit = currentTime.setSeconds(0);
         var upperLimit = currentTime.setSeconds(40);
-        console.log('lowerlimit'+lowerLimit);
-        console.log(moment().add(45, 's'));
-        console.log('upperlimit'+upperLimit);
+        // console.log('lowerlimit'+lowerLimit);
+        // console.log(moment().add(45, 's'));
+        // console.log('upperlimit'+upperLimit);
         notificationModel.notification.findAll({
                 where: {
                     triggerTime: {

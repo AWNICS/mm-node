@@ -60,7 +60,7 @@ class FileService {
                     });
                     stream.on('finish', () => {
                         log.info('Upload Thumbnail complete');
-                        callback(thumbFileName);
+                        callback({"fileName":thumbFileName});
                         this.upload(req, bucket, fileName, (result) => {});
                     });
                     stream.end(data);
@@ -96,7 +96,7 @@ class FileService {
 
         stream.on('finish', () => {
             log.info('Upload complete');
-            callback(fileName);
+            callback({"fileName": fileName});
         });
 
         stream.end(req.file.buffer);

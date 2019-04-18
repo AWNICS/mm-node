@@ -59,6 +59,10 @@ module.exports = (sequelize, DataTypes) => {
                 this.setDataValue('socketId', JSON.stringify(socketId));
             }
         },
+        firstLogin:{
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        },
         termsAccepted: {
             type: DataTypes.BOOLEAN,
             defaultValue: false

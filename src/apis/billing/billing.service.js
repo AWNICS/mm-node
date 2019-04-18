@@ -12,6 +12,7 @@ import FileService from '../file/file.service';
 import bucket from '../../config/gcp.config';
 import log from '../../config/log4js.config';
 import UserService from '../user/user.service';
+import sequelize from '../../util/conn.mysql';
 const Promise = require('bluebird');
 
 let fonts = {
@@ -127,49 +128,80 @@ class BillingService {
     //billing by visitorId
     getAllBillingByVisitorId(visitorId, page, callback) {
         var offset = ((5 * page) - 5);
-        billingModel.billing.findAll({
-                where: { visitorId: visitorId },
-                offset: offset,
-                limit: 5,
-                order: [
-                    ['createdAt', 'DESC']
-                ]
-            })
-            .then((billings) => {
-                callback(billings);
-            });
+        sequelize.query(`
+        select b.*,u.firstname,u.lastname,u.picUrl
+         from billing as b 
+         inner join 
+         user u on b.doctorId = u.id  
+         where b.visitorId = ${visitorId}
+         limit 5 offset ${offset};
+        `, { type: sequelize.QueryTypes.SELECT }).then((result)=>{
+            callback(result);
+        })
+        // billingModel.billing.findAll({
+        //         where: { visitorId: visitorId },
+        //         offset: offset,
+        //         limit: 5,
+        //         order: [
+        //             ['createdAt', 'DESC']
+        //         ]
+        //     })
+        //     .then((billings) => {
+        //         callback(billings);
+        //     });
+
     }
 
     getAllBillingByBillId(visitorId, billId, callback) {
-        billingModel.billing.findAll({ where: { visitorId: visitorId, orderId: billId }, order: [['createdAt','DESC']] })
-            .then((billings) => {
-                callback(billings);
-            });
+        // billingModel.billing.findAll({ where: { visitorId: visitorId, orderId: billId }, order: [['createdAt','DESC']] })
+        //     .then((billings) => {
+        //         callback(billings);
+        //     });
+        sequelize.query(`
+        select b.*,u.firstname,u.lastname,u.picUrl
+         from billing as b 
+         inner join 
+         user u on b.doctorId = u.id  
+         where b.visitorId = ${visitorId} and b.orderId = ${billId}
+         limit 1;
+        `, { type: sequelize.QueryTypes.SELECT }).then((result)=>{
+            callback(result);
+        })
     }
 
     //get billing by doctorId
     getAllBillingByDoctorId(doctorId, page, callback) {
         var offset = ((5 * page) - 5);
-        billingModel.billing.findAll({
-                where: { doctorId: doctorId, status: 'Success' },
-                offset: offset,
-                limit: 5,
-                order: [
-                    ['createdAt', 'DESC']
-                ]
-            })
-            .then((billings) => {
-                return Promise.map(billings, (billing) => {
-                    return new Promise((resolve, reject) => {
-                        userService.getById(billing.visitorId, (userDetails) => {
-                            billing.description = 'Consultation with ' + userDetails.firstname + ' ' + userDetails.lastname;
-                            resolve(billing);
-                        });
-                    });
-                }).then((allBills) => {
-                    callback(allBills);
-                });
-            });
+        sequelize.query(`
+        select b.*,u.firstname,u.lastname,u.picUrl
+         from billing as b 
+         inner join 
+         user u on b.visitorId = u.id  
+         where b.doctorId = ${doctorId}
+         limit 5 offset ${offset};
+        `, { type: sequelize.QueryTypes.SELECT }).then((result)=>{
+            callback(result);
+        });
+        // billingModel.billing.findAll({
+        //         where: { doctorId: doctorId, status: 'Success' },
+        //         offset: offset,
+        //         limit: 5,
+        //         order: [
+        //             ['createdAt', 'DESC']
+        //         ]
+        //     })
+        //     .then((billings) => {
+        //         return Promise.map(billings, (billing) => {
+        //             return new Promise((resolve, reject) => {
+        //                 userService.getById(billing.visitorId, (userDetails) => {
+        //                     billing.description = 'Consultation with ' + userDetails.firstname + ' ' + userDetails.lastname;
+        //                     resolve(billing);
+        //                 });
+        //             });
+        //         }).then((allBills) => {
+        //             callback(allBills);
+        //         });
+        //     });
     }
 
     /**

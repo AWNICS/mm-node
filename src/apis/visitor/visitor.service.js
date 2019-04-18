@@ -13,6 +13,7 @@ import visitorModel from './index';
 import VisitorTimelineDao from './visitor-timeline.dao';
 import UserDao from '../user/user.dao';
 import billingModel from '../billing/index';
+import sequelize from '../../util/conn.mysql';
 const Promise = require('bluebird');
 const moment = require('moment');
 const Op = require('sequelize').Op;
@@ -181,24 +182,32 @@ class VisitorService {
     }
 
     async readAppointmentHistory(visitorId, callback) {
-        var consultations = new Array(12);
+        var consultations;
         var reports = new Array(12);
         var vitals = new Array(12);
-
-        await visitorModel.visitor_appointment.findAll({
-            where: {
-                visitorId: visitorId
-            }
-        }).then((visitorAppointment) => {
-            consultations.fill(0); //initialize the array with the initial value
-            visitorAppointment.map((appointment) => {
-                var startMonth = appointment.startTime.getUTCMonth();
-                var endMonth = appointment.endTime.getUTCMonth();
-                for (var i = startMonth; i <= endMonth; i++) {
-                    consultations[i] = consultations[i] + 1;
-                }
-            });
-        });
+        await sequelize.query(`select u.firstname,u.lastname,u.picUrl,d.speciality,v.startTime,v.status from 
+        user as u, doctor as d, visitor_appointment as v where v.visitorId = ${visitorId} and 
+        v.doctorId = d.userId and
+        v.doctorId = u.id 
+        order by startTime desc 
+        limit 10`,{type: sequelize.QueryTypes.SELECT}).then((result)=>{
+            consultations = result;
+        })
+        // await visitorModel.visitor_appointment.findAll({
+        //     where: {
+        //         visitorId: visitorId
+        //     }
+        // }).then((visitorAppointment) => {
+        //     console.log(visitorAppointment);
+        //     consultations.fill(0); //initialize the array with the initial value
+        //     visitorAppointment.map((appointment) => {
+        //         var startMonth = appointment.startTime.getUTCMonth();
+        //         var endMonth = appointment.endTime.getUTCMonth();
+        //         for (var i = startMonth; i <= endMonth; i++) {
+        //             consultations[i] = consultations[i] + 1;
+        //         }
+        //     });
+        // });
 
         await visitorModel.visitor_report.findAll({
             where: {
@@ -231,9 +240,9 @@ class VisitorService {
         });
         //send the required history details to fill the consultation history graph on visitor-dashboard
         callback({
-            "consultations": {
-                "monthly": consultations
-            },
+            "consultations": 
+                 consultations
+            ,
             "reports": {
                 "monthly": reports
             },
@@ -311,26 +320,41 @@ class VisitorService {
      * @memberof VisitorService
      */
     async readConsultationsByVisitorId(visitorId, page, size, callback) {
-        var offset = ((size * page) - size);
-        var visitorPrescriptions = await visitorModel.visitor_prescription
-            .findAll({
-                where: {
-                    visitorId: visitorId
-                },
-                offset: offset,
-                limit: size,
-                order: [
-                    [visitorModel, 'createdAt', 'DESC']
-                ]
-            });
-        var result = await this.getDoctorDetail(visitorPrescriptions);
-        callback(result);
+        sequelize.query(`select v.url as prescriptionUrl,v.Instructions,v.analysis,v.speciality,v.consultationMode,v.updatedAt,b.url as billingUrl,u.picUrl,u.firstname,u.lastname 
+        from visitor_prescription as v, billing as b, user as u 
+        WHERE
+        v.visitorId = ${visitorId} and v.doctorId = u.id and v.consultationId = b.consultationId
+        order by v.updatedAt DESC
+        limit ${size}
+        offset ${(size * page - size)}
+        `,{type: sequelize.QueryTypes.SELECT}).then((prescriptions)=>{
+            callback({'prescriptions': prescriptions})
+        })
+        // var offset = ((size * page) - size);
+        // var visitorPrescriptions = await visitorModel.visitor_prescription
+        //     .findAll({
+        //         where: {
+        //             visitorId: visitorId
+        //         },
+        //         offset: offset,
+        //         limit: size,
+        //         order: [
+        //             [visitorModel, 'createdAt', 'DESC']
+        //         ]
+        //     });
+        // var result = await this.getDoctorDetail(visitorPrescriptions);
+        // callback(result);
+    }
+    getReportsByVisitorId(visitorId, callback) {
+        visitorReportDao.readById(visitorId, (result) => {
+            callback(result);
+        })
     }
 
     async getDoctorDetail(visitorPrescriptions) {
         return Promise.map(visitorPrescriptions, prescription => {
             return new Promise((resolve, reject) => {
-                userDao.readById(prescription.doctorId, (user) => {
+                userDao.readById(prescription.doctorId, (doctorInfo) => {
                     billingModel.billing.find({
                         where: {
                             consultationId: prescription.consultationId,
@@ -338,9 +362,9 @@ class VisitorService {
                         }
                     }).then((billing) => {
                         if (billing) {
-                            resolve({ prescription: prescription, user: user, billing: billing });
+                            resolve({ prescription: prescription, doctorInfo: user, billing: billing });
                         } else {
-                            resolve({ prescription: prescription, user: user, billing: null });
+                            resolve({ prescription: prescription, doctorInfo: user, billing: null });
                         }
                     });
                 });
@@ -351,53 +375,64 @@ class VisitorService {
     //all consultations by doctor id
     async readAllConsultationsByDoctorId(doctorId, page, size, callback) {
         var offset = ((size * page) - size);
-        var doctorPrescriptions = await visitorModel.visitor_prescription
-            .findAll({
-                where: {
-                    doctorId: doctorId
-                },
-                offset: offset,
-                limit: size,
-                order: [
-                    [visitorModel, 'createdAt', 'DESC']
-                ]
-            });
-        var result = await this.getPatientDetail(doctorPrescriptions);
-        callback(result);
-    }
+        sequelize.query(`select v.url as prescriptionUrl,v.Instructions,v.analysis,v.speciality,v.consultationMode,v.updatedAt,b.url as billingUrl,u.picUrl,u.firstname,u.lastname 
+        from visitor_prescription as v, visitor_appointment as va, billing as b, user as u 
+        WHERE
+        va.doctorId = ${doctorId} and va.visitorId = u.id and va.consultationId = b.consultationId and va.consultationId = v.consultationId
+        order by v.updatedAt DESC
+        limit ${size}
+        offset ${(size * page - size)}
+        `,{type: sequelize.QueryTypes.SELECT}).then((prescriptions)=>{
+            console.log(prescriptions);
+            callback({'consultations': prescriptions})
+        })
+    //     var doctorPrescriptions = await visitorModel.visitor_prescription
+    //         .findAll({
+    //             where: {
+    //                 doctorId: doctorId
+    //             },
+    //             offset: offset,
+    //             limit: size,
+    //             order: [
+    //                 [visitorModel, 'createdAt', 'DESC']
+    //             ]
+    //         });
+    //     var result = await this.getPatientDetail(doctorPrescriptions);
+    //     callback(result);
+    // }
 
-    async getConsultationByConsultationId(doctorId, consultationId, callback) {
-        var doctorPrescriptions = await visitorModel.visitor_prescription
-            .findAll({
-                where: {
-                    doctorId: doctorId,
-                    consultationId: consultationId
-                }
-            });
-        var result = await this.getPatientDetail(doctorPrescriptions);
-        callback(result);
+    // async getConsultationByConsultationId(doctorId, consultationId, callback) {
+    //     var doctorPrescriptions = await visitorModel.visitor_prescription
+    //         .findAll({
+    //             where: {
+    //                 doctorId: doctorId,
+    //                 consultationId: consultationId
+    //             }
+    //         });
+    //     var result = await this.getPatientDetail(doctorPrescriptions);
+    //     callback(result);
 
-    }
+    // }
 
-    async getPatientDetail(doctorPrescriptions) {
-        return Promise.map(doctorPrescriptions, prescription => {
-            return new Promise((resolve, reject) => {
-                userDao.readById(prescription.visitorId, (user) => {
-                    billingModel.billing.find({
-                        where: {
-                            consultationId: prescription.consultationId,
-                            visitorId: prescription.visitorId
-                        }
-                    }).then((billing) => {
-                        if (billing) {
-                            resolve({ prescription: prescription, user: user, billing: billing });
-                        } else {
-                            resolve({ prescription: prescription, user: user, billing: null });
-                        }
-                    });
-                });
-            });
-        });
+    // async getPatientDetail(doctorPrescriptions) {
+    //     return Promise.map(doctorPrescriptions, prescription => {
+    //         return new Promise((resolve, reject) => {
+    //             userDao.readById(prescription.visitorId, (user) => {
+    //                 billingModel.billing.find({
+    //                     where: {
+    //                         consultationId: prescription.consultationId,
+    //                         visitorId: prescription.visitorId
+    //                     }
+    //                 }).then((billing) => {
+    //                     if (billing) {
+    //                         resolve({ prescription: prescription, user: user, billing: billing });
+    //                     } else {
+    //                         resolve({ prescription: prescription, user: user, billing: null });
+    //                     }
+    //                 });
+    //             });
+    //         });
+    //     });
     }
 
     async getAppointmentsByDoctorId(doctorId, page, size, callback) {

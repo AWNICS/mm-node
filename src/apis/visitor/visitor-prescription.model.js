@@ -69,6 +69,14 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             defaultValue: null
         },
+        speciality: {
+            type: DataTypes.STRING,
+            defaultValue: null
+        },
+        consultaionMode:{
+            type: DataTypes.STRING,
+            defaultValue: null
+        },
         createdBy: {
             type: DataTypes.INTEGER,
             defaultValue: null
