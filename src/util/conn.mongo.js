@@ -13,7 +13,6 @@ class MongoConfig {
     connect() {
         //Set up default mongoose connection
         this.mongoose.Promise = global.Promise;
-        console.log(process.env.MONGODB_URI);
         this.mongoose.connect(process.env.MONGODB_URI.toString(), {useNewUrlParser: true});
         //Bind connection to error event (to get notification of connection errors)
         this.mongoose.connection.on('error', (err) => {

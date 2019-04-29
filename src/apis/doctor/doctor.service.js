@@ -348,11 +348,27 @@ class DoctorService {
                 where: [{
                     userId: doctorId
                 }, {
-                    type: ['image', 'video']
+                    type: ['video','honour','award']
                 }]
             }) //fetch all records for this doctorId
             .then((doctorMedia) => {
-                callback(doctorMedia);
+                if(doctorMedia.length > 0){
+                let video = [];
+                let honour = [];
+                let award = [];
+                doctorMedia.map((media) => {
+                    if(media.type === 'video'){
+                        video.push(media);
+                    } else if(media.type === 'honour'){
+                        honour.push(media);
+                    } else if(media.type === 'award'){
+                        award.push(media);
+                    }
+                })
+                callback({"videos": video, "honours": honour, "awards": award});
+            } else {
+                callback({"videos": 0, "honours": 0, "awards": 0})
+            }
             }).catch(err => {
                 log.error('Error while fetching doctor medias in doctor service: ', err);
                 callback({
@@ -567,6 +583,7 @@ class DoctorService {
                     yearly = yearly + billing.amount;
                     if (++month === ++currentMonth) {
                         monthly = monthly + billing.amount;
+                        console.log(monthly);
                         if (moment(billing.createdAt).date() === moment().date()) {
                             daily = daily + billing.amount;
                         }

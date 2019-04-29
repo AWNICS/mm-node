@@ -20,7 +20,6 @@ import emailConfig from '../../config/email.config';
 import msgconfig from '../../config/message.config';
 import NotificationService from '../notification/notification.service';
 import VisitorService from '../visitor/visitor.service';
-
 const userDao = new UserDao();
 const groupDao = new GroupDao();
 const groupUserMapDao = new GroupUserMapDao();
@@ -390,6 +389,18 @@ class UserService {
         });
     }
 
+    validateEmailAndMobile(email, phoneNo, callback){
+        userModel.user.find({ where: sequelize.or({email: email}, {phoneNo: phoneNo})}).then((result)=>{
+            if(result === null){
+                return callback(true);
+            } else {
+                return callback({
+                    "error": "DUP_ENTRY",
+                    "message": "An user already exists with this email and/or phone number. Please login using your password"
+                    })
+            }
+        })
+    }
     updateRegisteredUser(user, callback) {
         return userDao.update(user, (userUpdated) => {
             callback(userUpdated);
@@ -397,8 +408,7 @@ class UserService {
     }
 
     updateRegisteredUserDetails(user, callback) {
-        console.log(user);
-        this.getById(user.id, (userDetails) => {
+        this.getById(user.userId, (userDetails) => {
             user.socketId = userDetails.socketId;
             return userDao.update(user, (userUpdated) => {
                 callback(userUpdated);

@@ -908,6 +908,13 @@ router.get('/doctors/:doctorId/consultations', (req, res) => {
     });
 });
 
+router.get('/doctors/:doctorId/consultations/readall', (req, res) => {
+    var doctorId = req.params.doctorId;
+    visitorService.getAllConsultationsByDoctorId(doctorId, (results) => {
+        res.send(results);
+    });
+});
+
 router.get('/doctors/:doctorId/consultations/:consultationId', (req, res) => {
     var doctorId = req.params.doctorId;
     var consultationId = req.params.consultationId;

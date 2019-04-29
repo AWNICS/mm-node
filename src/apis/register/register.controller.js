@@ -139,6 +139,15 @@ router.post('/users', function(req, res) {
     });
 });
 
+
+router.get('/users/validate', function(req, res) {
+    let email = req.query.email;
+    let mobileNumber = req.query.phoneNo
+    userService.validateEmailAndMobile(email, mobileNumber, (result) => {
+        res.send(result);
+    })
+});
+
 /**
  * @swagger
  * /activates/{token}:

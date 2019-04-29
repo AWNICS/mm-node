@@ -17,6 +17,12 @@ module.exports = (sequelize, DataTypes) => {
         groupId: {
             type: DataTypes.INTEGER
         },
+        speciality: {
+            type: DataTypes.STRING  //target speciality of doctor
+        },
+        consultationMode: {
+            type: DataTypes.STRING  // text, video and audio
+        },
         status: {
             type: DataTypes.STRING //scheduled, missed, appear(appointments)
         },

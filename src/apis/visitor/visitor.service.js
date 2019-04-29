@@ -371,6 +371,17 @@ class VisitorService {
             });
         });
     }
+    
+    getAllConsultationsByDoctorId(doctorId, callback) {
+        sequelize.query(`select v.url as prescriptionUrl,v.Instructions,v.analysis,v.speciality,v.consultationMode,v.updatedAt,b.url as billingUrl,u.picUrl,u.firstname,u.lastname 
+        from visitor_prescription as v, visitor_appointment as va, billing as b, user as u 
+        WHERE
+        va.doctorId = ${doctorId} and va.visitorId = u.id and va.consultationId = b.consultationId and va.consultationId = v.consultationId
+        order by v.updatedAt DESC
+        `,{type: sequelize.QueryTypes.SELECT}).then((prescriptions)=>{
+            callback({'consultations': prescriptions})
+        })
+    }
 
     //all consultations by doctor id
     async readAllConsultationsByDoctorId(doctorId, page, size, callback) {
@@ -383,7 +394,6 @@ class VisitorService {
         limit ${size}
         offset ${(size * page - size)}
         `,{type: sequelize.QueryTypes.SELECT}).then((prescriptions)=>{
-            console.log(prescriptions);
             callback({'consultations': prescriptions})
         })
     //     var doctorPrescriptions = await visitorModel.visitor_prescription
@@ -436,36 +446,45 @@ class VisitorService {
     }
 
     async getAppointmentsByDoctorId(doctorId, page, size, callback) {
-        var offset = ((size * page) - size);
-        var lowerLimit;
-        var upperLimit;
-        if (process.env.NODE_ENV === 'dev') {
-            lowerLimit = moment().startOf('day').add({ hours: 5, minutes: 30 });
-            upperLimit = moment().endOf('day').add({ hours: 5, minutes: 30 });
-        } else { //for prod env
-            lowerLimit = moment().startOf('day');
-            upperLimit = moment().endOf('day');
-        }
-        var visitorAppointments = await visitorAppointmentModel.visitor_appointment
-            .findAll({
-                where: {
-                    doctorId: doctorId,
-                    startTime: {
-                        [Op.gte]: lowerLimit,
-                        [Op.lt]: upperLimit
-                    }
-                },
-                offset: offset,
-                limit: size,
-                order: [
-                    [visitorModel, 'startTime', 'DESC']
-                ]
-            });
-        var chartDetails = await this.getAppointmentsDetails(visitorAppointments);
-        callback({
-            "visitorAppointments": visitorAppointments,
-            "chartDetails": chartDetails
-        });
+        // var offset = ((size * page) - size);
+        // var lowerLimit;
+        // var upperLimit;
+        // if (process.env.NODE_ENV === 'dev') {
+        //     lowerLimit = moment().startOf('day').add({ hours: 5, minutes: 30 });
+        //     upperLimit = moment().endOf('day').add({ hours: 5, minutes: 30 });
+        // } else { //for prod env
+        //     lowerLimit = moment().startOf('day');
+        //     upperLimit = moment().endOf('day');
+        // }
+        // var visitorAppointments = await visitorAppointmentModel.visitor_appointment
+        //     .findAll({
+        //         where: {
+        //             doctorId: doctorId,
+        //             startTime: {
+        //                 [Op.gte]: lowerLimit,
+        //                 [Op.lt]: upperLimit
+        //             }
+        //         },
+        //         offset: offset,
+        //         limit: size,
+        //         order: [
+        //             [visitorModel, 'startTime', 'DESC']
+        //         ]
+        //     });
+        // var chartDetails = await this.getAppointmentsDetails(visitorAppointments);
+        // callback({
+        //     "visitorAppointments": visitorAppointments,
+        //     "chartDetails": chartDetails
+        // });
+        await sequelize.query(`select u.firstname,u.lastname,u.picUrl,v.speciality,v.consultationMode,v.startTime,v.status from 
+        user as u, doctor as d, visitor_appointment as v where v.doctorId = ${doctorId} and 
+        v.visitorId = u.id 
+        order by startTime desc 
+        limit 10`,{type: sequelize.QueryTypes.SELECT}).then((result)=>{
+            callback(result);
+        })
+        //send the required history details to fill the consultation history graph on visitor-dashboard
+
     }
 
     async getAppointmentsDetails(visitorAppointments) {
