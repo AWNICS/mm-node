@@ -542,7 +542,7 @@ exports.connectSocket = (io) => {
                                     }
                                 });
                             } else {
-                                io.in(socket.id).emit('receive-consult-now', ['billing', result.orderId]);
+                                io.in(socket.id).emit('receive-consult-now', ['billing', orderId]);
                                 log.info(`An pending billing entry alread there for doctorName ${doctorName} and userName ${user.firstname}`);
                             }
                         }

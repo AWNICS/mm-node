@@ -663,4 +663,17 @@ router.post('/doctors/:doctorId/groups/:groupId/files/pdf', function(req, res) {
     })
 });
 
+router.get('/doctors/admin/all', function(req, res) {
+    let offset = req.query.offset;
+    let limit = req.query.limit;
+    doctorService.getAllEssentialDoctorDetails(limit, offset, (result) => {
+        res.send(result);
+    });
+});
+
+router.post('/doctors/:doctorId/groups/:groupId/files/pdf', function(req, res) {
+    doctorService.generatePdf(req.body, req.params.groupId, (uploadedFileName) => {
+        res.status(200).send(uploadedFileName);
+    })
+});
 module.exports = router;

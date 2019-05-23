@@ -72,7 +72,13 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER
         },
         workHistory: {
-            type: DataTypes.STRING
+            type: DataTypes.TEXT,
+            get: function() {
+                return JSON.parse(this.getDataValue('workHistory'));
+            },
+            set: function(speciality) {
+                this.setDataValue('workHistory', JSON.stringify(workHistory));
+            }
         },
         createdBy: {
             type: DataTypes.INTEGER,
