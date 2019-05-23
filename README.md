@@ -49,9 +49,11 @@ MesoMeds REST services using NodeJS and Express
 
 #### 2. Configuring MongoDB (mm-node/src/util/conn.mongo.js)
 
+Edit the environment file ('.env.dev') for MONGODB_URL entry
+- configure the env file name as
+- this.dotenv.config({ path: '.env.dev' });
 ```
-# configure the env file name as
-this.dotenv.config({ path: '.env.dev' });
+MONGODB_LOCAL_URI=mongodb://localhost:27017/mondb
 ```
 
 #### 3. Configuring MySql (mm-node/src/util/conn.mysql.js)
@@ -148,7 +150,51 @@ const msgconfig = {
 
 #### 1.  MySql
 
+- Setup MySql (Say XAMPP)
+- Start server
+- Connect using client 
+  ```
+    mysql -u root 
+  ```
+- Create database
+  ```
+    CREATE DATABASE mysdb;
+  ```
+
 #### 2.  Mongo
+
+- Setup [Instructions](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-windows/#run-mdb-edition-from-the-command-interpreter)
+- Start 
+  ```
+  mongod.exe --auth --port 27017 --dbpath="C:\data\db"
+  ```
+- Connect using mongo client "mongo.exe"
+- Database/collection [commands](https://www.tutorialspoint.com/mongodb/mongodb_overview.htm)
+  ```
+    use mondb
+    db.createCollection("test")
+    db.test.insert({"name" : "tutorialspoint"})
+    show collection
+    show dbs
+    db['test'].drop()
+  ```
+- Create user 
+  ```
+    use admin
+    db.createUser(
+    {
+        user: "monadmin",
+        pwd: "monpass",
+        roles: [ { role: "userAdminAnyDatabase", db: "admin" }, 
+                { role: "dbAdminAnyDatabase", db: "admin" }, 
+                { role: "readWriteAnyDatabase", db: "admin" } ]
+    }
+    )
+  ```
+- Connect using authenticated mongo client
+  ```
+    mongo --port 27017 -u "monadmin" -p "monpass" --authenticationDatabase "admin"
+  ```
 
 ----
 
