@@ -670,6 +670,47 @@ class DoctorService {
             });
         });
     }
+
+    getAllEssentialDoctorDetails(limit, offset, callback){
+        console.log(limit);
+        console.log(offset);
+        sequelize.query(`
+        select d.userId, d.workHistory, da.title, dm.url, ds.value from doctor as d
+        left join (select title, doctorId from doctor_activities) da on d.userId = da.doctorId
+        left join (select url, userId from doctor_media where type='signature') dm on dm.userId = d.userId
+        left join (select value, userId from doctor_store where type='ProfessionalSocieties') ds on ds.userId = d.userId
+        limit ${limit}
+        offset ${offset * limit}
+        `,
+        {type: sequelize.QueryTypes.SELECT}).then((result, error) => {
+            if(error){
+                log.error('Error while getting doctors list and details for admin dashboard '+error);
+            } else {
+                log.info(result);
+                callback(result);
+            }
+        })
+    }
+    
+    setAllEssentialDoctorDetails(params, data, callback){
+        console.log(offset);
+        sequelize.query(`
+        select d.userId, d.workHistory, da.title, dm.url, ds.value from doctor as d
+        left join (select title, doctorId from doctor_activities) da on d.userId = da.doctorId
+        left join (select url, userId from doctor_media where type='signature') dm on dm.userId = d.userId
+        left join (select value, userId from doctor_store where type='ProfessionalSocieties') ds on ds.userId = d.userId
+        limit 20
+        offset ${offset}
+        `,
+        {type: sequelize.QueryTypes.SELECT}).then((result, error) => {
+            if(error){
+                console.log(error);
+            } else {
+                console.log(result);
+                callback(result);
+            }
+        })
+    }
 }
 
 export default DoctorService;

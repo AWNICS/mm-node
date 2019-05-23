@@ -32,9 +32,8 @@ class PaymentService {
                 log.info(postData);
                 encRequest = ccav.encrypt(postData.toString(), workingKey)
                 formbody = '<html><head><title>Sub-merchant checkout page</title><script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script></head><body><center><!-- width required mininmum 482px --><iframe  width="600" height="600" scrolling="Yes" frameborder="0"  id="paymentFrame" src="https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction&merchant_id=' + merchantId + '&encRequest=' + encRequest + '&access_code=' + accessCode + '"></iframe></center><script type="text/javascript">$(document).ready(function(){$("iframe#paymentFrame").load(function() {window.addEventListener("message", function(e) {$("#paymentFrame").css("height",e.data["newHeight"]+"px"); }, false);}); });</script></body></html>';
-
                 if (formbody) {
-                    response.writeHeader(200, {
+                    response.writeHeader(200, { 
                         "Content-Type": "text/html"
                     });
                     response.write(formbody);
@@ -47,6 +46,7 @@ class PaymentService {
 
     responseHandler(request, response) {
         if (request) {
+            console.log(request.body);
             var ccavResponse = '',
                 workingKey = process.env.CCAV_WORKING_KEY, //Put in the 32-Bit key provided by CCAvenues.
                 ccavPOST = '',
@@ -192,6 +192,78 @@ class PaymentService {
 
             }
         }
+    }
+    
+    bypassresponseHandler(response, orderNo, customerName, billAmount) {
+            var createdGroupId;
+            var transactionDate = Date.now();
+            var transactionDateAndTime = moment(Date.now(), 'DD/MM/YYYY HH:mm:ss').format('YYYY-MM-DD HH:mm:ss');
+            var transactionDate = transactionDateAndTime.substring(0, 10);
+                    billingModel.billing.find({ where: { orderId: orderNo } }).then((bill) => {
+                        if (bill) {
+                            groupService.consultNow(bill.doctorId, bill.visitorId, bill.speciality, (groupCreated) => {
+                                createdGroupId = groupCreated.id;
+                                let image = fs.readFileSync('images/payment_success.png', { encoding: 'base64' });
+                                log.info('Transaction Success with status: Success');
+                                let htmlcode = `<html>
+                        <head>
+                            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+                            <title>Payment page</title>
+                        </head>
+                        <body>
+                        <div style="width:100%;position: relative;margin-top:7%;height:56%">
+                            <div id="paymentBox" style="width:70%;max-height:100%;position: relative;left:13%;background: #ede7f6;border:3px solid #00968830;border-radius:14px">
+                                <div id="image" style="margin:23px">
+                                    <img src="${'data:image/png;base64, '+image}"  style="position: relative;left:50%;height:46%;transform: translateX(-50%);border-radius:53%">
+                                </div>
+                                <h1 style="text-align:center">Payment was Successful</h1>
+                                <p style="text-align: center">Your transaction reference number is TEST001</p>
+                                <p style="text-align: center"><a href="http://localhost:4200/chat/${bill.visitorId}?active_group=${groupCreated.id}">Click here </a>to get back to mesomeds.com or you will be redirected back automatically in 3 seconds</p>
+                            </div>
+                        </div>
+                        <script>
+                         setTimeout(()=>{window.location="http://localhost:4200/chat/${bill.visitorId}?active_group=${groupCreated.id}"},3000);
+                        </script>
+                        </body>
+                    </html>`;
+                                response.writeHeader(200, {
+                                    "Content-Type": "text/html"
+                                });
+                                response.write(htmlcode);
+                                response.end();
+                            });
+                        }
+                    })
+                billingModel.billing.find({ where: { orderId: orderNo } }).then((orderDetails) => {
+                    //add validation to check if order exists
+                        let userId = orderDetails.visitorId;
+                        let doctorName = orderDetails.description.match(/Dr\.[a-zA-Z ]+$/) !== null ? orderDetails.description.match(/Dr\.[a-zA-Z ]+$/)[0] : null;
+                        console.log(doctorName);
+                        billingService.generateBillingPdf(userId, orderNo, transactionDate, customerName, billAmount, 0, 'Nill', 0, doctorName, (fileName) => {
+                            let bill = {
+                                status: 'Success',
+                                referenceNumber: 'TEST0001',
+                                modeOfPayment: 'Bypassed',
+                                cardName: 'Bypass',
+                                consultationId: createdGroupId,
+                                trackingId: 'TEST0002',
+                                date: transactionDateAndTime,
+                                url: fileName.fileName
+                            };
+                            log.info(bill);
+                            billingModel.billing.update(bill, { where: { orderId: orderNo } }).then((res) => {
+                                if (res[0] === 1) {
+                                    log.info("Billing entry updated");
+                                } else {
+                                    log.info('Duplicate orderID entries exist in database for billing table count ' + res[0]);
+                                    log.info('Something went wrong in updating bill');
+                                }
+                            }).catch((error) => {
+                                log.info(error);
+                            })
+                        })
+                })
+
     }
 }
 

@@ -1,7 +1,6 @@
 import rtg from 'random-token-generator';
 import bcrypt from 'bcrypt';
 import http from 'http';
-
 import log from '../../config/log4js.config';
 import sequelize from '../../util/conn.mysql';
 import userModel from './index';
@@ -298,6 +297,7 @@ class UserService {
                 }
             })
             .then(res => {
+                console.log(res);
                 this.createNotification(user.id, 'registration', 'Activaton link sent for ' + title, 'email', user.email, template);
                 log.info('Email sent to user ' + user.email + ' for ' + title);
             })
