@@ -51,9 +51,11 @@ class UserService {
             });
             bcrypt.hash(user.password, 10, (err, hash) => {
                 user.password = hash;
+                const dob = user.dob;
+                delete(user.dob);
                 user.socketId = [];
-                console.log(user);
                 user.firstLogin = false;
+                
                 return userDao.insert(user, (userInserted) => {
                     // if a user exists with same email and mobile execute this block this is to prevent duplicate registrations
                     if (userInserted.original) {
@@ -81,13 +83,13 @@ class UserService {
                     userInserted.createdBy = userInserted.id;
                     userInserted.updatedBy = userInserted.id;
                     userModel.user.update({
-                        "socketId": null,
                         "createdBy": userInserted.id,
                         "updatedBy": userInserted.id
                     }, {
                         where: {
                             id: userInserted.id
-                        }
+                        },
+                        sideEffects: false
                     }).then(() => {
                         callback(userInserted);
                     }).catch((err) => {
@@ -170,7 +172,7 @@ class UserService {
                         this.activationLink(userInserted);
                         //call  admin mail sender with patient info
                         this.adminUserRegistration(userInserted);
-                        this.createVisitor(userInserted);
+                        this.createVisitor(userInserted, dob);
                         var group = {
                             name: 'MedHelp',
                             url: `/medhelp/${userInserted.id}`,
@@ -181,6 +183,7 @@ class UserService {
                             },
                             phase: 'active',
                             status: 'online',
+                            requireInfo: false,
                             createdBy: userInserted.id,
                             updatedBy: userInserted.id
                         };
@@ -297,7 +300,6 @@ class UserService {
                 }
             })
             .then(res => {
-                console.log(res);
                 this.createNotification(user.id, 'registration', 'Activaton link sent for ' + title, 'email', user.email, template);
                 log.info('Email sent to user ' + user.email + ' for ' + title);
             })
@@ -368,20 +370,28 @@ class UserService {
     activateUser(token, callback) {
         userModel.user.find({
             where: {
-                token: token
+                token: token,
+                activate: 0
             }
         }).then((resultFind) => {
-            if (resultFind.token === token) {
+            if (resultFind) {
                 userModel.user.update({
                     "activate": 1
                 }, {
                     where: {
                         token: resultFind.token
-                    }
+                    },
+                     sideEffects: false
                 }).then((userUpdated) => {
-                    callback(userUpdated);
+                    callback({"status":"success","message":"Activation Successful"});
+                    userModel.user.update({token: null}, { where: {token: token}, sideEffects: false}).then((tokenDeleted) => {
+                        log.info(`Token: ${token} deleted for user`);
+                    }).catch(err => {
+                        log.error('Error in deleting token '+err);
+                    })
                 });
             } else {
+                callback({"status":"failed","error":"Invalid token"})
                 log.error('Error while updating the user ');
             }
         }).catch((err) => {
@@ -408,8 +418,14 @@ class UserService {
     }
 
     updateRegisteredUserDetails(user, callback) {
+        if(!user.id){
+            user.id = user.userId;
+        }else {
+            user.userId = user.id;
+        }
         this.getById(user.userId, (userDetails) => {
             user.socketId = userDetails.socketId;
+            console.log(user);
             return userDao.update(user, (userUpdated) => {
                 callback(userUpdated);
             });
@@ -457,50 +473,74 @@ class UserService {
      */
     resetPasswordMail(userEmail, callback) {
         this.findUserByEmail(userEmail, (user) => {
-            if (user.email === userEmail) {
-                emailConfig
-                    .send({
-                        template: 'forgot-password',
-                        message: {
-                            to: user.email
-                        },
-                        locals: {
-                            subject: 'Password reset Link',
-                            userName: user.firstname + ' ' + user.lastname,
-                            userLink: Properties.resetPassword + '/' + user.token,
-                        }
-                    })
-                    .then(res => {
-                        callback({ message: 'An email has been sent to your mail ID with a link to reset password.' });
-                        log.info('Resetmail sent to User successfully ' + user.email);
-                        this.createNotification(user.id, 'resetpassword', 'Reset Link sent', 'email', userEmail, 'forgot-password')
-                    })
-                    .catch(err =>
-                        log.error('Error while sending reset password link for ' + user.email + ' ' + err)
-                    );
-                emailConfig
-                    .send({
-                        template: 'admin-reset-password',
-                        message: {
-                            to: 'test.arung@gmail.com'
-                        },
-                        locals: {
-                            userName: user.firstname + ' ' + user.lastname,
-                            userEmail: user.email,
-                        }
-                    })
-                    .then(res => {
-                        log.info('Resetmail sent to Admin successfully');
-                    })
-                    .catch(error =>
-                        log.error('Error  while sending Email to admin for restmail of ' + user.email + ' ' + error)
-                    );
-
-                //send text message to user upon request for password reset
-                this.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, msgconfig.passwordresetmessage, user.firstname + ' ' + user.lastname, 'passwordreset', 'Reset Message sent');
+            if (user) {
+            var func = this;
+               rtg.generateKey({
+                    len: 16,
+                    string: true,
+                    strong: false,
+                    retry: false
+                }, function(err, key) {
+                    if (err) {
+                        log.info(err);
+                        callback({"status":"failed","error":"Something went wrong"});
+                    } else {
+                   
+                userModel.user.update({
+                    "token": key
+                }, {
+                    where: {
+                        email: user.email
+                    },
+                     sideEffects: false
+                }).then((userUpdated) => {              
+            emailConfig
+                .send({
+                    template: 'forgot-password',
+                    message: {
+                        to: user.email
+                    },
+                    locals: {
+                        subject: 'Password reset Link',
+                        userName: user.firstname + ' ' + user.lastname,
+                        userLink: Properties.resetPassword + '/' + key,
+                    }
+                })
+                .then(res => {
+                    //recheck this
+                    log.info('Resetmail sent to User successfully ' + user.email);
+                    callback({"status":"success","message":"An email has been sent to your mail ID with a link to reset password"});
+                     //send text message to user upon request for password reset
+                    func.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, msgconfig.passwordResetMessage, user.firstname + ' ' + user.lastname, 'passwordreset', 'Reset Message sent');
+                    func.createNotification(user.id, 'resetpassword', 'Reset Link sent', 'email', userEmail, 'forgot-password');
+                })
+                .catch(err =>
+                    log.error('Error while sending reset password link for ' + user.email + ' ' + err)
+                );
+            emailConfig
+                .send({
+                    template: 'admin-reset-password',
+                    message: {
+                        to: 'test.arung@gmail.com'
+                    },
+                    locals: {
+                        userName: user.firstname + ' ' + user.lastname,
+                        userEmail: user.email,
+                    }
+                })
+                .then(res => {
+                    log.info('Resetmail sent to Admin successfully');
+                })
+                .catch(error =>
+                    log.error('Error  while sending Email to admin for restmail of ' + user.email + ' ' + error)
+                ); 
+                });   
+                    }
+                });
             } else {
                 callback({
-                    message: 'Email ID you have entered does not exist'
+                    "status": "failed",
+                    "error": 'Email ID you have entered does not exist'
                 });
             }
         })
@@ -530,22 +570,32 @@ class UserService {
                 }, {
                     where: {
                         token: token
-                    }
+                    },
+                    sideEffects: false
                 })
                 .then((res) => {
                     if (res[0] > 0) {
                         callback({
+                            status: 'success',
                             message: 'Updated password successfully.'
-                        });
+                        });  
+                    userModel.user.update({token: null}, { where: {token: token}, sideEffects: false}).then((tokenDeleted) => {
+                        log.info(`Token: ${token} deleted for user`);
+                    }).catch(err => {
+                        log.error('Error in deleting token '+err);
+                    })
                     } else {
                         log.error('Tokens do not match');
                         callback({
-                            message: 'Link in invalid. Please try again.'
+                            status: 'failed',
+                            error: true,
+                            message: 'Link Invalid/Or expired. Please try again.'
                         });
                     }
                 }).catch((err) => {
                     log.error('Error in updating password: ' + err);
                     callback({
+                        error: true,
                         message: 'Error in password reset. Please try again..'
                     });
                 });
@@ -573,9 +623,10 @@ class UserService {
         });
     }
 
-    createVisitor(userInserted) {
+    createVisitor(userInserted, dob) {
         var visitor = {
             userId: userInserted.id,
+            dob: dob,
             createdBy: userInserted.createdBy,
             updatedBy: userInserted.updatedBy
         };

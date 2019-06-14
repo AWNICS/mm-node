@@ -26,6 +26,9 @@ module.exports = (sequelize, DataTypes) => {
         status: {
             type: DataTypes.STRING //scheduled, missed, appear(appointments)
         },
+        location: {
+            type: DataTypes.STRING, //doctors speciality chosen
+        },
         activity: {
             type: DataTypes.STRING
         },

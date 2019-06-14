@@ -38,6 +38,10 @@ module.exports = (sequelize, DataTypes) => {
         phase: {
             type: DataTypes.STRING //active,inactive,archive,botInactive
         },
+        requireInfo: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: true
+        },
         prescription_generated: {
             type: DataTypes.TINYINT, //active,inactive,archive,botInactive
             defaultValue: false

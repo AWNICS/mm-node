@@ -23,7 +23,15 @@ sequelize = sequelize;
  * connection authentication
  */
 sequelize.authenticate()
-    .then(() => log.info('connection successfull for sequelize'))
+    .then(() => {
+        log.info('connection successfull for sequelize');
+        sequelize.query("update user set socketId='[]' where id > 0", { type: sequelize.QueryTypes.UPDATE}).then((res)=>{
+            log.info('Cleared all socketIDs in database');
+        }).catch(err => log.error(err))
+  .then(users => {
+    // We don't need spread here, since only the results will be returned for select queries
+  })
+    })
     .catch(error => log.error('error in connection: ', error));
 
 module.exports = sequelize;

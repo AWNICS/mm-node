@@ -6,6 +6,7 @@ import VisitorHistoryDao from './visitor-history.dao';
 import VisitorMediaDao from './visitor-media.dao';
 import VisitorAppointmentDao from './visitor-appointment.dao';
 import VisitorStoreDao from './visitor-store.dao';
+import VisitorDao from './visitor.dao';
 import visitorStoreModel from './index';
 import visitorAppointmentModel from './index';
 import log from '../../config/log4js.config';
@@ -18,6 +19,7 @@ const Promise = require('bluebird');
 const moment = require('moment');
 const Op = require('sequelize').Op;
 const visitorHealthDao = new VisitorHealthDao();
+const visitorDao = new VisitorDao();
 const visitorDiagnosticDao = new VisitorDiagnosticDao();
 const visitorReportDao = new VisitorReportDao();
 const visitorPrescriptionDao = new VisitorPrescriptionDao();
@@ -45,7 +47,11 @@ class VisitorService {
             callback(allVisitorHealth);
         });
     }
-
+    readVisitorInfo(visitorId, callback) {
+        visitorDao.readById(visitorId, (result)=>{
+            callback(result);
+        })
+    }
     readByVisitorIdHealth(visitorId, callback) {
         visitorHealthDao.readById(visitorId, (visitorHealth) => {
             callback(visitorHealth);
@@ -124,7 +130,7 @@ class VisitorService {
     readReportById(id, callback) {
         visitorModel.visitor_report.find({ where: { id: id } })
             .then((visitorReport) => {
-                console.log('report: ' + JSON.stringify(visitorReport));
+                log.info('Read report by id ' + JSON.stringify(visitorReport));
                 callback(visitorReport);
             });
     }
@@ -319,31 +325,33 @@ class VisitorService {
      * @param {*} callback
      * @memberof VisitorService
      */
-    async readConsultationsByVisitorId(visitorId, page, size, callback) {
-        sequelize.query(`select v.url as prescriptionUrl,v.Instructions,v.analysis,v.speciality,v.consultationMode,v.updatedAt,b.url as billingUrl,u.picUrl,u.firstname,u.lastname 
-        from visitor_prescription as v, billing as b, user as u 
-        WHERE
-        v.visitorId = ${visitorId} and v.doctorId = u.id and v.consultationId = b.consultationId
+    
+        // select v.url as prescriptionUrl,v.Instructions,v.analysis,v.speciality,
+        // v.consultationMode,v.updatedAt,b.url as billingUrl,u.picUrl,u.firstname,u.lastname 
+        // from visitor_prescription as v, billing as b, user as u 
+        // WHERE
+        // v.visitorId = ${visitorId} and v.doctorId = u.id and v.consultationId = b.consultationId
+        // order by v.updatedAt DESC
+        // limit ${size}
+        // offset ${(size * page - size)}
+    readConsultationsByVisitorId(visitorId, page, size, callback) {
+        sequelize.query(`
+        select vp.url as prescriptionUrl,vp.Instructions,vp.analysis,v.speciality,v.status,
+        v.consultationMode,v.updatedAt,b.url as billingUrl,u.picUrl,u.firstname,u.lastname 
+        from 
+        (select * from visitor_appointment where visitorId = ${visitorId}) v
+        inner join billing b 
+        on v.visitorId = b.visitorId and v.consultationId = b.consultationId
+        left join visitor_prescription vp
+        on vp.consultationId = v.consultationId
+        left join user u 
+        on v.doctorId = u.id
         order by v.updatedAt DESC
         limit ${size}
         offset ${(size * page - size)}
         `,{type: sequelize.QueryTypes.SELECT}).then((prescriptions)=>{
             callback({'prescriptions': prescriptions})
         })
-        // var offset = ((size * page) - size);
-        // var visitorPrescriptions = await visitorModel.visitor_prescription
-        //     .findAll({
-        //         where: {
-        //             visitorId: visitorId
-        //         },
-        //         offset: offset,
-        //         limit: size,
-        //         order: [
-        //             [visitorModel, 'createdAt', 'DESC']
-        //         ]
-        //     });
-        // var result = await this.getDoctorDetail(visitorPrescriptions);
-        // callback(result);
     }
     getReportsByVisitorId(visitorId, callback) {
         visitorReportDao.readById(visitorId, (result) => {
@@ -373,10 +381,18 @@ class VisitorService {
     }
     
     getAllConsultationsByDoctorId(doctorId, callback) {
-        sequelize.query(`select v.url as prescriptionUrl,v.Instructions,v.analysis,v.speciality,v.consultationMode,v.updatedAt,b.url as billingUrl,u.picUrl,u.firstname,u.lastname 
-        from visitor_prescription as v, visitor_appointment as va, billing as b, user as u 
-        WHERE
-        va.doctorId = ${doctorId} and va.visitorId = u.id and va.consultationId = b.consultationId and va.consultationId = v.consultationId
+
+        sequelize.query(`
+        select vp.url as prescriptionUrl,vp.Instructions,vp.analysis,v.speciality,v.status,
+        v.consultationMode,v.updatedAt,b.url as billingUrl,u.picUrl,u.firstname,u.lastname 
+        from 
+        (select * from visitor_appointment where doctorId = ${doctorId}) v
+        inner join billing b 
+        on v.doctorId = b.doctorId and v.consultationId = b.consultationId
+        left join visitor_prescription vp
+        on vp.consultationId = v.consultationId
+        left join user u 
+        on v.visitorId = u.id
         order by v.updatedAt DESC
         `,{type: sequelize.QueryTypes.SELECT}).then((prescriptions)=>{
             callback({'consultations': prescriptions})
@@ -384,100 +400,29 @@ class VisitorService {
     }
 
     //all consultations by doctor id
-    async readAllConsultationsByDoctorId(doctorId, page, size, callback) {
-        var offset = ((size * page) - size);
-        sequelize.query(`select v.url as prescriptionUrl,v.Instructions,v.analysis,v.speciality,v.consultationMode,v.updatedAt,b.url as billingUrl,u.picUrl,u.firstname,u.lastname 
-        from visitor_prescription as v, visitor_appointment as va, billing as b, user as u 
-        WHERE
-        va.doctorId = ${doctorId} and va.visitorId = u.id and va.consultationId = b.consultationId and va.consultationId = v.consultationId
+    readAllConsultationsByDoctorId(doctorId, page, size, callback) {
+        sequelize.query(`
+        select vp.url as prescriptionUrl,vp.Instructions,vp.analysis,v.speciality,v.status,
+        v.consultationMode,v.updatedAt,b.url as billingUrl,u.picUrl,u.firstname,u.lastname 
+        from 
+        (select * from visitor_appointment where doctorId = ${doctorId}) v
+        inner join billing b 
+        on v.doctorId = b.doctorId and v.consultationId = b.consultationId
+        left join visitor_prescription vp
+        on vp.consultationId = v.consultationId
+        left join user u 
+        on v.visitorId = u.id
         order by v.updatedAt DESC
         limit ${size}
         offset ${(size * page - size)}
-        `,{type: sequelize.QueryTypes.SELECT}).then((prescriptions)=>{
-            callback({'consultations': prescriptions})
-        })
-    //     var doctorPrescriptions = await visitorModel.visitor_prescription
-    //         .findAll({
-    //             where: {
-    //                 doctorId: doctorId
-    //             },
-    //             offset: offset,
-    //             limit: size,
-    //             order: [
-    //                 [visitorModel, 'createdAt', 'DESC']
-    //             ]
-    //         });
-    //     var result = await this.getPatientDetail(doctorPrescriptions);
-    //     callback(result);
-    // }
-
-    // async getConsultationByConsultationId(doctorId, consultationId, callback) {
-    //     var doctorPrescriptions = await visitorModel.visitor_prescription
-    //         .findAll({
-    //             where: {
-    //                 doctorId: doctorId,
-    //                 consultationId: consultationId
-    //             }
-    //         });
-    //     var result = await this.getPatientDetail(doctorPrescriptions);
-    //     callback(result);
-
-    // }
-
-    // async getPatientDetail(doctorPrescriptions) {
-    //     return Promise.map(doctorPrescriptions, prescription => {
-    //         return new Promise((resolve, reject) => {
-    //             userDao.readById(prescription.visitorId, (user) => {
-    //                 billingModel.billing.find({
-    //                     where: {
-    //                         consultationId: prescription.consultationId,
-    //                         visitorId: prescription.visitorId
-    //                     }
-    //                 }).then((billing) => {
-    //                     if (billing) {
-    //                         resolve({ prescription: prescription, user: user, billing: billing });
-    //                     } else {
-    //                         resolve({ prescription: prescription, user: user, billing: null });
-    //                     }
-    //                 });
-    //             });
-    //         });
-    //     });
+        `,{type: sequelize.QueryTypes.SELECT}).then((consultations)=>{
+            callback({'consultations': consultations})
+        });
     }
 
     async getAppointmentsByDoctorId(doctorId, page, size, callback) {
-        // var offset = ((size * page) - size);
-        // var lowerLimit;
-        // var upperLimit;
-        // if (process.env.NODE_ENV === 'dev') {
-        //     lowerLimit = moment().startOf('day').add({ hours: 5, minutes: 30 });
-        //     upperLimit = moment().endOf('day').add({ hours: 5, minutes: 30 });
-        // } else { //for prod env
-        //     lowerLimit = moment().startOf('day');
-        //     upperLimit = moment().endOf('day');
-        // }
-        // var visitorAppointments = await visitorAppointmentModel.visitor_appointment
-        //     .findAll({
-        //         where: {
-        //             doctorId: doctorId,
-        //             startTime: {
-        //                 [Op.gte]: lowerLimit,
-        //                 [Op.lt]: upperLimit
-        //             }
-        //         },
-        //         offset: offset,
-        //         limit: size,
-        //         order: [
-        //             [visitorModel, 'startTime', 'DESC']
-        //         ]
-        //     });
-        // var chartDetails = await this.getAppointmentsDetails(visitorAppointments);
-        // callback({
-        //     "visitorAppointments": visitorAppointments,
-        //     "chartDetails": chartDetails
-        // });
-        await sequelize.query(`select u.firstname,u.lastname,u.picUrl,v.speciality,v.consultationMode,v.startTime,v.status from 
-        user as u, doctor as d, visitor_appointment as v where v.doctorId = ${doctorId} and 
+        await sequelize.query(`select u.firstname,u.lastname,u.picUrl,v.speciality,v.consultationMode,v.location,v.startTime,v.status from 
+        user as u, visitor_appointment as v where v.doctorId = ${doctorId} and 
         v.visitorId = u.id 
         order by startTime desc 
         limit 10`,{type: sequelize.QueryTypes.SELECT}).then((result)=>{

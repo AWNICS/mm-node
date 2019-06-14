@@ -12,7 +12,8 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING
         },
         price: {
-            type: DataTypes.FLOAT
+            type: DataTypes.FLOAT,
+            defaultValue: 0
         },
         createdBy: {
             type: DataTypes.INTEGER,

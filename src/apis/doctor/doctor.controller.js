@@ -671,6 +671,12 @@ router.get('/doctors/admin/all', function(req, res) {
     });
 });
 
+router.post('/doctors/admin/:doctorId', function(req, res) {
+    doctorService.updateEssentialDoctorDetails(req.params.doctorId, req.body,(result) => {
+        res.send(result);
+    });
+});
+
 router.post('/doctors/:doctorId/groups/:groupId/files/pdf', function(req, res) {
     doctorService.generatePdf(req.body, req.params.groupId, (uploadedFileName) => {
         res.status(200).send(uploadedFileName);

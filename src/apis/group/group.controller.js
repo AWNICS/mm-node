@@ -146,7 +146,7 @@ router.get('/groups/:id', function(req, res) {
 router.put('/groups', function(req, res) {
     var group = req.body;
     groupService.updateGroup(group, (result) => {
-        console.log('updated: ' + result);
+        log.info('updated: ' + result);
         res.send(result);
     });
 });

@@ -14,6 +14,9 @@ class DoctorDao {
     insert(doctor, callback) {
         sequelize.sync({ force: false }).then(() => {
             sequelize.transaction().then(function(t) {
+                if(!doctor.workhistory){
+                    doctor['workhistory'] = '[]';
+                }
                 doctorModel.doctor.create(doctor, { transaction: t }).then(function(doctorInserted) {
                     callback(doctorInserted);
                 }).then(function() {
@@ -52,7 +55,8 @@ class DoctorDao {
             doctorModel.doctor.update(doctor, {
                 where: {
                     userId: doctor.userId
-                }
+                },
+                sideEffects: false
             }, { transaction: t }).then(function(doctorUpdated) {
                 callback(doctorUpdated);
             }).then(function() {

@@ -15,7 +15,6 @@ const groupService = new GroupService();
 
 
 class PaymentService {
-
     requestHandler(request, response) {
         if (request) {
             var workingKey = process.env.CCAV_WORKING_KEY, //Put in the 32-Bit key shared by CCAvenues.
@@ -31,13 +30,10 @@ class PaymentService {
             request.on('end', () => {
                 log.info(postData);
                 encRequest = ccav.encrypt(postData.toString(), workingKey)
-                formbody = '<html><head><title>Sub-merchant checkout page</title><script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script></head><body><center><!-- width required mininmum 482px --><iframe  width="600" height="600" scrolling="Yes" frameborder="0"  id="paymentFrame" src="https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction&merchant_id=' + merchantId + '&encRequest=' + encRequest + '&access_code=' + accessCode + '"></iframe></center><script type="text/javascript">$(document).ready(function(){$("iframe#paymentFrame").load(function() {window.addEventListener("message", function(e) {$("#paymentFrame").css("height",e.data["newHeight"]+"px"); }, false);}); });</script></body></html>';
-                if (formbody) {
-                    response.writeHeader(200, { 
-                        "Content-Type": "text/html"
-                    });
-                    response.write(formbody);
-                    response.end();
+                formbody = `<html><head><title>Sub-merchant checkout page</title><script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script></head><body><center><!-- width required mininmum 482px --><iframe  width="600" height="600" scrolling="Yes" frameborder="0"  id="paymentFrame" src="https://secure.ccavenue.com/transaction/transaction.do?command=initiateTransaction&merchant_id=${merchantId}&encRequest=${encRequest}&access_code=${accessCode}"></iframe></center><script type="text/javascript">$(document).ready(function(){$("iframe#paymentFrame").load(function() {window.addEventListener("message", function(e) {$("#paymentFrame").css("height",e.data["newHeight"]+"px"); }, false);}); });</script></body></html>`;
+                if (formbody) { 
+                    response.setHeader( "Content-Type","text/html");
+                    response.send(formbody);
                 }
                 return;
             })
@@ -50,7 +46,6 @@ class PaymentService {
             var ccavResponse = '',
                 workingKey = process.env.CCAV_WORKING_KEY, //Put in the 32-Bit key provided by CCAvenues.
                 ccavPOST = '',
-                createdGroupId;
             ccavPOST = request.body;
             var encryption = ccavPOST.encResp.toString();
             ccavResponse = ccav.decrypt(encryption, workingKey);
@@ -65,7 +60,7 @@ class PaymentService {
                     billingModel.billing.find({ where: { orderId: ccavPOST.orderNo } }).then((bill) => {
                         if (bill) {
                             groupService.consultNow(bill.doctorId, bill.visitorId, bill.speciality, (groupCreated) => {
-                                createdGroupId = groupCreated.id;
+                                this.updateBillingEntry(status, ccavResponse, ccavPOST.orderNo ,groupCreated.id, referenceNumber, transactionDateAndTime, transactionDate);
                                 let image = fs.readFileSync('images/payment_success.png', { encoding: 'base64' });
                                 log.info('Transaction Success with status: ' + status);
                                 let htmlcode = `<html>
@@ -100,6 +95,7 @@ class PaymentService {
                 } else if (status === 'Aborted' || status === 'Failure' || status === 'Invalid') {
                     billingModel.billing.find({ where: { orderId: ccavPOST.orderNo } }).then((bill) => {
                         if (bill) {
+                    this.updateBillingEntry(status, ccavResponse, ccavPOST.orderNo, groupCreated.id, referenceNumber, transactionDateAndTime, transactionDate);
                     log.info('Transaction failed with status: ' + status);
                     let image = fs.readFileSync('images/payment_failed.png', { encoding: 'base64' });
                     let htmlcode =
@@ -133,78 +129,76 @@ class PaymentService {
                 } else {
                     log.info('Billing new status detected status: ' + status);
                 }
-                let customerName = ccavResponse.match(/billing_name=[a-zA-Z ]+/)[0].substring(13);
-                let failureMessage = ccavResponse.match(/failure_message=[a-zA-Z0-9 ]+/) !== null ? ccavResponse.match(/failure_message=[a-zA-Z0-9 ]+/)[0].substring(16) : null;
-                let trackingId = ccavResponse.match(/tracking_id=[0-9]+/) !== null ? ccavResponse.match(/tracking_id=[0-9]+/)[0].substring(12) : null;
-                let modeOfPayment = ccavResponse.match(/payment_mode=[a-zA-Z ]+/) !== null ? ccavResponse.match(/payment_mode=[a-zA-Z ]+/)[0].substring(13) : null;
-                let cardName = ccavResponse.match(/card_name=[a-zA-Z0-9 ]+/) !== null ? ccavResponse.match(/card_name=[a-zA-Z0-9 ]+/)[0].substring(10) : null
-                billingModel.billing.find({ where: { orderId: ccavPOST.orderNo } }).then((orderDetails) => {
-                    if (status === 'Success') {
-                        let userId = orderDetails.visitorId;
-                        let doctorName = orderDetails.description.match(/Dr\.[a-zA-Z ]+$/) !== null ? orderDetails.description.match(/Dr\.[a-zA-Z ]+$/)[0] : null;
-                        console.log(doctorName);
-                        let billAmount = orderDetails.amount;
-                        billingService.generateBillingPdf(userId, ccavPOST.orderNo, transactionDate, customerName, billAmount, 0, 'Nill', 0, doctorName, (fileName) => {
-                            let bill = {
-                                status: status,
-                                referenceNumber: referenceNumber,
-                                modeOfPayment: modeOfPayment,
-                                cardName: cardName,
-                                consultationId: createdGroupId,
-                                trackingId: trackingId,
-                                date: transactionDateAndTime,
-                                url: fileName.fileName
-                            };
-                            log.info(bill);
-                            billingModel.billing.update(bill, { where: { orderId: ccavPOST.orderNo } }).then((res) => {
-                                if (res[0] === 1) {
-                                    log.info("Billing entry updated");
-                                } else {
-                                    log.info('Duplicate orderID entries exist in database for billing table count ' + res[0]);
-                                    log.info('Something went wrong in updating bill');
-                                }
-                            }).catch((error) => {
-                                log.info(error);
-                            })
-                        })
-                    } else {
-                        let bill = {
-                            status: status,
-                            referenceNumber: referenceNumber,
-                            modeOfPayment: modeOfPayment,
-                            failureMessage: failureMessage,
-                            trackingId: trackingId,
-                        };
-                        log.info(bill);
-                        console.log(ccavPOST.orderNo);
-                        billingModel.billing.update(bill, { where: { orderId: ccavPOST.orderNo } }).then((res) => {
-                            if (res[0] === 1) {
-                                log.info("Billing entry updated");
-                            } else {
-                                log.info('Duplicate orderID entries exist in database for billing table count ' + res[0]);
-                                log.info('Something went wrong in updating bill');
-                            }
-                        }).catch((error) => {
-                            log.info(error);
-                        })
-                    }
-                })
-
             }
         }
     }
-    
+    updateBillingEntry(status, ccavResponse, orderNo, groupId, referenceNumber, transactionDateAndTime, transactionDate){
+        let customerName = ccavResponse.match(/billing_name=[a-zA-Z ]+/)[0].substring(13);
+        let failureMessage = ccavResponse.match(/failure_message=[a-zA-Z0-9 ]+/) !== null ? ccavResponse.match(/failure_message=[a-zA-Z0-9 ]+/)[0].substring(16) : null;
+        let trackingId = ccavResponse.match(/tracking_id=[0-9]+/) !== null ? ccavResponse.match(/tracking_id=[0-9]+/)[0].substring(12) : null;
+        let modeOfPayment = ccavResponse.match(/payment_mode=[a-zA-Z ]+/) !== null ? ccavResponse.match(/payment_mode=[a-zA-Z ]+/)[0].substring(13) : null;
+        let cardName = ccavResponse.match(/card_name=[a-zA-Z0-9 ]+/) !== null ? ccavResponse.match(/card_name=[a-zA-Z0-9 ]+/)[0].substring(10) : null
+        billingModel.billing.find({ where: { orderId: orderNo } }).then((orderDetails) => {
+            if (status === 'Success') {
+                let userId = orderDetails.visitorId;
+                let doctorName = orderDetails.description.match(/Dr\.[a-zA-Z ]+$/) !== null ? orderDetails.description.match(/Dr\.[a-zA-Z ]+$/)[0] : null;
+                let billAmount = orderDetails.amount;
+                billingService.generateBillingPdf(userId, orderNo, transactionDate, customerName, billAmount, 0, 'Nill', 0, doctorName, (fileName) => {
+                    let bill = {
+                        status: status,
+                        referenceNumber: referenceNumber,
+                        modeOfPayment: modeOfPayment,
+                        cardName: cardName,
+                        consultationId: groupId,
+                        trackingId: trackingId,
+                        date: transactionDateAndTime,
+                        url: fileName.fileName
+                    };
+                    log.info(bill);
+                    billingModel.billing.update(bill, { where: { orderId: orderNo } }).then((res) => {
+                        if (res[0] === 1) {
+                            log.info("Billing entry updated");
+                        } else {
+                            log.info('Duplicate orderID entries exist in database for billing table count ' + res[0]);
+                            log.info('Something went wrong in updating bill');
+                        }
+                    }).catch((error) => {
+                        log.info(error);
+                    })
+                })
+            } else {
+                let bill = {
+                    status: status,
+                    referenceNumber: referenceNumber,
+                    modeOfPayment: modeOfPayment,
+                    failureMessage: failureMessage,
+                    trackingId: trackingId,
+                };
+                log.info(bill);
+                billingModel.billing.update(bill, { where: { orderId: orderNo } }).then((res) => {
+                    if (res[0] === 1) {
+                        log.info("Billing entry updated");
+                    } else {
+                        log.info('Duplicate orderID entries exist in database for billing table count ' + res[0]);
+                        log.info('Something went wrong in updating bill');
+                    }
+                }).catch((error) => {
+                    log.info(error);
+                })
+            }
+        })
+    }
     bypassresponseHandler(response, orderNo, customerName, billAmount) {
             var createdGroupId;
             var transactionDate = Date.now();
-            var transactionDateAndTime = moment(Date.now(), 'DD/MM/YYYY HH:mm:ss').format('YYYY-MM-DD HH:mm:ss');
+            var transactionDateAndTime = moment(Date.now()).format('YYYY-MM-DDTHH:mm:ss');
             var transactionDate = transactionDateAndTime.substring(0, 10);
                     billingModel.billing.find({ where: { orderId: orderNo } }).then((bill) => {
                         if (bill) {
                             groupService.consultNow(bill.doctorId, bill.visitorId, bill.speciality, (groupCreated) => {
                                 createdGroupId = groupCreated.id;
                                 let image = fs.readFileSync('images/payment_success.png', { encoding: 'base64' });
-                                log.info('Transaction Success with status: Success');
+                                log.info('Transaction Success with status: Success');   
                                 let htmlcode = `<html>
                         <head>
                             <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -226,7 +220,7 @@ class PaymentService {
                         </script>
                         </body>
                     </html>`;
-                                response.writeHeader(200, {
+                                response.writeHeader(200, { 
                                     "Content-Type": "text/html"
                                 });
                                 response.write(htmlcode);
@@ -234,19 +228,19 @@ class PaymentService {
                             });
                         }
                     })
+
                 billingModel.billing.find({ where: { orderId: orderNo } }).then((orderDetails) => {
-                    //add validation to check if order exists
                         let userId = orderDetails.visitorId;
                         let doctorName = orderDetails.description.match(/Dr\.[a-zA-Z ]+$/) !== null ? orderDetails.description.match(/Dr\.[a-zA-Z ]+$/)[0] : null;
-                        console.log(doctorName);
+                        let billAmount = orderDetails.amount;
                         billingService.generateBillingPdf(userId, orderNo, transactionDate, customerName, billAmount, 0, 'Nill', 0, doctorName, (fileName) => {
                             let bill = {
-                                status: 'Success',
-                                referenceNumber: 'TEST0001',
+                                status: "Success",
+                                referenceNumber: "TEST001",
                                 modeOfPayment: 'Bypassed',
-                                cardName: 'Bypass',
+                                cardName: "TEST001",
                                 consultationId: createdGroupId,
-                                trackingId: 'TEST0002',
+                                trackingId: 'TEST0001',
                                 date: transactionDateAndTime,
                                 url: fileName.fileName
                             };

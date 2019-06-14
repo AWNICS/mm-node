@@ -90,6 +90,7 @@ class Config {
             res.setHeader('Access-Control-Allow-Origin', '*');
             res.setHeader('Access-Control-Allow-Methods', 'POST, PUT, DELETE, GET');
             res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With');
+            res.setHeader('Access-Control-Max-Age','600');
 
             // Disable caching so we'll always get the latest userDetails.
             res.setHeader('Cache-Control', 'no-cache');

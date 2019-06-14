@@ -11,8 +11,9 @@ module.exports = (sequelize, DataTypes) => {
         sex: {
             type: DataTypes.STRING
         },
-        age: {
-            type: DataTypes.INTEGER
+        dob: {
+            type: DataTypes.DATE,
+            defaultValue: null
         },
         weight: {
             type: DataTypes.FLOAT

@@ -73,7 +73,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             defaultValue: null
         },
-        consultaionMode:{
+        consultationMode:{
             type: DataTypes.STRING,
             defaultValue: null
         },

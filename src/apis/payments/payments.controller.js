@@ -13,7 +13,6 @@ router.post('/payments/responses', (req, res) => {
 });
 
 router.get('/payments/responses/bypass', (req, res) => {
-    console.log(req.query);
     paymentService.bypassresponseHandler(res, parseInt(req.query.orderNo), req.query.customerName, parseInt(req.query.billAmount));
 });
 

@@ -57,7 +57,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING
         },
         longBio: {
-            type: DataTypes.STRING
+            type: DataTypes.TEXT
         },
         education: {
             type: DataTypes.STRING //educational degree
@@ -71,13 +71,15 @@ module.exports = (sequelize, DataTypes) => {
         institutionYear: {
             type: DataTypes.INTEGER
         },
-        workHistory: {
+        workhistory: {
             type: DataTypes.TEXT,
-            get: function() {
-                return JSON.parse(this.getDataValue('workHistory'));
+            get: function (){
+                console.log(this.getDataValue('workhistory'));
+                console.log(JSON.parse(this.getDataValue('workhistory')))
+                return JSON.parse(this.getDataValue('workhistory'))
             },
-            set: function(speciality) {
-                this.setDataValue('workHistory', JSON.stringify(workHistory));
+            set: function(workhistory) {
+                this.setDataValue('workhistory', JSON.stringify(workhistory));
             }
         },
         createdBy: {

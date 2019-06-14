@@ -169,10 +169,10 @@ router.get('/users/validate', function(req, res) {
  *       200:
  *         description: An user activated in MySql db
  */
-router.put('/activates/:token', function(req, res) {
+router.get('/activates/:token', function(req, res) {
     userService.activateUser(req.params.token, (result) => {
         if (result) {
-            res.send({ message: "User activated." });
+            res.send(result);
         }
     });
 });
@@ -228,9 +228,9 @@ router.post('/resetPassword', function(req, res) {
 router.get('/resetPassword/:token', function(req, res) {
     userService.verifyToken(req.params.token, (result) => {
         if (result === true) {
-            res.redirect(`${Properties.resetPassword}/${req.params.token}`);
+            res.send({"status":"success","message":"Valid Token"})
         } else {
-            res.send('Your link is expired. Try again');
+            res.send({"status":"failed","error": true,"message":"Invalid Token"});
         }
     });
 });

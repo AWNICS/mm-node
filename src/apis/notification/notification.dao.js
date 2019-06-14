@@ -58,7 +58,7 @@ class NotificationDao {
             }).then(function() {
                 t.commit();
             }).catch(function(error) {
-                console.log('Error while updating the user: ' + error);
+                log.info('Error while updating the user: ' + error);
                 t.rollback();
             });
         });

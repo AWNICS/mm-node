@@ -24,6 +24,7 @@ var MessageSchema = new Schema({
     responseData: {
         data: [String]
     },
+    info: Boolean,
     lastUpdateTime: Date,
     createdBy: { type: Number, default: null },
     updatedBy: { type: Number, default: null },

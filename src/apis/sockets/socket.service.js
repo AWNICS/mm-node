@@ -15,6 +15,7 @@ import sequelize from '../../util/conn.mysql';
 import VisitorService from '../visitor/visitor.service';
 import BillingDao from '../billing/billing.dao';
 import billingModel from '../billing/index';
+import groupModel from '../group/index';
 import GroupDao from '../group/group.dao';
 import DoctorServce from '../doctor/doctor.service';
 import VisitorPrescriptionDao from '../visitor/visitor-prescription.dao';
@@ -49,7 +50,7 @@ exports.connectSocket = (io) => {
         })
         .on('connection', function(socket) {
             socket.on('disconnect', (type) => {
-                console.log('disc');
+                log.info('Socket disconnected with id '+ socket.id);
                 console.log(type);
                 let userId = socket.decoded.data.id;
                 userService.getById(userId, (user) => {
@@ -167,6 +168,7 @@ exports.connectSocket = (io) => {
                     // if (socketIds !== null) {
                         // socketIds.map((socketId) => {
                             // if(socket.id === socketId){
+                                console.log('received message read for userID: '+ userId);
                                 io.in(socket.id).emit('receive-message-read', groupId);
                             // }
                         // });
@@ -178,26 +180,168 @@ exports.connectSocket = (io) => {
                         userId: userId
                     }
                 }).then((a) => {
-                    console.log('message read');
-                    console.log(a);
+                    log.info(a);
                 });
             });
 
             socket.on('count-sync', (userId, count, groupId) => {
-                console.log('count sync on '+socket.id);
+                log.info('count sync on '+socket.id);
                 userService.getById(userId, (user) => {
                     let socketIds = [];
                     socketIds = user.socketId;
                     if (socketIds !== null) {
                         socketIds.map((socketId) => {
                             if (socketId !== socket.id) {
-                                // console.log(socketId);
                                 io.in(socketId).emit('receive-count-sync', {'count':count,'groupId':groupId});
-                                console.log('Emiited across socket the sync count for ' + user.firstname);
+                                log.info('Emiited across socket the sync count for ' + user.firstname);
                             }
                         });
                     }
                 });
+            });
+
+            socket.on('required-info', (msg1, values) => {
+                log.info('required info on'+socket.id);
+                let messages = [];
+                console.log(values);
+                Object.keys(values).map((key, index) => {
+                        const msg = JSON.parse(JSON.stringify(msg1));
+                        if (key === 'issue') {
+                            msg.text = 'Patients Issue: ' + values[key];
+                            messages.push(msg);
+                          } else if (key === 'sex') {
+                            msg.text = 'Patients Sex: ' + values[key];
+                            messages.push(msg);
+                            visitorModel.visitor.update({sex : values[key]}, { where : {
+                                userId : msg1.senderId
+                            },
+                            sideEffects: false
+                        }).then((result) => {
+                            log.info("Updated gender for user with id: "+ msg.receiverId)
+                        }).catch(err => log.error('Error while updating gender for user: '+ msg.receiverId + err));
+                          } else if (key === 'age') {
+                            msg.text = 'Patients age: ' + values[key] + ' Years';
+                            messages.push(msg);
+                          }
+                });
+                console.log(messages);
+                messages.map((msg, index) => {
+                    messageService.sendMessage(msg, (result) => {
+                        if(index+1 === messages.length){
+                            groupModel.consultation_group.update({ requireInfo : false}, {where: { 
+                                id: msg.receiverId
+                            },
+                            sideEffects: false
+                        }).then((success)=>{
+                            io.in(socket.id).emit('required-info-receive', msg.receiverId);
+                            log.info('Sucessfully updated group requireinfo with groupid: '+ msg.receiverId);
+                        }).catch(err => {
+                            log.error('Error while updating group requireinfo '+ err);
+                        })
+                        }
+                        groupService.getUsersByGroupId(msg.receiverId, (user) => {
+                                if (user.role==='doctor') {
+                                    let socketIds = [];
+                                    socketIds = user.socketId;
+                                    if (socketIds !== null) {
+                                        socketIds.map((socketId) => {
+                                            io.in(socketId).emit('receive-message', result); //emit one-by-one for all users
+                                        });
+                                    }
+                                }
+                                if (user.role === 'doctor') {
+                                    groupUserMapModel.consultation_group_user_map.increment('unreadCount', {
+                                        where: {
+                                            groupId: msg.receiverId,
+                                            userId: user.id
+                                        }
+                                    }).then((a) => {
+                                        log.info('Message count incremented for user: '+ user.firstname);
+                                    });
+                                }
+                        });
+
+                          //create notification for the doctor
+                          doctorService.getById(doctorId, (doctor) => {
+                            if (doctor.doctorDetails.speciality) {
+                                userService.getById(patientId, (user) => {
+                                    if (user) {
+                                        var notification = {
+                                            userId: doctorId,
+                                            type: 'consultation',
+                                            title: `Consultation with ${user.firstname} ${user.lastname}`,
+                                            content: {
+                                                speciality: doctor.doctorDetails.speciality,
+                                                consultationId: createdGroup.id
+                                            },
+                                            status: 'created',
+                                            channel: 'web',
+                                            priority: 1,
+                                            template: '',
+                                            triggerTime: moment().add(15, 's'),
+                                            createdBy: user.id,
+                                            updatedBy: user.id
+                                        };
+                                        notificationService.create(notification, (notificationCreated) => {
+                                            if (notificationCreated) {
+                                                userService.getById(doctorId, (doctorDetails) => {
+                                                    //code for sending notification as email and SMS also
+                                                    var emailNotification = {
+                                                        userId: doctorId,
+                                                        type: 'consultation',
+                                                        title: `Consultation with ${user.firstname} ${user.lastname}`,
+                                                        content: {
+                                                            speciality: doctor.doctorDetails.speciality,
+                                                            consultationId: createdGroup.id
+                                                        },
+                                                        status: 'created',
+                                                        channel: 'email',
+                                                        priority: 0,
+                                                        template: {
+                                                            from: "test.arung@gmail.com",
+                                                            to: doctorDetails.email,
+                                                            body: `You have a consultation with ${user.firstname} ${user.lastname} at ${notificationCreated.triggerTime}.`
+                                                        },
+                                                        triggerTime: moment().add(1, 'm'),
+                                                        createdBy: user.id,
+                                                        updatedBy: user.id
+                                                    };
+                                                    notificationService.create(emailNotification, (emailNotificationCreated) => {
+                                                        emailConfig
+                                                            .send({
+                                                                template: 'notification-doctor',
+                                                                message: {
+                                                                    to: 'nilu.kumari@awnics.com' //doctor email
+                                                                },
+                                                                locals: {
+                                                                    subject: emailNotificationCreated.title,
+                                                                    patientName: user.firstname + ' ' + user.lastname,
+                                                                    patientEmail: user.email, //user email id
+                                                                    doctorName: 'Dr.' + ' ' + doctorDetails.firstname + ' ' + doctorDetails.lastname,
+                                                                    priority: emailNotificationCreated.priority,
+                                                                    triggerTime: emailNotificationCreated.triggerTime,
+                                                                    type: emailNotificationCreated.type
+                                                                }
+                                                            })
+                                                            .then(res => {
+                                                                log.info('Email sent successfully to doctor for user email id: ' + user.email);
+                                                            })
+                                                            .catch(error =>
+                                                                log.error('Error while sending notification to doctor', error)
+                                                            );
+                                                    });
+                                                    //for SMS notification message
+                                                    userService.sendTextMessage(doctorId, doctorDetails.phoneNo, messageConfig.authkey, messageConfig.country, messageConfig.notificationMessage, doctorDetails.firstname + ' ' + doctorDetails.lastname, 'Message Notification', 'Notification Message sent');
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+
+                    });
+                })
             });
 
             /**
@@ -208,76 +352,74 @@ exports.connectSocket = (io) => {
                 if (msg.receiverType === "group") {
                     messageService.sendMessage(msg, (result) => {
                         groupService.getUsersByGroupId(msg.receiverId, (user) => {
-                            if (user.role !== 'bot') {
-                                let socketIds = [];
-                                socketIds = user.socketId;
-                                if (socketIds !== null) {
-                                    socketIds.map((socketId) => {
-                                        io.in(socketId).emit('receive-message', result); //emit one-by-one for all users
+                                if (user.role !== 'bot') {
+                                    let socketIds = [];
+                                    socketIds = user.socketId;
+                                    if (socketIds !== null) {
+                                        socketIds.map((socketId) => {
+                                            io.in(socketId).emit('receive-message', result); //emit one-by-one for all users
+                                        });
+                                    }
+                                }
+                                if (user.role !== 'bot' && msg.senderId !== user.id && group.name !== 'MedHelp') {
+                                    groupUserMapModel.consultation_group_user_map.increment('unreadCount', {
+                                        where: {
+                                            groupId: msg.receiverId,
+                                            userId: user.id
+                                        }
+                                    }).then((a) => {
+                                        log.info('Message count incremented for user: '+ user.firstname);
                                     });
                                 }
-                            }
-                            // user.role !== 'bot' &&
-                            if (msg.senderId !== user.id) {
-                                groupUserMapModel.consultation_group_user_map.increment('unreadCount', {
-                                    where: {
-                                        groupId: msg.receiverId,
-                                        userId: user.id
-                                    }
-                                }).then((a) => {
-                                    console.log('message sent');
-                                    console.log(a);
-                                });
-                            }
-                            if (user.role === 'doctor' && notify === 1) {
-                                var message = msgconfig.doctorNotifyMessage;
-                                message = message.replace('patient1', socket.decoded.data.firstname + ' ' + socket.decoded.data.lastname)
-
-                                userService.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, message, user.firstname +
-                                    ' ' + user.lastname, 'doctorNotifyMessage', "Inactive Consultation doctor notify");
-                                console.log('message sent for doctor notification');
-                            }
+                                if (user.role === 'doctor' && notify === 1) {
+                                    var message = msgconfig.doctorNotifyMessage;
+                                    message = message.replace('patient1', socket.decoded.data.firstname + ' ' + socket.decoded.data.lastname)
+                                    userService.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, message, user.firstname +
+                                        ' ' + user.lastname, 'doctorNotifyMessage', "Inactive Consultation doctor notify");
+                                    log.info('Message sent for doctor notification for user id '+ user.id);
+                                }
                         });
                     });
-                    groupService.getById(group.id, (group) => {
-                        if (group.name === 'MedHelp' && msg.type === 'text') {
-                            consultationGroupModel.consultation_group_user_map.findAll({
-                                where: {
-                                    groupId: group.id
-                                }
-                            }).then((groupUserMaps) => {
-                                groupUserMaps.map((groupUserMap) => {
-                                    userService.getById(groupUserMap.userId, (user) => {
-                                        if (user.role === 'bot') {
-                                            dialogFlowService.callDialogFlowApi(msg.text, res => {
-                                                res.map(result => {
-                                                    msg.text = result.text.text[0];
-                                                    msg.senderId = user.id;
-                                                    msg.updatedBy = user.id;
-                                                    msg.createdBy = user.id;
-                                                    msg.senderName = user.firstname + ' ' + user.lastname;
-                                                    messageService.sendMessage(msg, (result) => {
-                                                        groupService.getUsersByGroupId(msg.receiverId, (user) => {
-                                                            let socketIds = [];
-                                                            socketIds = user.socketId;
-                                                            if (socketIds !== null) {
-                                                                socketIds.map((socketId) => {
-                                                                    io.in(socketId).emit('receive-message', result);
-                                                                    //emit one-by-one for all users
-                                                                });
-                                                            }
-                                                        });
-                                                    });
-                                                });
-                                            });
-                                        }
-                                    });
-                                });
-                            });
-                        } else {
-                            return;
-                        }
-                    });
+                    //dialog flow call stopped for the time being
+                    // groupService.getById(group.id, (group) => {
+                    //     if (group.name === 'MedHelp' && msg.type === 'text') {
+                    //         consultationGroupModel.consultation_group_user_map.findAll({
+                    //             where: {
+                    //                 groupId: group.id
+                    //             }
+                    //         }).then((groupUserMaps) => {
+                    //             groupUserMaps.map((groupUserMap) => {
+                    //                 userService.getById(groupUserMap.userId, (user) => {
+                    //                     if (user.role === 'bot') {
+                    //                         dialogFlowService.callDialogFlowApi(msg.text, res => {
+                    //                             res.map(result => {
+                    //                                 msg.text = result.text.text[0];
+                    //                                 msg.senderId = user.id;
+                    //                                 msg.updatedBy = user.id;
+                    //                                 msg.createdBy = user.id;
+                    //                                 msg.senderName = user.firstname + ' ' + user.lastname;
+                    //                                 messageService.sendMessage(msg, (result) => {
+                    //                                     groupService.getUsersByGroupId(msg.receiverId, (user) => {
+                    //                                         let socketIds = [];
+                    //                                         socketIds = user.socketId;
+                    //                                         if (socketIds !== null) {
+                    //                                             socketIds.map((socketId) => {
+                    //                                                 io.in(socketId).emit('receive-message', result);
+                    //                                                 //emit one-by-one for all users
+                    //                                             });
+                    //                                         }
+                    //                                     });
+                    //                                 });
+                    //                             });
+                    //                         });
+                    //                     }
+                    //                 });
+                    //             });
+                    //         });
+                    //     } else {
+                    //         return;
+                    //     }
+                    // });
                 }
                 // if it is a private message 
                 else if (msg.receiverType === "private") {
@@ -475,7 +617,7 @@ exports.connectSocket = (io) => {
                 });
             });
             //when user clicks consult now on doctor's list  page
-            socket.on('consult-now', (user, doctorId, doctorName, speciality) => {
+            socket.on('consult-now', (user, doctorId, doctorName, speciality, consultationMode, location) => {
         doctorService.getDoctorScheduleByDoctorId(doctorId,(schedule)=>{
             if(schedule[0].status==='Online'){
                 //this is to create billing entry for the user
@@ -487,6 +629,8 @@ exports.connectSocket = (io) => {
                         doctorId: doctorId,
                         visitorId: user.id,
                         speciality: speciality,
+                        consultationMode: consultationMode,
+                        location: location,
                         // consultationId: group.id,
                         orderId: orderId,
                         status: 'due',
@@ -616,6 +760,9 @@ exports.connectSocket = (io) => {
                                                         startTime: moment().add(5, 'm'),
                                                         endTime: moment().add(20, 'm'),
                                                         duration: 15,
+                                                        consultationMode: billing.consultationMode,
+                                                        location: billing.location,
+                                                        speciality: billing.speciality,
                                                         createdBy: user.id,
                                                         updatedBy: user.id
                                                     };
@@ -738,7 +885,7 @@ exports.connectSocket = (io) => {
              */
             socket.on('end-consultation', (doctor, group) => {
                 doctorService.updateDoctorSchedule({ status: 'Online' }, doctor.id, (statusUpdated) => {
-                    console.log('Doctor status updated');
+                    log.info('Doctor status updated for doctor id '+ doctor.id+' to'+ 'Online');
                 })
                 visitorModel.visitor_appointment.update({ status: 'Completed' }, {
                     where: {
@@ -767,9 +914,8 @@ exports.connectSocket = (io) => {
                             phase: 'botInactive',
                             details: result.details
                         };
-                        console.log(newGroup)
+                        log.info('New Group Created'+ newGroup);
                         groupService.update(newGroup, (res) => {
-                            console.log(res);
                         })
                     })
                     //group phase = notArchived;    
@@ -918,7 +1064,6 @@ exports.connectSocket = (io) => {
                                 where: {
                                     id: updateNotification.id
                                 }
-
                             })
                             .then((res) => {
                                 log.info('notification updated.');

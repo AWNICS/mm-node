@@ -891,7 +891,12 @@ router.get('/visitors/:visitorId/consultations', (req, res) => {
         res.send(results);
     });
 });
-
+router.get('/visitors/:visitorId/info', (req, res) => {
+    var visitorId = req.params.visitorId;
+    visitorService.readVisitorInfo(visitorId, (results) => {
+        res.send(results);
+    });
+});
 router.get('/visitors/:visitorId/reports', (req, res) => {
     var visitorId = req.params.visitorId;
     visitorService.getReportsByVisitorId(visitorId, (results) => {

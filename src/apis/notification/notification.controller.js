@@ -190,4 +190,10 @@ router.get('/notifications/users/:userId', (req, res) => {
     });
 });
 
+router.put('/notifications/users/:userId/clearall', (req, res) => {
+    var userId = req.params.userId;
+    notificationService.clearAllNotifications(userId, (result) => {
+        res.send(result);
+    });
+});
 module.exports = router;

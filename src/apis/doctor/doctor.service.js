@@ -8,7 +8,9 @@ import UserService from '../user/user.service';
 import DoctorMediaDao from './doctor-media.dao';
 import DoctorStoreDao from './doctor-store.dao';
 import doctorMediaModel from './index';
+import doctorModel from './index';
 import doctorStoreModel from './index';
+import doctorActivityModel from './index';
 import doctorScheduleModel from './index';
 import DoctorActivityDao from './doctor-activities.dao';
 import DoctorReviewDao from './doctor-reviews.dao';
@@ -191,7 +193,6 @@ class DoctorService {
         if (speciality) {
             condition = condition + ` AND d.speciality LIKE CONCAT('%','${speciality}','%')`;
         }
-        console.log(condition);
         // if (time) {
         //     condition = condition + ` AND ('${time}' BETWEEN ds.startTime AND ds.endTime)`;
         // }
@@ -207,6 +208,8 @@ class DoctorService {
                 d.speciality,
                 d.experience,
                 d.description,
+                cp.price,
+                va.count,
                 d.longBio,
                 d.shortBio,
                 d.videoUrl,
@@ -240,10 +243,17 @@ class DoctorService {
                 doctor_store AS dstqual
             ON
                 d.userId = dstqual.userId AND dstqual.type="Qualification"
+            LEFT JOIN
+                consultation_price  AS cp
+            ON
+                cp.doctorId = d.userId AND cp.speciality = '${speciality}'
+            LEFT JOIN
+                (select count(id) as count, doctorId from visitor_appointment group by doctorId) va
+            ON  d.userId = va.doctorId
             WHERE
             ${condition}
             ORDER BY
-                ds.waitTime
+                FIELD(ds.status, "Online","Busy","Offline") , u.firstname 
             LIMIT
                 ${offset},
                 ${size};
@@ -251,7 +261,6 @@ class DoctorService {
                 type: sequelize.QueryTypes.SELECT
             })
             .then((result, err) => {
-                console.log(result);
                 GroupModel.consultation_group.findAll({
                     where: {
                         userId: userId
@@ -560,72 +569,85 @@ class DoctorService {
     }
 
     async getConsultationDetails(doctorId, callback) {
-        var visitorAppointments = visitorModel.visitor_appointment.findAll({ where: { doctorId: doctorId } });
-        var billings = billingModel.billing.findAll({ where: { doctorId: doctorId } });
-        var noOfPatients = await this.consultationDetails(visitorAppointments);
-        var earning = await this.moneyEarnedByDoctor(billings);
-        callback({ noOfPatients: noOfPatients, earning: earning });
+        // var visitorAppointments = await visitorModel.visitor_appointment.COUNT({ where: { doctorId: doctorId, status: 'Success' } });
+        var billings = await billingModel.billing.findAll({ where: { doctorId: doctorId, status: 'Success' } });
+        // var noOfPatients = this.consultationDetails(billings);
+        let result = this.patientsAndMoneyOfDoctor(billings);
+        callback(result);
     }
 
     /**
      * money earned by doctor (need to modify based on the amount column structure(inside billing table))
      */
-    async moneyEarnedByDoctor(billings) {
-        var daily = 0,
-            weekly = 0,
-            monthly = 0,
-            yearly = 0;
-        if (billings) {
-            await billings.map((billing) => {
+    patientsAndMoneyOfDoctor(billings) {
+        var bills = {
+            daily : 0,
+            weekly : 0,
+            monthly : 0,
+            yearly : 0
+        }
+        var patients = {
+            daily : 0,
+            weekly : 0,
+            monthly : 0,
+            yearly : 0
+        }
+            if (billings) {
+                billings.map((billing) => {
                 var month = moment(billing.createdAt).month();
                 var currentMonth = moment().month();
                 if (moment(billing.createdAt).year() === moment().year()) {
-                    yearly = yearly + billing.amount;
+                    bills.yearly +=  billing.amount;
+                    patients.yearly += 1;
                     if (++month === ++currentMonth) {
-                        monthly = monthly + billing.amount;
-                        console.log(monthly);
+                        bills.monthly += billing.amount;
+                        patients.monthly += 1;
                         if (moment(billing.createdAt).date() === moment().date()) {
-                            daily = daily + billing.amount;
+                            bills.daily += billing.amount;
+                            patients.daily += 1;
                         }
                         if (moment(billing.createdAt).week() === moment().week()) {
-                            weekly = weekly + billing.amount;
+                            bills.weekly += billing.amount;
+                            patients.weekly += 1;
                         }
                     }
                 }
             });
-            return ({ "today": daily, "week": weekly, "month": monthly, "year": yearly });
+            return ({earning: { "today": bills.daily, "week": bills.weekly, "month": bills.monthly, "year": bills.yearly },
+                     noOfPatients: { "today": patients.daily, "week": patients.weekly, "month": patients.monthly, "year": patients.yearly }});
         } else {
-            return ({ "today": daily, "week": weekly, "month": monthly, "year": yearly });
+            return ({earning: { "today": bills.daily, "week": bills.weekly, "month": bills.monthly, "year": bills.yearly },
+                     noOfPatients: { "today": patients.daily, "week": patients.weekly, "month": patients.monthly, "year": patients.yearly }});
         }
     }
 
-    async consultationDetails(visitorAppointments) {
-        var daily = 0,
-            weekly = 0,
-            monthly = 0,
-            yearly = 0;
-        if (visitorAppointments) {
-            await visitorAppointments.map((visitorAppointment) => {
-                var month = moment(visitorAppointment.startTime).month();
-                var currentMonth = moment().month();
-                if (moment(visitorAppointment.startTime).year() === moment().year()) {
-                    yearly = yearly + 1;
-                    if (++month === ++currentMonth) {
-                        monthly = monthly + 1;
-                        if (moment(visitorAppointment.startTime).date() === moment().date()) {
-                            daily = daily + 1;
-                        }
-                        if (moment(visitorAppointment.startTime).week() === moment().week()) {
-                            weekly = weekly + 1;
-                        }
-                    }
-                }
-            });
-            return ({ "today": daily, "week": weekly, "month": monthly, "year": yearly });
-        } else {
-            return ({ "today": daily, "week": weekly, "month": monthly, "year": yearly });
-        }
-    }
+    // consultationDetails(billings) {
+    //     var daily = 0,
+    //         weekly = 0,
+    //         monthly = 0,
+    //         yearly = 0;
+    //     if (billings) {
+    //         billings.map((billing) => {
+    //             var month = moment(billing.startTime).month();
+    //             var currentMonth = moment().month();
+    //             if (moment(visitorAppointment.startTime).year() === moment().year()) {
+    //                 yearly = yearly + 1;
+    //                 if (++month === ++currentMonth) {
+    //                     monthly = monthly + 1;
+    //                     if (moment(visitorAppointment.startTime).date() === moment().date()) {
+    //                         daily = daily + 1;
+    //                     }
+    //                     if (moment(visitorAppointment.startTime).week() === moment().week()) {
+    //                         weekly = weekly + 1;
+    //                     }
+    //                 }
+    //             }
+    //         });
+    //         return ({ "today": daily, "week": weekly, "month": monthly, "year": yearly });
+    //     } else {
+    //         return ({ "today": daily, "week": weekly, "month": monthly, "year": yearly });
+    //     }
+    // }
 
     generatePdf(pdfData, groupId, callback) {
         var date = moment().utcOffset(330).format('DD-MM-YYYYTHH-mm-ss-SSS');
@@ -642,7 +664,6 @@ class DoctorService {
                     visitorId: pdfData.userId
                 }
             }).then((prescription) => {
-                console.log(prescription);
                 var prescription = {
                     url: fileName.fileName,
                     analysis: prescription.analysis,
@@ -672,10 +693,9 @@ class DoctorService {
     }
 
     getAllEssentialDoctorDetails(limit, offset, callback){
-        console.log(limit);
-        console.log(offset);
         sequelize.query(`
-        select d.userId, d.workHistory, da.title, dm.url, ds.value from doctor as d
+        select d.userId, u.name, d.workHistory, da.title as activity, dm.url as sigUrl, ds.value as profSocieties from doctor as d
+        left join (select concat(firstname,' ',lastname)as name, id  from user) u on d.userId = u.id
         left join (select title, doctorId from doctor_activities) da on d.userId = da.doctorId
         left join (select url, userId from doctor_media where type='signature') dm on dm.userId = d.userId
         left join (select value, userId from doctor_store where type='ProfessionalSocieties') ds on ds.userId = d.userId
@@ -686,14 +706,78 @@ class DoctorService {
             if(error){
                 log.error('Error while getting doctors list and details for admin dashboard '+error);
             } else {
-                log.info(result);
                 callback(result);
             }
         })
     }
     
+    updateEssentialDoctorDetails(doctorId, body, callback){
+        let groupUpdate = [];
+        if(body.workHistory){
+            let workHistory = () => {
+                return doctorModel.doctor.update({'workhistory': body.workHistory},{where : { userId: doctorId}, sideEffects: false }).then((out)=>{
+                }).catch(err => log.info(err));
+            }
+            groupUpdate.push(workHistory);
+        }
+        if(body.activity){
+            let activity = () => {
+                if(body.activity.operation==='update'){
+                    return doctorActivityModel.doctor_activities.update({
+                        'title': body.activity.value,
+                        'mediaUrl': body.activity.url
+                    },{where : { doctorId: doctorId} }).then((out)=>{
+                    }).catch(err => log.info(err));
+                } else {    
+                    return doctorActivityModel.doctor_activities.create({
+                        'title': body.activity.value,
+                        'doctorId': doctorId,
+                        'mediaType': 'image',
+                        'mediaUrl' : body.activity.url
+                    }).then((out)=>{
+                    }).catch(err => log.info(err));
+                }
+            }
+            groupUpdate.push(activity);
+        }
+        if(body.signature){
+            let signature = () => {
+                if(body.signature.operation==='update'){
+                    return doctorMediaModel.doctor_media.update({'title': body.signature.url},{where : { doctorId: doctorId, type: 'signature'} }).then((out)=>{
+                    }).catch(err => log.info(err));
+                } else {    
+                    return doctorMediaModel.doctor_media.create({
+                        'userId': doctorId,
+                        'url': body.signature.url,
+                        'type': 'signature'
+                    }).then((out)=>{
+                    }).catch(err => log.info(err));
+                }
+            }
+            groupUpdate.push(signature);
+        }
+        if(body.professionalSocieties){
+            let profSocieties = () => {
+                if(body.professionalSocieties.operation==='update'){
+                    return doctorStoreModel.doctor_store.update({'value': body.professionalSocieties.value},{where : { userId: doctorId, type: 'ProfessionalSocieties'} }).then((out)=>{
+                    }).catch(err => log.info(err));
+                } else {    
+                    return doctorActivityModel.doctor_activities.create({
+                        'userId': doctorId,
+                        'type': 'ProfessionalSocieties',
+                        'value': body.professionalSocieties.value,
+                    }).then((out)=>{
+                    }).catch(err => log.info(err));
+                }
+            }
+            groupUpdate.push(profSocieties);
+        }
+        Promise.all([workHistory(),activity()]).then((res)=>{
+            callback('Success');
+        })
+    }
+
     setAllEssentialDoctorDetails(params, data, callback){
-        console.log(offset);
         sequelize.query(`
         select d.userId, d.workHistory, da.title, dm.url, ds.value from doctor as d
         left join (select title, doctorId from doctor_activities) da on d.userId = da.doctorId
@@ -704,9 +788,8 @@ class DoctorService {
         `,
         {type: sequelize.QueryTypes.SELECT}).then((result, error) => {
             if(error){
-                console.log(error);
+                log.info(error);
             } else {
-                console.log(result);
                 callback(result);
             }
         })

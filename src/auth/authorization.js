@@ -40,7 +40,6 @@ passport.use(new LocalStrategy({
                         return done(null, false, { message: 'Incorrect password. Try again.' });
                     } else {
                         delete user.dataValues.password;
-                        console.log(user);
                         // Passwords match
                         if(!user.firstLogin && user.role==="doctor"){
                             let userupdate={
@@ -49,11 +48,10 @@ passport.use(new LocalStrategy({
                                 socketId:[]
                             };
                             userService.updateRegisteredUser(userupdate,(result)=>{
-                                console.log(result);
-                                console.log('User update to first login');
+                                log.info('User updated to first login');
                             });
-                            doctorService.updateDoctorSchedule({status:'online'}, user.id, (doctorUpdated)=>{
-                                console.log('Doctor status updated as first login');
+                            doctorService.updateDoctorSchedule({status:'Online'}, user.id, (doctorUpdated)=>{
+                                log.info('Doctor status updated as first login');
                                 log.info('Logged In Successfully');
                                 return done(null, user, { message: 'Logged In Successfully' });
                             })

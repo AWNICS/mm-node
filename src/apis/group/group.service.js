@@ -756,8 +756,8 @@ class GroupService {
                                 };
                                 this.createGroupForConsultation(group, doctorId, patientId, (newGroup) => {
                                     callback(newGroup);
-                                    doctorService.updateDoctorSchedule({ status: 'busy' }, doctorId, (statusUpdated) => {
-                                        console.log('status updated')
+                                    doctorService.updateDoctorSchedule({ status: 'Busy' }, doctorId, (statusUpdated) => {
+                                        log.info('Doctor Status Updated to Busy after creating new group')
                                     })
                                 });
                             }
@@ -813,7 +813,7 @@ class GroupService {
                                         receiverType: 'group',
                                         senderId: user.id,
                                         senderName: user.firstname + ' ' + user.lastname,
-                                        text: 'Welcome to Mesomeds! Doctor will join the group in 2-3 minutes',
+                                        text: 'Welcome to Mesomeds! Please fill in the below form',
                                         createdBy: user.id,
                                         updatedBy: user.id,
                                         createdTime: Date.now(),
@@ -821,85 +821,6 @@ class GroupService {
                                     };
                                     messageService.sendMessage(msg, (result) => {
                                         callback(createdGroup);
-                                    });
-                                    //create notification for the doctor
-                                    doctorService.getById(doctorId, (doctor) => {
-                                        if (doctor.doctorDetails.speciality) {
-                                            userService.getById(patientId, (user) => {
-                                                if (user) {
-                                                    var notification = {
-                                                        userId: doctorId,
-                                                        type: 'consultation',
-                                                        title: `Consultation with ${user.firstname} ${user.lastname}`,
-                                                        content: {
-                                                            speciality: doctor.doctorDetails.speciality,
-                                                            consultationId: createdGroup.id
-                                                        },
-                                                        status: 'created',
-                                                        channel: 'web',
-                                                        priority: 1,
-                                                        template: '',
-                                                        triggerTime: moment().add(45, 's'),
-                                                        createdBy: user.id,
-                                                        updatedBy: user.id
-                                                    };
-                                                    notificationService.create(notification, (notificationCreated) => {
-                                                        if (notificationCreated) {
-                                                            console.log(Date.now());
-                                                            userService.getById(doctorId, (doctorDetails) => {
-                                                                //code for sending notification as email and SMS also
-                                                                var emailNotification = {
-                                                                    userId: doctorId,
-                                                                    type: 'consultation',
-                                                                    title: `Consultation with ${user.firstname} ${user.lastname}`,
-                                                                    content: {
-                                                                        speciality: doctor.doctorDetails.speciality,
-                                                                        consultationId: createdGroup.id
-                                                                    },
-                                                                    status: 'created',
-                                                                    channel: 'email',
-                                                                    priority: 0,
-                                                                    template: {
-                                                                        from: "test.arung@gmail.com",
-                                                                        to: doctorDetails.email,
-                                                                        body: `You have a consultation with ${user.firstname} ${user.lastname} at ${notificationCreated.triggerTime}.`
-                                                                    },
-                                                                    triggerTime: moment().add(1, 'm'),
-                                                                    createdBy: user.id,
-                                                                    updatedBy: user.id
-                                                                };
-                                                                notificationService.create(emailNotification, (emailNotificationCreated) => {
-                                                                    emailConfig
-                                                                        .send({
-                                                                            template: 'notification-doctor',
-                                                                            message: {
-                                                                                to: 'nilu.kumari@awnics.com' //doctor email
-                                                                            },
-                                                                            locals: {
-                                                                                subject: emailNotificationCreated.title,
-                                                                                patientName: user.firstname + ' ' + user.lastname,
-                                                                                patientEmail: user.email, //user email id
-                                                                                doctorName: 'Dr.' + ' ' + doctorDetails.firstname + ' ' + doctorDetails.lastname,
-                                                                                priority: emailNotificationCreated.priority,
-                                                                                triggerTime: emailNotificationCreated.triggerTime,
-                                                                                type: emailNotificationCreated.type
-                                                                            }
-                                                                        })
-                                                                        .then(res => {
-                                                                            log.info('Email sent successfully to doctor for user email id: ' + user.email);
-                                                                        })
-                                                                        .catch(error =>
-                                                                            log.error('Error while sending notification to doctor', error)
-                                                                        );
-                                                                });
-                                                                //for SMS notification message
-                                                                userService.sendTextMessage(doctorId, doctorDetails.phoneNo, messageConfig.authkey, messageConfig.country, messageConfig.notificationMessage, doctorDetails.firstname + ' ' + doctorDetails.lastname, 'Message Notification', 'Notification Message sent');
-                                                            });
-                                                        }
-                                                    });
-                                                }
-                                            });
-                                        }
                                     });
                                 }
                             }));

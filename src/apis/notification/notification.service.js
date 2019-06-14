@@ -19,12 +19,9 @@ class NotificationService {
     }
 
     readByTime(callback) {
-        var currentTime = new Date();
-        var lowerLimit = currentTime.setSeconds(0);
-        var upperLimit = currentTime.setSeconds(40);
-        // console.log('lowerlimit'+lowerLimit);
-        // console.log(moment().add(45, 's'));
-        // console.log('upperlimit'+upperLimit);
+        var currentTime = Date.now();
+        var lowerLimit = currentTime - 5 * 60 * 1000;
+        var upperLimit = currentTime;
         notificationModel.notification.findAll({
                 where: {
                     triggerTime: {
@@ -32,6 +29,7 @@ class NotificationService {
                         [Op.lt]: upperLimit
                     },
                     channel: 'web',
+                    status: 'created'
                 }
             })
             .then(notifications => {
@@ -64,7 +62,7 @@ class NotificationService {
                 userId: userId,
                 channel: 'web',
                 status: {
-                    [Op.eq]: 'sent'
+                    [Op.or]: ['sent','created']
                 }
             },
             order: [
@@ -74,6 +72,30 @@ class NotificationService {
             limit: size
         }).then((notifications) => {
             callback(notifications);
+            let count = 0;
+            notifications.map((notification) => {
+                if(notification.status === 'created'){
+                    count++;
+                }
+            })
+            //this step to save db operation when db is in cloud
+            if(count > 0){
+                notificationModel.notification.update({status: 'sent'}, { where: {
+                    userId: userId,
+                    channel: 'web',
+                    status: {
+                        [Op.or]: ['created']
+                    }
+                },
+                sideEffects: false,
+                limit: size,
+                offset: offset
+            }).then((done) => {
+                log.info(`Updated user with id ${userId} notification status to sent`);
+            }).catch(err => {
+                log.error(`Error while updating user with  id ${userId} notifications to read `+err);
+            })
+            }
         }).catch((err) => {
             log.error('Error while fetching notifications by userId ', err);
             callback({
@@ -81,7 +103,20 @@ class NotificationService {
             });
         });
     }
-
+    clearAllNotifications(userId, callback) {
+        notificationModel.notification.update({status: 'read'}, {where: {
+            status: {
+                [Op.or]: ['sent','created']
+            },
+            userId: userId
+        }, sideEffects: false}).then((success) => {
+        log.info('Successfully cleared notifications for user with id ' + userId);
+        callback({'status':'success','message':'Update Success'})
+    }).catch((err) => {
+        log.error('Failed to cleare notifications for user with id ' + userId + ' '+ err);
+        callback({'status':'failed','message':'Error while updating'})
+    })
+    }
     sendOtp(message, mobileNo, callback) {
         var options = {
             "method": "POST",
