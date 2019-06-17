@@ -38,6 +38,9 @@ module.exports = (sequelize, DataTypes) => {
         phase: {
             type: DataTypes.STRING //active,inactive,archive,botInactive
         },
+        emergency_message: {
+            type: DataTypes.BOOLEAN
+        },
         requireInfo: {
             type: DataTypes.BOOLEAN,
             defaultValue: true

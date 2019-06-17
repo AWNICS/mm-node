@@ -6,7 +6,8 @@ import log from '../../config/log4js.config';
 DAO for Doctor activity api
 */
 class DoctorActivityDao {
-    constructor() {}
+    constructor() {
+    }
 
     /**
      * insert method
@@ -38,7 +39,9 @@ class DoctorActivityDao {
      * read method based on id
      */
     readById(doctorId, callback) {
-        doctorActivityModel.doctor_activities.findAll({ where: { doctorId: doctorId } }).then((doctorActivity) => {
+        console.log('limit')
+        doctorActivityModel.doctor_activities.findAll({ where: { doctorId: doctorId }, limit: 10 }).then((doctorActivity) => {
+            console.log(doctorActivity);
             callback(doctorActivity);
         });
     }

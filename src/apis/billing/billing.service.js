@@ -127,14 +127,14 @@ class BillingService {
 
     //billing by visitorId
     getAllBillingByVisitorId(visitorId, page, callback) {
-        var offset = ((5 * page) - 5);
+        var offset = ((20 * page) - 20);
         sequelize.query(`
         select b.*,u.firstname,u.lastname,u.picUrl
          from billing as b 
          inner join 
          user u on b.doctorId = u.id  
          where b.visitorId = ${visitorId}
-         limit 5 offset ${offset};
+         limit 20 offset ${offset};
         `, { type: sequelize.QueryTypes.SELECT }).then((result)=>{
             callback(result);
         })
@@ -171,14 +171,14 @@ class BillingService {
 
     //get billing by doctorId
     getAllBillingByDoctorId(doctorId, page, callback) {
-        var offset = ((5 * page) - 5);
+        var offset = ((20 * page) - 20);
         sequelize.query(`
         select b.*,u.firstname,u.lastname,u.picUrl
          from billing as b 
          inner join 
          user u on b.visitorId = u.id  
          where b.doctorId = ${doctorId}
-         limit 5 offset ${offset};
+         limit 20 offset ${offset};
         `, { type: sequelize.QueryTypes.SELECT }).then((result)=>{
             callback(result);
         });

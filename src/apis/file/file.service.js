@@ -7,7 +7,6 @@ class FileService {
     constructor() {
         this.sharp = sharp;
     }
-
     createThumb(file, callback) {
             const image = sharp(file.buffer);
             image

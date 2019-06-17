@@ -21,6 +21,7 @@ import DoctorServce from '../doctor/doctor.service';
 import VisitorPrescriptionDao from '../visitor/visitor-prescription.dao';
 import groupUserMapModel from '../group/index';
 import msgconfig from '../../config/message.config';
+import emailConfig from '../../config/email.config';
 
 const moment = require('moment');
 const Op = require('sequelize').Op;
@@ -35,6 +36,7 @@ const groupDao = new GroupDao();
 const doctorService = new DoctorServce();
 const visitorService = new VisitorService();
 const visitorPrescriptionDao = new VisitorPrescriptionDao();
+var notifyMessages = {};
 
 exports.connectSocket = (io) => {
     io.use(function(socket, next) {
@@ -51,22 +53,28 @@ exports.connectSocket = (io) => {
         .on('connection', function(socket) {
             socket.on('disconnect', (type) => {
                 log.info('Socket disconnected with id '+ socket.id);
-                console.log(type);
-                let userId = socket.decoded.data.id;
-                userService.getById(userId, (user) => {
-                    let socketId = [];
-                    if (user.socketId !== null) {
-                        socketId = user.socketId;
-                    }
-                    socketId.splice(socketId.indexOf(socket.id), 1);
-                    userService.updateRegisteredUser({
-                        'id': userId,
-                        'socketId': socketId,
-                        'status': 'offline'
-                    }, () => {});
-                });
+                console .log(type);
                 if (type === 'transport close') {
+                    let userId = socket.decoded.data.id;
                     log.info('User disconnected with ID: ' + userId);
+                    userService.getById(userId, (user) => {
+                        let socketId = [];
+                        if (user.socketId !== null) {
+                            socketId = user.socketId;
+                        }
+                        socketId.splice(socketId.indexOf(socket.id), 1);
+                        console.log(socketId.length);
+                        if(user.role==='doctor' && socketId.length === 0){
+                                doctorService.updateDoctorSchedule({ status: 'Offline' }, userId, (statusUpdated) => {
+                                    log.info('Doctor status updated to offline as there are no active sockets');
+                        });
+                    }
+                        userService.updateRegisteredUser({
+                            'id': userId,
+                            'socketId': socketId,
+                            'status': 'offline'
+                        }, () => {});
+                    });
                     //         consultationGroupModel.consultation_group.findAll({where:{userId:userId,name:'MedHelp'}}).then((result)=>{
                     //             if(result){
                     //         groupService.getAllGroupMapsByUserId(userId, (gumaps) => {
@@ -96,6 +104,21 @@ exports.connectSocket = (io) => {
                     //         })
                     //     }
                     // })
+                } else {   
+                    let userId = socket.decoded.data.id;
+                    log.info('User disconnected with ID: ' + userId);
+                    userService.getById(userId, (user) => {
+                        let socketId = [];
+                        if (user.socketId !== null) {
+                            socketId = user.socketId;
+                        }
+                        socketId.splice(socketId.indexOf(socket.id), 1);
+                        userService.updateRegisteredUser({
+                            'id': userId,
+                            'socketId': socketId,
+                            'status': 'offline'
+                        }, () => {});
+                    });
                 }
             })
 
@@ -109,6 +132,14 @@ exports.connectSocket = (io) => {
                             socketId = user.socketId;
                         }
                         socketId.push(socket.id);
+                        if(user.role==='doctor'){
+                            socketId.map((socket) => {
+                                io.in(socket).emit('received-doctor-status','Online')
+                            })
+                            doctorService.updateDoctorSchedule({ status: 'Online' }, userId, (statusUpdated) => {
+                                log.info('Doctor status updated to Online');
+                            });
+                        }
                         userService.updateRegisteredUser({
                             'id': userId,
                             'socketId': socketId,
@@ -200,150 +231,202 @@ exports.connectSocket = (io) => {
                 });
             });
 
-            socket.on('required-info', (msg1, values) => {
-                log.info('required info on'+socket.id);
-                let messages = [];
-                console.log(values);
-                Object.keys(values).map((key, index) => {
-                        const msg = JSON.parse(JSON.stringify(msg1));
+            socket.on('required-info', (msg1, values, doctorId) => {
+                log.info('required info on '+socket.id);
+                msg1.text = "Patients Name: " + msg1.senderName + "\r\n";
+                visitorService.readByVisitorIdHealth(msg1.senderId, (visitorHealth)=>{
+                    Object.keys(values).map((key, index) => {
                         if (key === 'issue') {
-                            msg.text = 'Patients Issue: ' + values[key];
-                            messages.push(msg);
+                            msg1.text += "Issue: " + values[key] + "\r\n";
                           } else if (key === 'sex') {
-                            msg.text = 'Patients Sex: ' + values[key];
-                            messages.push(msg);
+                            msg1.text += "Sex: " + values[key] + "\r\n";
                             visitorModel.visitor.update({sex : values[key]}, { where : {
                                 userId : msg1.senderId
                             },
                             sideEffects: false
                         }).then((result) => {
-                            log.info("Updated gender for user with id: "+ msg.receiverId)
-                        }).catch(err => log.error('Error while updating gender for user: '+ msg.receiverId + err));
+                            log.info("Updated gender for user with id: "+ msg1.receiverId)
+                        }).catch(err => log.error('Error while updating gender for user: '+ msg1.receiverId + err));
                           } else if (key === 'age') {
-                            msg.text = 'Patients age: ' + values[key] + ' Years';
-                            messages.push(msg);
+                            msg1.text += "age: " + values[key] + " Years\r\n";
                           }
                 });
-                console.log(messages);
-                messages.map((msg, index) => {
-                    messageService.sendMessage(msg, (result) => {
-                        if(index+1 === messages.length){
+                if(visitorHealth[0]){
+                if(visitorHealth[0].allergies.length > 0){
+                    msg1.text += "Allergies: ";
+                    visitorHealth[0].allergies.map((allergy, index) => {
+                        msg1.text += allergy;
+                        if(index !== visitorHealth[0].allergies.length - 1 ){
+                            msg1.text += ", ";
+                        }
+                    })
+                   msg1.text += "\r\n" 
+                } else {
+                  msg1.text += "Allergies are not updated \n";
+                } 
+                if(visitorHealth[0].vitals.bloodPressure) {
+                  msg1.text += "BloodPressure: "+ visitorHealth[0].vitals.bloodPressure + "\r\n";
+              } else {
+                msg1.text += "BloodPressure is not updated \n";
+              }
+              if(visitorHealth[0].vitals.heartRate) {
+                  msg1.text += "HeartRate: "+ visitorHealth[0].vitals.heartRate + "\r\n";
+              } else {
+                msg1.text += "HeartRate is not updated \n";
+              }  } else {
+                msg1.text += "Allergies are not updated \n";
+                msg1.text += "BloodPressure is not updated \n";
+                msg1.text += "HeartRate is not updated \n";                  
+              }
+                                
+                    messageService.sendMessage(msg1, (result) => {
                             groupModel.consultation_group.update({ requireInfo : false}, {where: { 
-                                id: msg.receiverId
+                                id: msg1.receiverId
                             },
                             sideEffects: false
                         }).then((success)=>{
-                            io.in(socket.id).emit('required-info-receive', msg.receiverId);
-                            log.info('Sucessfully updated group requireinfo with groupid: '+ msg.receiverId);
+                            io.in(socket.id).emit('required-info-receive', msg1.receiverId);
+                        var patient;
+                        var botId;
+                        var messageToSend;
+                        groupService.getUsersByGroupId(msg1.receiverId, (user) => {
+                            if (user.role==='doctor') {
+                                // doctorId = user.id;
+                                // let socketIds = [];
+                                // socketIds = user.socketId;
+                                // if (socketIds !== null) {
+                                //     socketIds.map((socketId) => {
+                                //         io.in(socketId).emit('receive-message', result); //emit one-by-one for all users
+                                //     });
+                                // }
+                                // groupUserMapModel.consultation_group_user_map.increment('unreadCount', {
+                                //     where: {
+                                //         groupId: msg1.receiverId,
+                                //         userId: user.id
+                                //     }
+                                // }).then((a) => {
+                                //     log.info('Message count incremented for user: '+ user.firstname);
+                                // });
+                            } else if(user.role==='bot'){ 
+                                botId = user.id;
+                            var msg = {
+                                receiverId: msg1.receiverId,
+                                receiverType: 'group',
+                                senderId: user.id,
+                                senderName: user.firstname + ' ' + user.lastname,
+                                text: 'Welcome to Mesomeds! Doctor will join the group in 2-3 minutes',
+                                createdBy: user.id,
+                                updatedBy: user.id,
+                                createdTime: Date.now(),
+                                updatedTime: Date.now()
+                            };
+                            messageToSend = msg;
+                            messageService.sendMessage(msg, (result) => {
+                               log.info('Waiting message sent for group with id '+ msg1.receiverId);
+                            });
+                            } else if(user.role==='patient'){
+                                patient = user;
+                            }
+                            if(patient && botId){
+                                createNotification(doctorId, patient.id, msg1.receiverId);
+                            }
+                            if(patient && messageToSend){
+                                let socketIds = [];
+                                socketIds = patient.socketId;
+                                if (socketIds !== null) {
+                                    socketIds.map((socketId) => {
+                                        io.in(socketId).emit('receive-message', messageToSend); //emit one-by-one for all users
+                                    });
+                                }
+                            }
+                    });
+                            log.info('Sucessfully updated group requireinfo with groupid: '+ msg1.receiverId);
                         }).catch(err => {
                             log.error('Error while updating group requireinfo '+ err);
                         })
-                        }
-                        groupService.getUsersByGroupId(msg.receiverId, (user) => {
-                                if (user.role==='doctor') {
-                                    let socketIds = [];
-                                    socketIds = user.socketId;
-                                    if (socketIds !== null) {
-                                        socketIds.map((socketId) => {
-                                            io.in(socketId).emit('receive-message', result); //emit one-by-one for all users
-                                        });
-                                    }
-                                }
-                                if (user.role === 'doctor') {
-                                    groupUserMapModel.consultation_group_user_map.increment('unreadCount', {
-                                        where: {
-                                            groupId: msg.receiverId,
-                                            userId: user.id
-                                        }
-                                    }).then((a) => {
-                                        log.info('Message count incremented for user: '+ user.firstname);
-                                    });
-                                }
-                        });
-
-                          //create notification for the doctor
-                          doctorService.getById(doctorId, (doctor) => {
-                            if (doctor.doctorDetails.speciality) {
-                                userService.getById(patientId, (user) => {
-                                    if (user) {
-                                        var notification = {
-                                            userId: doctorId,
-                                            type: 'consultation',
-                                            title: `Consultation with ${user.firstname} ${user.lastname}`,
-                                            content: {
-                                                speciality: doctor.doctorDetails.speciality,
-                                                consultationId: createdGroup.id
-                                            },
-                                            status: 'created',
-                                            channel: 'web',
-                                            priority: 1,
-                                            template: '',
-                                            triggerTime: moment().add(15, 's'),
-                                            createdBy: user.id,
-                                            updatedBy: user.id
-                                        };
-                                        notificationService.create(notification, (notificationCreated) => {
-                                            if (notificationCreated) {
-                                                userService.getById(doctorId, (doctorDetails) => {
-                                                    //code for sending notification as email and SMS also
-                                                    var emailNotification = {
-                                                        userId: doctorId,
-                                                        type: 'consultation',
-                                                        title: `Consultation with ${user.firstname} ${user.lastname}`,
-                                                        content: {
-                                                            speciality: doctor.doctorDetails.speciality,
-                                                            consultationId: createdGroup.id
-                                                        },
-                                                        status: 'created',
-                                                        channel: 'email',
-                                                        priority: 0,
-                                                        template: {
-                                                            from: "test.arung@gmail.com",
-                                                            to: doctorDetails.email,
-                                                            body: `You have a consultation with ${user.firstname} ${user.lastname} at ${notificationCreated.triggerTime}.`
-                                                        },
-                                                        triggerTime: moment().add(1, 'm'),
-                                                        createdBy: user.id,
-                                                        updatedBy: user.id
-                                                    };
-                                                    notificationService.create(emailNotification, (emailNotificationCreated) => {
-                                                        emailConfig
-                                                            .send({
-                                                                template: 'notification-doctor',
-                                                                message: {
-                                                                    to: 'nilu.kumari@awnics.com' //doctor email
-                                                                },
-                                                                locals: {
-                                                                    subject: emailNotificationCreated.title,
-                                                                    patientName: user.firstname + ' ' + user.lastname,
-                                                                    patientEmail: user.email, //user email id
-                                                                    doctorName: 'Dr.' + ' ' + doctorDetails.firstname + ' ' + doctorDetails.lastname,
-                                                                    priority: emailNotificationCreated.priority,
-                                                                    triggerTime: emailNotificationCreated.triggerTime,
-                                                                    type: emailNotificationCreated.type
-                                                                }
-                                                            })
-                                                            .then(res => {
-                                                                log.info('Email sent successfully to doctor for user email id: ' + user.email);
-                                                            })
-                                                            .catch(error =>
-                                                                log.error('Error while sending notification to doctor', error)
-                                                            );
-                                                    });
-                                                    //for SMS notification message
-                                                    userService.sendTextMessage(doctorId, doctorDetails.phoneNo, messageConfig.authkey, messageConfig.country, messageConfig.notificationMessage, doctorDetails.firstname + ' ' + doctorDetails.lastname, 'Message Notification', 'Notification Message sent');
-                                                });
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                        });
-
                     });
-                })
+                });
             });
-
+            function createNotification(doctorId, patientId, groupId) {
+                //create notification for the doctor
+                doctorService.getById(doctorId, (doctor) => {
+                  if (doctor.doctorDetails.speciality) {
+                      userService.getById(patientId, (user) => {
+                          if (user) {
+                              var notification = {
+                                  userId: doctorId,
+                                  type: 'consultation',
+                                  title: `Consultation with ${user.firstname} ${user.lastname}`,
+                                  content: {
+                                      speciality: doctor.doctorDetails.speciality,
+                                      consultationId: groupId
+                                  },
+                                  status: 'created',
+                                  channel: 'web',
+                                  priority: 1,
+                                  template: '',
+                                  triggerTime: moment().add(15, 's'),
+                                  createdBy: user.id,
+                                  updatedBy: user.id
+                              };
+                              notificationService.create(notification, (notificationCreated) => {
+                                  if (notificationCreated) {
+                                      userService.getById(doctorId, (doctorDetails) => {
+                                          //code for sending notification as email and SMS also
+                                          var emailNotification = {
+                                              userId: doctorId,
+                                              type: 'consultation',
+                                              title: `Consultation with ${user.firstname} ${user.lastname}`,
+                                              content: {
+                                                  speciality: doctor.doctorDetails.speciality,
+                                                  consultationId: groupId
+                                              },
+                                              status: 'created',
+                                              channel: 'email',
+                                              priority: 0,
+                                              template: {
+                                                  from: "support@awnics.com",
+                                                  to: doctorDetails.email,
+                                                  body: `You have a consultation with ${user.firstname} ${user.lastname} at ${notificationCreated.triggerTime}.`
+                                              },
+                                              triggerTime: moment().add(10, 's'),
+                                              createdBy: user.id,
+                                              updatedBy: user.id
+                                          };
+                                          notificationService.create(emailNotification, (emailNotificationCreated) => {
+                                              emailConfig
+                                                  .send({
+                                                      template: 'notification-doctor',
+                                                      message: {
+                                                          to: doctorDetails.email //doctor email
+                                                      },
+                                                      locals: {
+                                                          subject: emailNotificationCreated.title,
+                                                          patientName: user.firstname + ' ' + user.lastname,
+                                                          patientEmail: user.email, //user email id
+                                                          doctorName: 'Dr.' + ' ' + doctorDetails.firstname + ' ' + doctorDetails.lastname,
+                                                          priority: emailNotificationCreated.priority,
+                                                          triggerTime: emailNotificationCreated.triggerTime,
+                                                          type: emailNotificationCreated.type
+                                                      }
+                                                  })
+                                                  .then(res => {
+                                                      log.info('Email sent successfully to doctor for user email id: ' + doctorDetails.email);
+                                                  })
+                                                  .catch(error =>
+                                                      log.error('Error while sending notification to doctor', error)
+                                                  );
+                                          });
+                                          //for SMS notification message
+                                          userService.sendTextMessage(doctorId, doctorDetails.phoneNo, msgconfig.authkey, msgconfig.country, msgconfig.notificationMessage, doctorDetails.firstname + ' ' + doctorDetails.lastname, 'Message Notification', 'Notification Message sent');
+                                      });
+                                  }
+                              });
+                          }
+                      });
+                  }
+              });
+            }
             /**
              * for sending message to group/user which is emitted from client(msg with an groupId/userId)
              */
@@ -351,6 +434,14 @@ exports.connectSocket = (io) => {
                 // if it is a group message
                 if (msg.receiverType === "group") {
                     messageService.sendMessage(msg, (result) => {
+                        if(notifyMessages[msg.receiverId] && msg.senderId === notifyMessages[msg.receiverId].doctorId){
+                            clearTimeout(notifyMessages[msg.receiverId].timerId);
+                            var message = msgconfig.adminNotifySuccessMessage;
+                            message = message.replace('patient1', socket.decoded.data.firstname + ' ' + socket.decoded.data.lastname)
+                            userService.sendTextMessage(user.id, msgconfig.adminContact, msgconfig.authkey, msgconfig.country, message, user.firstname +
+                                    ' ' + user.lastname, 'adminNotifyMessage', "Emergency message admin notify");
+                            log.info('Cleared timer for doctor notify for group '+msg.receiverId);
+                        }
                         groupService.getUsersByGroupId(msg.receiverId, (user) => {
                                 if (user.role !== 'bot') {
                                     let socketIds = [];
@@ -372,11 +463,27 @@ exports.connectSocket = (io) => {
                                     });
                                 }
                                 if (user.role === 'doctor' && notify === 1) {
-                                    var message = msgconfig.doctorNotifyMessage;
-                                    message = message.replace('patient1', socket.decoded.data.firstname + ' ' + socket.decoded.data.lastname)
-                                    userService.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, message, user.firstname +
-                                        ' ' + user.lastname, 'doctorNotifyMessage', "Inactive Consultation doctor notify");
-                                    log.info('Message sent for doctor notification for user id '+ user.id);
+                                    groupModel.consultation_group.update({emergency_message: false},{where : {id: group.id}, sideEffects: false}).then((res) =>{
+                                        log.info('Updated group emergency message to false for group id: '+group.id);
+                                    })
+                                    const timerID = setTimeout(() => {
+                                        var message = msgconfig.doctorNotifyMessage;
+                                        message = message.replace('patient1', socket.decoded.data.firstname + ' ' + socket.decoded.data.lastname)
+                                        userService.sendTextMessage(user.id, user.phoneNo, msgconfig.authkey, msgconfig.country, message, user.firstname +
+                                            ' ' + user.lastname, 'doctorNotifyMessage', "Emergency message doctor notify");
+                                        var message1 = msgconfig.adminNotifyMessage;
+                                        message1 = message1.replace('patient1', socket.decoded.data.firstname + ' ' + socket.decoded.data.lastname)
+                                        userService.sendTextMessage(user.id, msgconfig.adminContact, msgconfig.authkey, msgconfig.country, message1, user.firstname +
+                                                ' ' + user.lastname, 'adminNotifyMessage', "Emergency message admin notify");
+                                        log.info('Message sent for emergency doctor notification for user id '+ user.id);
+                                        delete notifyMessages[msg.receiverId];
+                                    }, 30000);
+                                    let notification = {
+                                        doctorId: user.id,
+                                        timerId : timerID
+                                    }
+                                    notifyMessages[msg.receiverId] = notification;
+                                    log.info('Added trigger for doctor notification for groupID: '+ msg.receiverId);
                                 }
                         });
                     });
@@ -455,20 +562,20 @@ exports.connectSocket = (io) => {
                     });
                 }
 
-                //for media files emit event
-                if (msg.type === 'image' || msg.type === 'video' || msg.type === 'doc') {
-                    messageService.media(msg.receiverId, 1, 5, (media) => {
-                        userService.getById(msg.senderId, (user) => {
-                            let socketIds = [];
-                            socketIds = user.socketId;
-                            if (socketIds !== null) {
-                                socketIds.map((socketId) => {
-                                    io.in(socketId).emit('media-file', media);
-                                });
-                            }
-                        });
-                    });
-                }
+                // //for media files emit event
+                // if (msg.type === 'image' || msg.type === 'video' || msg.type === 'doc') {
+                //     // messageService.media(msg.receiverId, 1, 5, (media) => {
+                //         userService.getById(msg.senderId, (user) => {
+                //             let socketIds = [];
+                //             socketIds = user.socketId;
+                //             if (socketIds !== null) {
+                //                 socketIds.map((socketId) => {
+                //                     io.in(socketId).emit('media-file', media);
+                //                 });
+                //             }
+                //         });
+                //     // });
+                // }
             });
 
             socket.on('send-typing', (groupId, userName, prescription) => {
@@ -617,7 +724,7 @@ exports.connectSocket = (io) => {
                 });
             });
             //when user clicks consult now on doctor's list  page
-            socket.on('consult-now', (user, doctorId, doctorName, speciality, consultationMode, location) => {
+            socket.on('consult-now', (user, doctorId, doctorName, speciality, consultationMode, location, price) => {
         doctorService.getDoctorScheduleByDoctorId(doctorId,(schedule)=>{
             if(schedule[0].status==='Online'){
                 //this is to create billing entry for the user
@@ -634,7 +741,7 @@ exports.connectSocket = (io) => {
                         // consultationId: group.id,
                         orderId: orderId,
                         status: 'due',
-                        amount: '1',
+                        amount: price,
                         date: Date.now(),
                         description: `Consultation with Dr. ${doctorName}`
                     }
@@ -914,8 +1021,8 @@ exports.connectSocket = (io) => {
                             phase: 'botInactive',
                             details: result.details
                         };
-                        log.info('New Group Created'+ newGroup);
                         groupService.update(newGroup, (res) => {
+                            log.info('Group phase updated to botInActive id: '+ group.id);
                         })
                     })
                     //group phase = notArchived;    
@@ -968,8 +1075,13 @@ exports.connectSocket = (io) => {
                         let socketId = [];
                         if (user.socketId !== null) {
                             socketId = user.socketId;
-                        }
+                        } 
                         socketId.splice(socketId.indexOf(socket.id), 1);
+                        if(user.role==='doctor' && socketId.length === 0){
+                            doctorService.updateDoctorSchedule({ status: 'Offline' }, userId, (statusUpdated) => {
+                                log.info('Doctor status updated to offline as there are no active sockets');
+                            });
+                        }
                         userService.updateRegisteredUser({
                             'id': userId,
                             'status': 'offline',
@@ -1077,5 +1189,5 @@ exports.connectSocket = (io) => {
             });
         });
     }
-    setInterval(scheduler, 40000);
+    setInterval(scheduler, 20000);
 }

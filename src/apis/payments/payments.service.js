@@ -95,7 +95,7 @@ class PaymentService {
                 } else if (status === 'Aborted' || status === 'Failure' || status === 'Invalid') {
                     billingModel.billing.find({ where: { orderId: ccavPOST.orderNo } }).then((bill) => {
                         if (bill) {
-                    this.updateBillingEntry(status, ccavResponse, ccavPOST.orderNo, groupCreated.id, referenceNumber, transactionDateAndTime, transactionDate);
+                    this.updateBillingEntry(status, ccavResponse, ccavPOST.orderNo, 0, referenceNumber, transactionDateAndTime, transactionDate);
                     log.info('Transaction failed with status: ' + status);
                     let image = fs.readFileSync('images/payment_failed.png', { encoding: 'base64' });
                     let htmlcode =

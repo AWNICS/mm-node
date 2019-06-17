@@ -3,7 +3,9 @@ import DoctorService from '../doctor/doctor.service';
 import UserService from '../user/user.service';
 import Properties from '../../util/properties';
 import NotificationService from '../notification/notification.service';
-
+import doctorStoreModel from '../doctor/index';
+import doctorMediaModel from '../doctor/index';
+import doctorModel from '../doctor/index';
 const router = express.Router();
 const doctorService = new DoctorService();
 const userService = new UserService();
@@ -271,7 +273,37 @@ router.put('/resetPassword/:token', function(req, res) {
         res.send(result);
     });
 });
-
+// router.post('/admin/updateDoctorDetails', function(req, res){
+//     if(!req.query.secretkey){
+//         res.send('secret key required please pass in queryparams')
+//     } 
+//     if(req.query.secretkey !== 'updatesecret'){
+//         res.send('Invalid secret please pass the correct one')
+//     } else {
+//         if(!req.body.doctorId){
+//             res.send('Doctor Id is mandatory for updates')
+//         } else{
+//             let result = {};
+//             if(req.body.professionalsocieties){
+//                 doctorStoreModel.doctor_store.create({
+//                   userId: req.body.doctorId,
+//                   type: 'Professional Society',
+//                   value: req.body.professionalsocieties  
+//                 }).then((success) => {
+//                     result['professionalSocities'] = {status: 'success'}
+//                     res.send(result);
+//                 }).catch(err => {
+//                     result['professionalSocities'] = {status: 'failed',error: err};
+//                     log.error(err); 
+//                     res.send(result); 
+//                 });
+//             }
+//             if(req.body.workHistory){
+//                 doctorModel.doctor.update({workhistory: req.body.workHistory}, {where : {userId: req.body.doctorId}}).then(())
+//             }
+//         }
+//     }
+// })
 router.get('/send/otp/mobile/:mobileNo', (req, res) => {
     var mobileNo = req.params.mobileNo;
     var message = 'Your%20verfication%20code%20is:%20%23%23OTP%23%23';

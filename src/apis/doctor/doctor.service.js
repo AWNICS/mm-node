@@ -670,7 +670,7 @@ class DoctorService {
                     medication: prescription.medication,
                     diagnostic: prescription.diagnostic,
                     prescription: prescription.prescription
-                }
+                }   
                 visitorModel.visitor_prescription.update(prescription, {
                     where: {
                         consultationId: pdfData.consultationId,
@@ -681,12 +681,7 @@ class DoctorService {
             callback(fileName);
             groupDao.readById((pdfData.groupId), (groupDetails) => {
                 groupDao.update({ id: pdfData.groupId, details: groupDetails.details, prescription_generated: true }, (p) => {
-                    if (p === 1) {
                         log.info('Prescription generated for group with Id: ' + pdfData.groupId);
-                    } else {
-                        log.error('Error in updating prescription entry in group');
-                    }
-
                 })
             });
         });

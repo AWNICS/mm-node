@@ -822,6 +822,7 @@ class GroupService {
                                     messageService.sendMessage(msg, (result) => {
                                         callback(createdGroup);
                                     });
+                                  
                                 }
                             }));
                         });

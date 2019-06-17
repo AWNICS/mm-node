@@ -269,7 +269,7 @@ class UserService {
                 priority: 0,
                 template: {
                     to: templateTo,
-                    from: 'test.arung@gmail.com',
+                    from: 'support@awnics.com',
                     body: templateBody,
                     signature: '',
                     attachment: '',
@@ -313,7 +313,7 @@ class UserService {
             .send({
                 template: 'admin-doctor-registration',
                 message: {
-                    to: 'test.arung@gmail.com'
+                    to: 'support@awnics.com'
                 },
                 locals: {
                     userName: doctorDetails.firstname + ' ' + doctorDetails.lastname,
@@ -339,7 +339,7 @@ class UserService {
             .send({
                 template: 'admin-user-registration',
                 message: {
-                    to: 'test.arung@gmail.com'
+                    to: 'support@awnics.com'
                 },
                 locals: {
                     subject: 'User Registration',
@@ -521,7 +521,7 @@ class UserService {
                 .send({
                     template: 'admin-reset-password',
                     message: {
-                        to: 'test.arung@gmail.com'
+                        to: 'support@awnics.com'
                     },
                     locals: {
                         userName: user.firstname + ' ' + user.lastname,

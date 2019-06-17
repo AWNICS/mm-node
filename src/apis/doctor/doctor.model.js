@@ -74,8 +74,6 @@ module.exports = (sequelize, DataTypes) => {
         workhistory: {
             type: DataTypes.TEXT,
             get: function (){
-                console.log(this.getDataValue('workhistory'));
-                console.log(JSON.parse(this.getDataValue('workhistory')))
                 return JSON.parse(this.getDataValue('workhistory'))
             },
             set: function(workhistory) {

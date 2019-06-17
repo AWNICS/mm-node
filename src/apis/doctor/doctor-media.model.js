@@ -18,10 +18,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING
         },
         thumbUrl: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING //thumb url of pic or video snapshot
         },
         type: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING //value can be 'award','honour','signature','video'
         },
         createdBy: {
             type: DataTypes.INTEGER,

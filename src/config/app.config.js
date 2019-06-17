@@ -11,7 +11,6 @@ import http from 'http';
 import https from 'https';
 import fs from 'fs';
 import socket from 'socket.io';
-
 /**
  * import required files
  */
@@ -102,7 +101,6 @@ class Config {
             }
         });
     }
-
     configureRoutes() {
         // configuring routes
         this.app.get('/swagger.json', (req, res) => {

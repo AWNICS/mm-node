@@ -29,7 +29,7 @@ class LocationsDao {
      * read all method
      */
     readAll(callback) {
-        locationsModel.locations.findAll().then((locations) => {
+        locationsModel.locations.findAll({ order: [['name','ASC']]}).then((locations) => {
             callback(locations);
         });
     }

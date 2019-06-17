@@ -885,6 +885,14 @@ router.get('/visitors/:visitorId/timeline', (req, res) => {
  */
 router.get('/visitors/:visitorId/consultations', (req, res) => {
     var visitorId = req.params.visitorId;
+    var high = req.query.high;
+    var low = req.query.low;
+    visitorService.readAllConsultationsByVisitorId(visitorId, high, low, (results) => {
+        res.send(results);
+    });
+});
+router.get('/visitors/:visitorId/consultations/readall', (req, res) => {
+    var visitorId = req.params.visitorId;
     var page = parseInt(req.query.page);
     var size = parseInt(req.query.size);
     visitorService.readConsultationsByVisitorId(visitorId, page, size, (results) => {
@@ -899,7 +907,9 @@ router.get('/visitors/:visitorId/info', (req, res) => {
 });
 router.get('/visitors/:visitorId/reports', (req, res) => {
     var visitorId = req.params.visitorId;
-    visitorService.getReportsByVisitorId(visitorId, (results) => {
+    var high = req.query.high;
+    var low = req.query.low;
+    visitorService.getReportsByVisitorId(visitorId, high, low, (results) => {
         res.send(results);
     });
 });
@@ -915,7 +925,9 @@ router.get('/doctors/:doctorId/consultations', (req, res) => {
 
 router.get('/doctors/:doctorId/consultations/readall', (req, res) => {
     var doctorId = req.params.doctorId;
-    visitorService.getAllConsultationsByDoctorId(doctorId, (results) => {
+    var high = req.query.high;
+    var low = req.query.low;
+    visitorService.getAllConsultationsByDoctorId(doctorId, high, low, (results) => {
         res.send(results);
     });
 });

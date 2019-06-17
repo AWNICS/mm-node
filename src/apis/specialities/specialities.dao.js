@@ -29,7 +29,7 @@ class SpecialitiesDao {
      * read all method
      */
     readAll(callback) {
-        specialitiesModel.specialities.findAll().then((specialities) => {
+        specialitiesModel.specialities.findAll({order: [['name','ASC']]}).then((specialities) => {
             callback(specialities);
         });
     }

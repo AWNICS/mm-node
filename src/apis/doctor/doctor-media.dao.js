@@ -6,7 +6,6 @@ import log from '../../config/log4js.config';
 DAO for DoctorMedia api
 */
 class DoctorMediaDao {
-
     /**
      * insert method
      */

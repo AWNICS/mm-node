@@ -356,7 +356,7 @@ router.delete('/groupMessageMap/:id', (req, res) => {
  *         description: Return all media messages for this groupId
  */
 router.get('/messages/media/groups/:id', (req, res) => {
-    messageService.media((req.params.id), (req.query.page), (req.query.size), (messages) => {
+    messageService.media(parseInt(req.params.id), parseInt(req.query.page), parseInt(req.query.size), (messages) => {
         res.send(messages);
     });
 });

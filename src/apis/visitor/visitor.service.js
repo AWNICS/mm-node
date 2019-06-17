@@ -11,6 +11,7 @@ import visitorStoreModel from './index';
 import visitorAppointmentModel from './index';
 import log from '../../config/log4js.config';
 import visitorModel from './index';
+import visitorReportModel from './index';
 import VisitorTimelineDao from './visitor-timeline.dao';
 import UserDao from '../user/user.dao';
 import billingModel from '../billing/index';
@@ -189,12 +190,11 @@ class VisitorService {
 
     async readAppointmentHistory(visitorId, callback) {
         var consultations;
-        var reports = new Array(12);
-        var vitals = new Array(12);
-        await sequelize.query(`select u.firstname,u.lastname,u.picUrl,d.speciality,v.startTime,v.status from 
-        user as u, doctor as d, visitor_appointment as v where v.visitorId = ${visitorId} and 
-        v.doctorId = d.userId and
-        v.doctorId = u.id 
+        // var reports = new Array(12);
+        // var vitals = new Array(12);
+        await sequelize.query(`select u.firstname,u.lastname,u.picUrl,v.speciality,v.startTime,v.status from 
+        user as u, visitor_appointment as v where v.visitorId = ${visitorId} and 
+        v.doctorId = u.id  
         order by startTime desc 
         limit 10`,{type: sequelize.QueryTypes.SELECT}).then((result)=>{
             consultations = result;
@@ -215,46 +215,46 @@ class VisitorService {
         //     });
         // });
 
-        await visitorModel.visitor_report.findAll({
-            where: {
-                visitorId: visitorId
-            }
-        }).then((visitorReport) => {
-            reports.fill(0); //initialize the array with the initial value
-            visitorReport.map((report) => {
-                var createdAtMonth = report.createdAt.getUTCMonth();
-                var updatedAtMonth = report.updatedAt.getUTCMonth();
-                for (var i = createdAtMonth; i <= updatedAtMonth; i++) {
-                    reports[i] = reports[i] + 1;
-                }
-            });
-        });
+        // await visitorModel.visitor_report.findAll({
+        //     where: {
+        //         visitorId: visitorId
+        //     }
+        // }).then((visitorReport) => {
+        //     reports.fill(0); //initialize the array with the initial value
+        //     visitorReport.map((report) => {
+        //         var createdAtMonth = report.createdAt.getUTCMonth();
+        //         var updatedAtMonth = report.updatedAt.getUTCMonth();
+        //         for (var i = createdAtMonth; i <= updatedAtMonth; i++) {
+        //             reports[i] = reports[i] + 1;
+        //         }
+        //     });
+        // });
 
-        await visitorModel.visitor_health.findAll({
-            where: {
-                visitorId: visitorId
-            }
-        }).then((visitorHealth) => {
-            vitals.fill(0); //initialize the array with the initial value
-            visitorHealth.map((health) => {
-                var createdAtMonth = health.createdAt.getUTCMonth();
-                var updatedAtMonth = health.updatedAt.getUTCMonth();
-                for (var i = createdAtMonth; i <= updatedAtMonth; i++) {
-                    vitals[i] = vitals[i] + 1;
-                }
-            });
-        });
+        // await visitorModel.visitor_health.findAll({
+        //     where: {
+        //         visitorId: visitorId
+        //     }
+        // }).then((visitorHealth) => {
+        //     vitals.fill(0); //initialize the array with the initial value
+        //     visitorHealth.map((health) => {
+        //         var createdAtMonth = health.createdAt.getUTCMonth();
+        //         var updatedAtMonth = health.updatedAt.getUTCMonth();
+        //         for (var i = createdAtMonth; i <= updatedAtMonth; i++) {
+        //             vitals[i] = vitals[i] + 1;
+        //         }
+        //     });
+        // });
         //send the required history details to fill the consultation history graph on visitor-dashboard
         callback({
             "consultations": 
                  consultations
-            ,
-            "reports": {
-                "monthly": reports
-            },
-            "vitals": {
-                "monthly": vitals
-            }
+            // ,
+            // "reports": {
+            //     "monthly": reports
+            // },
+            // "vitals": {
+            //     "monthly": vitals
+            // }
         });
     }
 
@@ -334,6 +334,25 @@ class VisitorService {
         // order by v.updatedAt DESC
         // limit ${size}
         // offset ${(size * page - size)}
+    readAllConsultationsByVisitorId(visitorId, high, low, callback) {
+        console.log(low);
+        console.log(high);
+        sequelize.query(`
+        select vp.url as prescriptionUrl,vp.Instructions,vp.analysis,vp.issue ,v.speciality,v.status,
+        v.consultationMode,v.updatedAt,b.url as billingUrl,u.picUrl,u.firstname,u.lastname 
+        from 
+        (select * from visitor_appointment where visitorId = ${visitorId} and  createdAt between ${low} and ${high}) v
+        inner join billing b 
+        on v.visitorId = b.visitorId and v.consultationId = b.consultationId
+        left join visitor_prescription vp
+        on vp.consultationId = v.consultationId
+        left join user u 
+        on v.doctorId = u.id
+        order by v.updatedAt DESC
+        `,{type: sequelize.QueryTypes.SELECT}).then((prescriptions)=>{
+            callback({'prescriptions': prescriptions})
+        })
+    }
     readConsultationsByVisitorId(visitorId, page, size, callback) {
         sequelize.query(`
         select vp.url as prescriptionUrl,vp.Instructions,vp.analysis,v.speciality,v.status,
@@ -353,10 +372,21 @@ class VisitorService {
             callback({'prescriptions': prescriptions})
         })
     }
-    getReportsByVisitorId(visitorId, callback) {
-        visitorReportDao.readById(visitorId, (result) => {
-            callback(result);
+    getReportsByVisitorId(visitorId, high, low, callback) {
+        console.log(high)
+        console.log(low);
+        visitorReportModel.visitor_report.findAll({
+            where: { visitorId: visitorId,
+            createdAt: {
+                [Op.between]: [low, high]
+            }}
         })
+        .then((visitorReport) => {
+            callback(visitorReport);
+        });
+        // visitorReportDao.readById(visitorId, (result) => {
+        //     callback(result);
+        // })
     }
 
     async getDoctorDetail(visitorPrescriptions) {
@@ -380,14 +410,13 @@ class VisitorService {
         });
     }
     
-    getAllConsultationsByDoctorId(doctorId, callback) {
-
+    getAllConsultationsByDoctorId(doctorId, high, low, callback) {
         sequelize.query(`
-        select vp.url as prescriptionUrl,vp.Instructions,vp.analysis,v.speciality,v.status,
+        select vp.url as prescriptionUrl,vp.Instructions,vp.analysis,vp.issue, v.speciality,v.status,
         v.consultationMode,v.updatedAt,b.url as billingUrl,u.picUrl,u.firstname,u.lastname 
         from 
-        (select * from visitor_appointment where doctorId = ${doctorId}) v
-        inner join billing b 
+        (select * from visitor_appointment where doctorId = ${doctorId} and createdAt between ${low} and ${high}) v
+        left join billing b 
         on v.doctorId = b.doctorId and v.consultationId = b.consultationId
         left join visitor_prescription vp
         on vp.consultationId = v.consultationId
