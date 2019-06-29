@@ -436,10 +436,10 @@ exports.connectSocket = (io) => {
                     messageService.sendMessage(msg, (result) => {
                         if(notifyMessages[msg.receiverId] && msg.senderId === notifyMessages[msg.receiverId].doctorId){
                             clearTimeout(notifyMessages[msg.receiverId].timerId);
-                            var message = msgconfig.adminNotifySuccessMessage;
-                            message = message.replace('patient1', socket.decoded.data.firstname + ' ' + socket.decoded.data.lastname)
-                            userService.sendTextMessage(user.id, msgconfig.adminContact, msgconfig.authkey, msgconfig.country, message, user.firstname +
-                                    ' ' + user.lastname, 'adminNotifyMessage', "Emergency message admin notify");
+                            // var message = msgconfig.adminNotifySuccessMessage;
+                            // message = message.replace('patient1', socket.decoded.data.firstname + ' ' + socket.decoded.data.lastname)
+                            // userService.sendTextMessage(user.id, msgconfig.adminContact, msgconfig.authkey, msgconfig.country, message, user.firstname +
+                            //         ' ' + user.lastname, 'adminNotifyMessage', "Emergency message admin notify");
                             log.info('Cleared timer for doctor notify for group '+msg.receiverId);
                         }
                         groupService.getUsersByGroupId(msg.receiverId, (user) => {
@@ -477,7 +477,7 @@ exports.connectSocket = (io) => {
                                                 ' ' + user.lastname, 'adminNotifyMessage', "Emergency message admin notify");
                                         log.info('Message sent for emergency doctor notification for user id '+ user.id);
                                         delete notifyMessages[msg.receiverId];
-                                    }, 30000);
+                                    }, 3600000);
                                     let notification = {
                                         doctorId: user.id,
                                         timerId : timerID
